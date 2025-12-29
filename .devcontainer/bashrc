@@ -1,0 +1,33 @@
+# Hex-Do-Cube Development Container Bash Configuration
+
+# Add bun to PATH
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Helpful aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+# Git aliases
+alias gs='git status'
+alias gd='git diff'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git log --oneline --graph --decorate'
+
+# Development aliases
+alias dev='just dev'
+alias test='just test'
+alias build='just build'
+
+# Show welcome message
+echo ""
+echo "🎮 Hex-Do-Cube Development Environment"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Quick start:"
+echo "  just dev    - Start development server"
+echo "  just test   - Run tests"
+echo "  just build  - Build for production"
+echo ""
