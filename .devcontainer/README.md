@@ -4,9 +4,11 @@ This dev container provides a complete development environment for the Hex-Do-Cu
 
 ## What's Included
 
+The devcontainer is built from a custom Dockerfile that pre-installs all required tools:
+
 - **Node.js 22** - JavaScript runtime (LTS version)
-- **Bun** - Fast JavaScript runtime and package manager
-- **just** - Command runner for development tasks
+- **Bun** - Fast JavaScript runtime and package manager (installed via Dockerfile)
+- **just** - Command runner for development tasks (installed via Dockerfile)
 - **Git** - Version control
 - **GitHub CLI** - GitHub integration
 - **TypeScript** - Type-safe JavaScript
@@ -59,23 +61,33 @@ bun run <script>     # Run a package.json script
 
 The dev container automatically forwards port 5173 (Vite dev server) to your local machine.
 
+## Container Architecture
+
+The devcontainer uses a custom Dockerfile (`.devcontainer/Dockerfile`) that:
+1. Starts from the official TypeScript/Node.js devcontainer base image
+2. Installs system dependencies (curl, wget, git)
+3. Installs Bun as the `node` user
+4. Installs just as root to `/usr/local/bin`
+5. Verifies all installations during the build
+
+After the container is built, `bun install` runs automatically via `postCreateCommand` to install project dependencies.
+
 ## Troubleshooting
 
-### Setup script fails
-If the post-create setup fails, you can manually run:
-```bash
-bash .devcontainer/setup.sh
-```
+### Bun or just not found
+If `bun` or `just` commands are not available, the Docker image may need to be rebuilt:
+1. Rebuild the container from VS Code: Command Palette → "Dev Containers: Rebuild Container"
+2. Or rebuild from command line: `docker build -t hex-do-cube-dev .devcontainer/`
 
-### Bun not in PATH
-Reload your shell or run:
+### Bun not in PATH (if manually running containers)
+If running outside of the devcontainer setup, ensure:
 ```bash
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
 ```
 
 ### Dependencies not installing
-Manually install with:
+The `postCreateCommand` should automatically run `bun install`. If it fails, manually run:
 ```bash
 bun install
 ```
