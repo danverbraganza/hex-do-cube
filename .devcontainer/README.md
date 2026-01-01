@@ -9,6 +9,7 @@ The devcontainer is built from a custom Dockerfile that pre-installs all require
 - **Node.js 22** - JavaScript runtime (LTS version)
 - **Bun** - Fast JavaScript runtime and package manager (installed via Dockerfile)
 - **just** - Command runner for development tasks (installed via Dockerfile)
+- **bd** - Task tracking tool (installed via Dockerfile)
 - **Git** - Version control
 - **GitHub CLI** - GitHub integration
 - **TypeScript** - Type-safe JavaScript
@@ -57,6 +58,20 @@ bun remove <package> # Remove a dependency
 bun run <script>     # Run a package.json script
 ```
 
+## Task Tracking
+
+This project uses **bd** for task tracking:
+
+```bash
+bd init              # Initialize bd (humans run this once)
+bd                   # View current tasks
+bd add "Task name"   # Add a new task
+bd start <id>        # Start working on a task
+bd done <id>         # Mark task as complete
+```
+
+See AGENTS.md for more details on using bd for task tracking.
+
 ## Port Forwarding
 
 The dev container automatically forwards port 5173 (Vite dev server) to your local machine.
@@ -67,7 +82,7 @@ The devcontainer uses a custom Dockerfile (`.devcontainer/Dockerfile`) that:
 1. Starts from the official TypeScript/Node.js devcontainer base image
 2. Installs system dependencies (curl, wget, git)
 3. Installs Bun as the `node` user
-4. Installs just as root to `/usr/local/bin`
+4. Installs just and bd as root to `/usr/local/bin`
 5. Verifies all installations during the build
 
 After the container is built, `bun install` runs automatically via `postCreateCommand` to install project dependencies.

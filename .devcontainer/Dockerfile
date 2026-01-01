@@ -17,11 +17,14 @@ RUN curl -fsSL https://bun.sh/install | bash
 ENV BUN_INSTALL="/home/node/.bun"
 ENV PATH="${BUN_INSTALL}/bin:${PATH}"
 
-# Switch back to root to install just
+# Switch back to root to install just and bd
 USER root
 
 # Install just (command runner)
 RUN curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+
+# Install bd (task tracking tool)
+RUN curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
 
 # Switch back to node user for development
 USER node
@@ -30,4 +33,4 @@ USER node
 WORKDIR /workspace
 
 # Verify installations (these will show in build logs)
-RUN bun --version && just --version && node --version && npm --version
+RUN bun --version && just --version && bd --version && node --version && npm --version
