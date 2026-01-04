@@ -37,3 +37,7 @@ coverage/
 *.tmp
 .cache/
 .temp/
+
+# Task tracking (bd)
+.beads/*.db
+.beads/*.db-*

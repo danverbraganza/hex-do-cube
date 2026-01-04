@@ -10,15 +10,15 @@
 ## Repository Orientation
 
 * Always read, in order: `README.md` → `AGENTS.md` → `justfile` → `package.json` scripts → `CONTRIBUTING.md` (if present).
-* Treat existing config as canonical: `tsconfig*.json`, `vite.config.*`, `eslint*`, `prettier*`, `jest.config.*`.
+* Treat existing config as canonical: `tsconfig*.json`, `vite.config.*`, `eslint*`, `prettier*`.
 * Prefer to keep all files in Typescript.
 
 ### Technology Choices
 
-* Always add unit tests for the code that you are writing. Implement tests with jest.
+* Always add unit tests for the code that you are writing. Implement tests with `bun test`.
 * Use vite for serving the development server.
 * Use `just` and write a `justfile` for automating development and building commands
-* Use the repo’s package manager, `bun`. Do not switch package managers.
+* Use the repo's package manager, `bun`. Do not switch package managers.
 * Use the Bun version declared in `.bun-version`.
 
 ## Definition of Done (Green)
@@ -52,12 +52,13 @@ Use `just` as the primary interface. Maintain or add targets as needed:
 * Prefer `type` aliases by default; use `interface` only when you need declaration merging or `implements` semantics.
 * Keep functions small and pure where practical; isolate side-effects.
 
-## Testing Standards (Jest)
+## Testing Standards (Bun Test)
 
 * Add tests for any new or changed logic that has branching, parsing, calculations, or error paths.
 * Prefer table-driven tests for multiple cases.
 * Minimize mocking; test pure logic directly. Mock I/O boundaries only.
 * Place tests according to repo convention, which is `*.test.ts`.
+* Use Bun's built-in test runner (`bun test`) with standard `expect` API.
 
 
 ## Dependency Policy
@@ -94,3 +95,29 @@ Use `just` as the primary interface. Maintain or add targets as needed:
 
 * Never commit secrets or `.env` files. If new environment variables are needed, update `.env.example` and document them in `README.md`.
 * Treat user input as untrusted; validate and sanitize where applicable.
+
+## Landing the Plane (Session Completion)
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - Create issues for anything that needs follow-up
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work, update in-progress items
+4. **PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   bd sync
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. **Clean up** - Clear stashes, prune remote branches
+6. **Verify** - All changes committed AND pushed
+7. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds

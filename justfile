@@ -25,6 +25,10 @@ type-check:
 lint:
     bun run lint
 
+# Run tests
+test:
+    bun test
+
 # Preview production build
 preview:
     bun run preview
