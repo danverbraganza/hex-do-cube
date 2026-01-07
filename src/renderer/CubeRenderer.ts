@@ -14,6 +14,7 @@
 import * as THREE from 'three';
 import type { Cube } from '../models/Cube.js';
 import type { Cell, Position } from '../models/Cell.js';
+import { ValueSpriteRenderer } from './ValueSpriteRenderer.js';
 
 /**
  * Visual state for a cell (hover, selected, error)
@@ -77,6 +78,9 @@ export class CubeRenderer {
   // Raycaster for picking
   private raycaster: THREE.Raycaster = new THREE.Raycaster();
 
+  // Value sprite renderer for billboard sprites
+  private spriteRenderer: ValueSpriteRenderer;
+
   constructor(cube: Cube, config: CubeRendererConfig = {}) {
     this.cube = cube;
 
@@ -109,6 +113,16 @@ export class CubeRenderer {
 
     // Initialize all cell meshes
     this.initializeCellMeshes();
+
+    // Initialize sprite renderer for cell values
+    this.spriteRenderer = new ValueSpriteRenderer(cube, {
+      cellSize: this.config.cellSize,
+      cellGap: this.config.cellGap,
+      spriteSize: this.config.cellSize * 0.8, // Sprite slightly smaller than cell
+    });
+
+    // Add sprite container to main container
+    this.container.add(this.spriteRenderer.getContainer());
   }
 
   /**
@@ -234,6 +248,9 @@ export class CubeRenderer {
 
     mesh.material = this.getMaterialForCell(cell, state);
     mesh.userData.cell = cell;
+
+    // Update sprite for this cell
+    this.spriteRenderer.updateCell(position);
   }
 
   /**
@@ -247,6 +264,8 @@ export class CubeRenderer {
         }
       }
     }
+    // Update all sprites as well
+    this.spriteRenderer.updateAllSprites();
   }
 
   /**
@@ -292,6 +311,8 @@ export class CubeRenderer {
     if (mesh) {
       mesh.visible = visible;
     }
+    // Also update sprite visibility
+    this.spriteRenderer.setSpriteVisibility(position, visible);
   }
 
   /**
@@ -301,6 +322,8 @@ export class CubeRenderer {
     for (const mesh of this.cellMeshes.values()) {
       mesh.visible = visible;
     }
+    // Also update all sprites
+    this.spriteRenderer.setAllSpritesVisibility(visible);
   }
 
   /**
@@ -316,6 +339,8 @@ export class CubeRenderer {
         }
       }
     }
+    // Also filter sprites
+    this.spriteRenderer.filterSprites(predicate);
   }
 
   /**
@@ -361,10 +386,18 @@ export class CubeRenderer {
   }
 
   /**
+   * Get the sprite renderer
+   */
+  public getSpriteRenderer(): ValueSpriteRenderer {
+    return this.spriteRenderer;
+  }
+
+  /**
    * Update the cube reference (e.g., when loading a new puzzle)
    */
   public setCube(cube: Cube): void {
     this.cube = cube;
+    this.spriteRenderer.setCube(cube);
     this.clearAllStates();
     this.updateAllCells();
   }
@@ -373,6 +406,9 @@ export class CubeRenderer {
    * Dispose of all resources
    */
   public dispose(): void {
+    // Dispose of sprite renderer
+    this.spriteRenderer.dispose();
+
     // Dispose of geometry
     this.cellGeometry.dispose();
 
