@@ -44,3 +44,7 @@ check: type-check lint
 # Full rebuild (clean, install, and build)
 rebuild: clean install build
     @echo "✓ Full rebuild complete!"
+
+# Generate cached puzzle for fast game startup
+generate-puzzle:
+    bun run scripts/generate-puzzle.ts
