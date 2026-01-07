@@ -13,6 +13,7 @@
 import type { GameState } from '../models/GameState.js';
 import type { SceneManager } from '../renderer/SceneManager.js';
 import type { CellEditor } from './CellEditor.js';
+import type { InputController } from './InputController.js';
 import { isGameWon, validateGameState, type Difficulty } from '../models/GameState.js';
 
 /**
@@ -23,6 +24,8 @@ export interface GameUIConfig {
   container: HTMLElement;
   /** Reference to the scene manager for camera control */
   sceneManager: SceneManager;
+  /** Reference to the input controller for view transitions */
+  inputController: InputController;
   /** Reference to the cell editor for validation */
   cellEditor: CellEditor;
   /** Current game state */
@@ -40,6 +43,7 @@ export type NewGameCallback = (difficulty: Difficulty) => void;
 export class GameUI {
   private container: HTMLElement;
   private sceneManager: SceneManager;
+  private inputController: InputController;
   private cellEditor: CellEditor;
   private gameState: GameState;
 
@@ -57,6 +61,7 @@ export class GameUI {
   constructor(config: GameUIConfig) {
     this.container = config.container;
     this.sceneManager = config.sceneManager;
+    this.inputController = config.inputController;
     this.cellEditor = config.cellEditor;
     this.gameState = config.gameState;
 
@@ -237,8 +242,12 @@ export class GameUI {
 
   /**
    * Handle home button click
+   * Returns to canonical 3D rotational view, properly exiting face-on mode if active
    */
   private handleHomeButton(): void {
+    // Use InputController to properly coordinate all view components
+    this.inputController.returnTo3DView();
+    // Also reset camera to canonical isometric position
     this.sceneManager.resetCamera();
   }
 

@@ -464,6 +464,16 @@ export class InputController {
   }
 
   /**
+   * Programmatically return to 3D rotational view (public API for UI controls)
+   * This is the same as double-clicking the minimap or pressing the Home button
+   */
+  public returnTo3DView(): void {
+    if (this.viewMode === 'face-on') {
+      this.exitFaceOnView();
+    }
+  }
+
+  /**
    * Get the current view mode
    */
   public getViewMode(): ViewMode {
