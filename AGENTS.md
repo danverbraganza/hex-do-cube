@@ -1,5 +1,11 @@
 # Guide for Agents working on Hex-do-cube.
 
+## Agent Roles
+
+* There is always one Coordinator Agent. If you are the Coordinator Agent, please  follow the workflow in Workflow.md
+* You might be a Coding SubAgent. If you are a coding subagent, please make sure to follow all the rules in this file.
+* You might be a Judge subagent. If you are a judge subagent, please evaluate the code you see to ensure it follows these rules.
+
 ## Agent Operating Rules
 
 * Follow repo conventions over personal preference. If instructions conflict, call it out and choose the smallest change that satisfies the request.
