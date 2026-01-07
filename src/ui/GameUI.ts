@@ -14,7 +14,7 @@ import type { GameState } from '../models/GameState.js';
 import type { SceneManager } from '../renderer/SceneManager.js';
 import type { CellEditor } from './CellEditor.js';
 import type { InputController } from './InputController.js';
-import { isGameWon, validateGameState, type Difficulty } from '../models/GameState.js';
+import { isGameWon, validateGameState, checkCompletion, type Difficulty } from '../models/GameState.js';
 
 /**
  * Configuration for GameUI
@@ -54,6 +54,7 @@ export class GameUI {
   private newGameButton!: HTMLButtonElement;
   private difficultySelect!: HTMLSelectElement;
   private winNotification!: HTMLDivElement;
+  private wrongCompletionNotification!: HTMLDivElement;
 
   // Callbacks
   private newGameCallbacks: NewGameCallback[] = [];
@@ -182,10 +183,32 @@ export class GameUI {
     `;
     this.winNotification.textContent = 'Congratulations! Puzzle Solved!';
 
+    // Wrong completion notification (initially hidden)
+    this.wrongCompletionNotification = document.createElement('div');
+    this.wrongCompletionNotification.id = 'wrong-completion-notification';
+    this.wrongCompletionNotification.style.cssText = `
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(200, 50, 0, 0.95);
+      color: #ffffff;
+      padding: 32px 48px;
+      border-radius: 8px;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+      pointer-events: auto;
+      display: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    `;
+    this.wrongCompletionNotification.innerHTML = 'Cube Complete but Incorrect!<br/><span style="font-size: 16px; font-weight: normal;">Check the highlighted errors</span>';
+
     // Assemble HUD
     this.hudOverlay.appendChild(topLeftControls);
     this.hudOverlay.appendChild(topRightControls);
     this.hudOverlay.appendChild(this.winNotification);
+    this.hudOverlay.appendChild(this.wrongCompletionNotification);
 
     // Add to container
     this.container.appendChild(this.hudOverlay);
@@ -238,6 +261,11 @@ export class GameUI {
     this.winNotification.addEventListener('click', () => {
       this.hideWinNotification();
     });
+
+    // Wrong completion notification click: Dismiss
+    this.wrongCompletionNotification.addEventListener('click', () => {
+      this.hideWrongCompletionNotification();
+    });
   }
 
   /**
@@ -253,21 +281,30 @@ export class GameUI {
 
   /**
    * Handle check button click
+   * Validates the cube and provides appropriate feedback:
+   * - Win notification if complete and correct
+   * - Wrong completion notification if complete but incorrect
+   * - Error highlights only if incomplete or incorrect
    */
   private handleCheckButton(): void {
     // Trigger validation through cell editor (handles visual feedback)
     const result = this.cellEditor.validate();
 
-    // Check for win condition
-    if (result.isValid) {
-      // Update game state
-      validateGameState(this.gameState);
+    // Update game state with validation results
+    validateGameState(this.gameState);
 
-      // Check if game is won
-      if (isGameWon(this.gameState)) {
-        this.showWinNotification();
-      }
+    // Check for win condition (complete AND correct)
+    if (isGameWon(this.gameState)) {
+      this.showWinNotification();
+      return;
     }
+
+    // Check for wrong completion (complete BUT incorrect)
+    const isComplete = checkCompletion(this.gameState);
+    if (isComplete && !result.isValid) {
+      this.showWrongCompletionNotification();
+    }
+    // If incomplete or has errors, the CellEditor already highlighted errors
   }
 
   /**
@@ -285,6 +322,7 @@ export class GameUI {
    * Show the win notification
    */
   private showWinNotification(): void {
+    this.hideWrongCompletionNotification(); // Ensure only one notification shows
     this.winNotification.style.display = 'block';
   }
 
@@ -296,12 +334,28 @@ export class GameUI {
   }
 
   /**
+   * Show the wrong completion notification
+   */
+  private showWrongCompletionNotification(): void {
+    this.hideWinNotification(); // Ensure only one notification shows
+    this.wrongCompletionNotification.style.display = 'block';
+  }
+
+  /**
+   * Hide the wrong completion notification
+   */
+  private hideWrongCompletionNotification(): void {
+    this.wrongCompletionNotification.style.display = 'none';
+  }
+
+  /**
    * Update the game state reference (e.g., when loading a new game)
    * @param gameState - The new game state
    */
   public setGameState(gameState: GameState): void {
     this.gameState = gameState;
-    this.hideWinNotification(); // Hide win notification for new game
+    this.hideWinNotification(); // Hide notifications for new game
+    this.hideWrongCompletionNotification();
   }
 
   /**
