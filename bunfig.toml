@@ -3,19 +3,13 @@
 
 [install]
 # Install configuration
-cache = true
 optional = true
 dev = true
 peer = true
 
-[install.cache]
-# Cache directory relative to project root
-dir = ".bun-cache"
-
 [run]
 # Run configuration
-shell = "/bin/sh"
+shell = "system"
 
 [test]
 # Test configuration
-preload = []
