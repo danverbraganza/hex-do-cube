@@ -1,0 +1,474 @@
+/**
+ * MinimapRenderer for Hex-Do-Cube
+ * Renders a miniature cube view in the lower-left corner for navigation and orientation.
+ *
+ * Responsibilities:
+ * - Render miniature cube in corner viewport
+ * - Use separate scene/camera for independent rendering
+ * - Always show "Home" alignment (canonical isometric view)
+ * - Color-code cells by their hex values (no text rendering)
+ * - Highlight active face when in face-on mode
+ * - Allow users to see fill level at a glance
+ */
+
+import * as THREE from 'three';
+import type { Cube } from '../models/Cube.js';
+import type { Cell, HexValue, Position } from '../models/Cell.js';
+import type { Face } from '../models/Cube.js';
+
+/**
+ * Configuration for MinimapRenderer
+ */
+export interface MinimapRendererConfig {
+  /** Size of the minimap viewport in pixels */
+  viewportSize?: number;
+  /** Margin from edges in pixels */
+  margin?: number;
+  /** Size of each cell cube in minimap space */
+  cellSize?: number;
+  /** Gap between adjacent cells */
+  cellGap?: number;
+  /** Camera distance from origin */
+  cameraDistance?: number;
+  /** Background color */
+  backgroundColor?: number;
+  /** Background alpha (0-1) */
+  backgroundAlpha?: number;
+  /** Opacity for filled cells */
+  filledOpacity?: number;
+  /** Opacity for empty cells */
+  emptyOpacity?: number;
+  /** Color for highlighted face */
+  highlightColor?: number;
+  /** Opacity for highlighted face */
+  highlightOpacity?: number;
+}
+
+/**
+ * Color mapping for hex values (0-f) to RGB colors
+ * Creates a gradient from dark blue (0) to bright red (f)
+ */
+const HEX_VALUE_COLORS: Record<Exclude<HexValue, null>, number> = {
+  '0': 0x1a1a2e, // Very dark blue
+  '1': 0x16213e, // Dark blue
+  '2': 0x0f3460, // Medium dark blue
+  '3': 0x1e56a0, // Medium blue
+  '4': 0x2e86ab, // Light blue
+  '5': 0x48a9a6, // Cyan
+  '6': 0x4ecdc4, // Light cyan
+  '7': 0x6dd47e, // Light green
+  '8': 0x95d5b2, // Mint
+  '9': 0xffd23f, // Yellow
+  'a': 0xffb703, // Orange
+  'b': 0xff8800, // Deep orange
+  'c': 0xff6b35, // Red-orange
+  'd': 0xff4d4d, // Light red
+  'e': 0xe63946, // Red
+  'f': 0xd62828, // Dark red
+};
+
+/**
+ * Maps a cell position to its mesh
+ */
+type CellMeshMap = Map<string, THREE.Mesh>;
+
+/**
+ * MinimapRenderer manages the miniature cube visualization
+ */
+export class MinimapRenderer {
+  private cube: Cube;
+  private config: Required<MinimapRendererConfig>;
+
+  // Separate Three.js scene and camera for minimap
+  private scene: THREE.Scene;
+  private camera: THREE.PerspectiveCamera;
+  private renderer: THREE.WebGLRenderer;
+
+  // Mesh management
+  private cellMeshes: CellMeshMap = new Map();
+  private cellGeometry: THREE.BoxGeometry;
+
+  // Container for all cell meshes
+  private container: THREE.Group;
+
+  // Face highlighting
+  private highlightedFace: Face | null = null;
+  private faceHighlightMeshes: Map<Face, THREE.Mesh> = new Map();
+
+  // Lighting
+  private ambientLight!: THREE.AmbientLight;
+  private directionalLight!: THREE.DirectionalLight;
+
+  constructor(
+    cube: Cube,
+    parentRenderer: THREE.WebGLRenderer,
+    config: MinimapRendererConfig = {}
+  ) {
+    this.cube = cube;
+    this.renderer = parentRenderer;
+
+    // Apply default configuration
+    this.config = {
+      viewportSize: config.viewportSize ?? 200,
+      margin: config.margin ?? 20,
+      cellSize: config.cellSize ?? 0.8,
+      cellGap: config.cellGap ?? 0.05,
+      cameraDistance: config.cameraDistance ?? 30,
+      backgroundColor: config.backgroundColor ?? 0x1a1a1a,
+      backgroundAlpha: config.backgroundAlpha ?? 0.8,
+      filledOpacity: config.filledOpacity ?? 0.6,
+      emptyOpacity: config.emptyOpacity ?? 0.1,
+      highlightColor: config.highlightColor ?? 0xffd700,
+      highlightOpacity: config.highlightOpacity ?? 0.3,
+    };
+
+    // Initialize scene
+    this.scene = new THREE.Scene();
+    this.scene.background = new THREE.Color(this.config.backgroundColor);
+
+    // Initialize camera (canonical isometric view)
+    this.camera = new THREE.PerspectiveCamera(
+      50,
+      1, // Square viewport
+      0.1,
+      1000
+    );
+    this.setupCanonicalView();
+
+    // Create container group
+    this.container = new THREE.Group();
+    this.container.name = 'MinimapRenderer';
+
+    // Create shared geometry
+    this.cellGeometry = new THREE.BoxGeometry(
+      this.config.cellSize,
+      this.config.cellSize,
+      this.config.cellSize
+    );
+
+    // Set up lighting
+    this.setupLighting();
+
+    // Initialize cell meshes
+    this.initializeCellMeshes();
+
+    // Initialize face highlight meshes
+    this.initializeFaceHighlights();
+
+    // Add container to scene
+    this.scene.add(this.container);
+  }
+
+  /**
+   * Set up canonical isometric view (Home alignment)
+   * i-face up, j-face right, k-face left
+   */
+  private setupCanonicalView(): void {
+    const distance = this.config.cameraDistance;
+    this.camera.position.set(distance, distance, distance);
+    this.camera.lookAt(0, 0, 0);
+    this.camera.up.set(0, 1, 0);
+  }
+
+  /**
+   * Set up lighting suitable for minimap rendering
+   */
+  private setupLighting(): void {
+    // Ambient light for overall illumination
+    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    this.scene.add(this.ambientLight);
+
+    // Directional light for depth
+    this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    this.directionalLight.position.set(10, 10, 10);
+    this.scene.add(this.directionalLight);
+  }
+
+  /**
+   * Initialize meshes for all 4096 cells with color-coded visualization
+   */
+  private initializeCellMeshes(): void {
+    const spacing = this.config.cellSize + this.config.cellGap;
+    const offset = (15 * spacing) / 2; // Center the cube at origin
+
+    for (let i = 0; i < 16; i++) {
+      for (let j = 0; j < 16; j++) {
+        for (let k = 0; k < 16; k++) {
+          const cell = this.cube.cells[i][j][k];
+          const mesh = this.createCellMesh(cell);
+
+          // Position the mesh in 3D space
+          mesh.position.set(
+            j * spacing - offset,
+            i * spacing - offset,
+            k * spacing - offset
+          );
+
+          // Store mesh reference
+          const key = this.positionKey([i, j, k]);
+          this.cellMeshes.set(key, mesh);
+
+          // Add to container
+          this.container.add(mesh);
+        }
+      }
+    }
+  }
+
+  /**
+   * Create a mesh for a single cell with color-coded material
+   */
+  private createCellMesh(cell: Cell): THREE.Mesh {
+    const material = this.getMaterialForCell(cell);
+    const mesh = new THREE.Mesh(this.cellGeometry, material);
+
+    // Store cell position in userData
+    mesh.userData.position = cell.position;
+    mesh.userData.cell = cell;
+
+    return mesh;
+  }
+
+  /**
+   * Get material for a cell based on its value (color-coded)
+   */
+  private getMaterialForCell(cell: Cell): THREE.MeshStandardMaterial {
+    if (cell.value === null) {
+      // Empty cell - very low opacity
+      return new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: this.config.emptyOpacity,
+        depthWrite: false,
+      });
+    } else {
+      // Filled cell - color-coded by hex value
+      const color = HEX_VALUE_COLORS[cell.value];
+      return new THREE.MeshStandardMaterial({
+        color,
+        transparent: true,
+        opacity: this.config.filledOpacity,
+        depthWrite: false,
+      });
+    }
+  }
+
+  /**
+   * Initialize face highlight meshes (one per face)
+   */
+  private initializeFaceHighlights(): void {
+    const spacing = this.config.cellSize + this.config.cellGap;
+    const size = 16 * spacing; // Size of one face
+
+    // Create thin planes for each face
+    const planeGeometry = new THREE.PlaneGeometry(size, size);
+    const planeMaterial = new THREE.MeshBasicMaterial({
+      color: this.config.highlightColor,
+      transparent: true,
+      opacity: this.config.highlightOpacity,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+
+    // i-face (top) - horizontal plane at top
+    const iFaceMesh = new THREE.Mesh(planeGeometry, planeMaterial.clone());
+    iFaceMesh.rotation.x = -Math.PI / 2;
+    iFaceMesh.position.y = size / 2;
+    iFaceMesh.visible = false;
+    this.faceHighlightMeshes.set('i', iFaceMesh);
+    this.scene.add(iFaceMesh);
+
+    // j-face (right) - vertical plane on right
+    const jFaceMesh = new THREE.Mesh(planeGeometry, planeMaterial.clone());
+    jFaceMesh.rotation.y = Math.PI / 2;
+    jFaceMesh.position.x = size / 2;
+    jFaceMesh.visible = false;
+    this.faceHighlightMeshes.set('j', jFaceMesh);
+    this.scene.add(jFaceMesh);
+
+    // k-face (left) - vertical plane on front
+    const kFaceMesh = new THREE.Mesh(planeGeometry, planeMaterial.clone());
+    kFaceMesh.position.z = size / 2;
+    kFaceMesh.visible = false;
+    this.faceHighlightMeshes.set('k', kFaceMesh);
+    this.scene.add(kFaceMesh);
+  }
+
+  /**
+   * Update a specific cell's appearance
+   */
+  public updateCell(position: Position): void {
+    const key = this.positionKey(position);
+    const mesh = this.cellMeshes.get(key);
+    if (!mesh) return;
+
+    const [i, j, k] = position;
+    const cell = this.cube.cells[i][j][k];
+
+    // Dispose old material
+    if (mesh.material instanceof THREE.Material) {
+      mesh.material.dispose();
+    }
+
+    // Create new material with updated color
+    mesh.material = this.getMaterialForCell(cell);
+    mesh.userData.cell = cell;
+  }
+
+  /**
+   * Update all cells' appearances (useful after bulk changes)
+   */
+  public updateAllCells(): void {
+    for (let i = 0; i < 16; i++) {
+      for (let j = 0; j < 16; j++) {
+        for (let k = 0; k < 16; k++) {
+          this.updateCell([i, j, k]);
+        }
+      }
+    }
+  }
+
+  /**
+   * Highlight a specific face (for face-on mode)
+   * @param face - The face to highlight ('i', 'j', or 'k'), or null to clear
+   */
+  public setHighlightedFace(face: Face | null): void {
+    // Hide all face highlights
+    for (const mesh of this.faceHighlightMeshes.values()) {
+      mesh.visible = false;
+    }
+
+    // Show the specified face highlight
+    if (face !== null) {
+      const mesh = this.faceHighlightMeshes.get(face);
+      if (mesh) {
+        mesh.visible = true;
+      }
+    }
+
+    this.highlightedFace = face;
+  }
+
+  /**
+   * Get the currently highlighted face
+   */
+  public getHighlightedFace(): Face | null {
+    return this.highlightedFace;
+  }
+
+  /**
+   * Render the minimap to the viewport
+   * @param canvasWidth - Width of the main canvas
+   * @param canvasHeight - Height of the main canvas
+   */
+  public render(canvasWidth: number, canvasHeight: number): void {
+    // Calculate viewport position (lower-left corner)
+    const x = this.config.margin;
+    const y = canvasHeight - this.config.viewportSize - this.config.margin;
+    const width = this.config.viewportSize;
+    const height = this.config.viewportSize;
+
+    // Set viewport and scissor for minimap rendering
+    this.renderer.setViewport(x, y, width, height);
+    this.renderer.setScissor(x, y, width, height);
+    this.renderer.setScissorTest(true);
+
+    // Render minimap scene
+    this.renderer.render(this.scene, this.camera);
+
+    // Reset to full viewport
+    this.renderer.setViewport(0, 0, canvasWidth, canvasHeight);
+    this.renderer.setScissor(0, 0, canvasWidth, canvasHeight);
+    this.renderer.setScissorTest(false);
+  }
+
+  /**
+   * Update the cube reference (e.g., when loading a new puzzle)
+   */
+  public setCube(cube: Cube): void {
+    this.cube = cube;
+    this.updateAllCells();
+  }
+
+  /**
+   * Get the Three.js scene for this minimap
+   */
+  public getScene(): THREE.Scene {
+    return this.scene;
+  }
+
+  /**
+   * Get the Three.js camera for this minimap
+   */
+  public getCamera(): THREE.PerspectiveCamera {
+    return this.camera;
+  }
+
+  /**
+   * Get the container group
+   */
+  public getContainer(): THREE.Group {
+    return this.container;
+  }
+
+  /**
+   * Check if a point (in screen coordinates) is within the minimap viewport
+   * @param x - Screen X coordinate
+   * @param y - Screen Y coordinate
+   * @param _canvasWidth - Width of the main canvas (unused)
+   * @param canvasHeight - Height of the main canvas
+   * @returns true if the point is within the minimap
+   */
+  public isPointInMinimap(
+    x: number,
+    y: number,
+    _canvasWidth: number,
+    canvasHeight: number
+  ): boolean {
+    const minimapX = this.config.margin;
+    const minimapY = canvasHeight - this.config.viewportSize - this.config.margin;
+    const minimapWidth = this.config.viewportSize;
+    const minimapHeight = this.config.viewportSize;
+
+    return (
+      x >= minimapX &&
+      x <= minimapX + minimapWidth &&
+      y >= minimapY &&
+      y <= minimapY + minimapHeight
+    );
+  }
+
+  /**
+   * Dispose of all resources
+   */
+  public dispose(): void {
+    // Dispose of cell geometry
+    this.cellGeometry.dispose();
+
+    // Dispose of cell materials
+    for (const mesh of this.cellMeshes.values()) {
+      if (mesh.material instanceof THREE.Material) {
+        mesh.material.dispose();
+      }
+    }
+
+    // Dispose of face highlight materials
+    for (const mesh of this.faceHighlightMeshes.values()) {
+      if (mesh.material instanceof THREE.Material) {
+        mesh.material.dispose();
+      }
+    }
+
+    // Clear scene
+    this.scene.clear();
+    this.cellMeshes.clear();
+    this.faceHighlightMeshes.clear();
+  }
+
+  /**
+   * Generate a unique string key for a cell position
+   */
+  private positionKey(position: Position): string {
+    return `${position[0]},${position[1]},${position[2]}`;
+  }
+}
