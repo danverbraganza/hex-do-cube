@@ -9,6 +9,13 @@
  * - Color-code cells by their hex values (no text rendering)
  * - Highlight active face when in face-on mode
  * - Allow users to see fill level at a glance
+ *
+ * PERFORMANCE NOTES:
+ * - Uses shared geometry (1 BoxGeometry for all 4096 minimap cells) ✓
+ * - Now uses material cache (17 materials max: 16 hex values + 1 null) ✓
+ * - Renders to scissored viewport to avoid clearing main scene ✓
+ * - Materials have depthWrite: false for proper translucency ✓
+ * - Separate scene/camera allows independent rendering without state pollution ✓
  */
 
 import * as THREE from 'three';
@@ -87,6 +94,9 @@ export class MinimapRenderer {
   // Mesh management
   private cellMeshes: CellMeshMap = new Map();
   private cellGeometry: THREE.BoxGeometry;
+
+  // Shared materials for efficient reuse (reduces GC pressure)
+  private materialCache: Map<string, THREE.MeshStandardMaterial> = new Map();
 
   // Container for all cell meshes
   private container: THREE.Group;
@@ -231,11 +241,23 @@ export class MinimapRenderer {
 
   /**
    * Get material for a cell based on its value (color-coded)
+   * Uses material cache to avoid creating duplicate materials
    */
   private getMaterialForCell(cell: Cell): THREE.MeshStandardMaterial {
+    // Create cache key based on cell value
+    const cacheKey = cell.value ?? 'null';
+
+    // Check if material already exists in cache
+    if (this.materialCache.has(cacheKey)) {
+      return this.materialCache.get(cacheKey)!;
+    }
+
+    // Create new material if not in cache
+    let material: THREE.MeshStandardMaterial;
+
     if (cell.value === null) {
       // Empty cell - very low opacity
-      return new THREE.MeshStandardMaterial({
+      material = new THREE.MeshStandardMaterial({
         color: 0xffffff,
         transparent: true,
         opacity: this.config.emptyOpacity,
@@ -244,13 +266,17 @@ export class MinimapRenderer {
     } else {
       // Filled cell - color-coded by hex value
       const color = HEX_VALUE_COLORS[cell.value];
-      return new THREE.MeshStandardMaterial({
+      material = new THREE.MeshStandardMaterial({
         color,
         transparent: true,
         opacity: this.config.filledOpacity,
         depthWrite: false,
       });
     }
+
+    // Store in cache for reuse
+    this.materialCache.set(cacheKey, material);
+    return material;
   }
 
   /**
@@ -296,6 +322,7 @@ export class MinimapRenderer {
 
   /**
    * Update a specific cell's appearance
+   * Uses shared materials from cache - no disposal needed
    */
   public updateCell(position: Position): void {
     const key = this.positionKey(position);
@@ -305,12 +332,8 @@ export class MinimapRenderer {
     const [i, j, k] = position;
     const cell = this.cube.cells[i][j][k];
 
-    // Dispose old material
-    if (mesh.material instanceof THREE.Material) {
-      mesh.material.dispose();
-    }
-
-    // Create new material with updated color
+    // Get material from cache (reuses existing materials)
+    // No disposal needed as materials are shared
     mesh.material = this.getMaterialForCell(cell);
     mesh.userData.cell = cell;
   }
@@ -445,12 +468,11 @@ export class MinimapRenderer {
     // Dispose of cell geometry
     this.cellGeometry.dispose();
 
-    // Dispose of cell materials
-    for (const mesh of this.cellMeshes.values()) {
-      if (mesh.material instanceof THREE.Material) {
-        mesh.material.dispose();
-      }
+    // Dispose of cached materials (now shared)
+    for (const material of this.materialCache.values()) {
+      material.dispose();
     }
+    this.materialCache.clear();
 
     // Dispose of face highlight materials
     for (const mesh of this.faceHighlightMeshes.values()) {

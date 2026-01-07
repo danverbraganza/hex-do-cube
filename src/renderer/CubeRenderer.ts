@@ -9,6 +9,14 @@
  * - Provide ray-casting for cell picking
  * - Update cell appearances based on Cube model state
  * - Coordinate with SceneManager for rotation controls
+ *
+ * PERFORMANCE NOTES:
+ * - Uses shared geometry (1 BoxGeometry for all 4096 cells) ✓
+ * - Uses shared materials (6 materials total, reused across cells) ✓
+ * - Translucent materials have depthWrite: false to avoid z-fighting ✓
+ * - Ray-casting only tests visible meshes to reduce intersection tests ✓
+ * - Future optimization: InstancedMesh could reduce 4096 draw calls to ~6 (P3 priority)
+ * - Future optimization: Frustum culling per layer in face-on mode (P3 priority)
  */
 
 import * as THREE from 'three';

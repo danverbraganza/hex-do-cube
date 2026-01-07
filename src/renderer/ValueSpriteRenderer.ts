@@ -9,6 +9,13 @@
  * - Ensure sprites always face camera (billboard behavior)
  * - Update sprite visibility and values based on cell state
  * - Coordinate with CubeRenderer for positioning
+ *
+ * PERFORMANCE NOTES:
+ * - Generates 16 canvas textures once at initialization (one per hex value) ✓
+ * - Reuses textures via SpriteMaterial.map for all sprites with same value ✓
+ * - Canvas textures use power-of-2 dimensions (128x128) for GPU efficiency ✓
+ * - Sprites have depthWrite: false to work correctly with translucent cells ✓
+ * - Future optimization: Texture atlas could combine all 16 textures into one (P3 priority)
  */
 
 import * as THREE from 'three';

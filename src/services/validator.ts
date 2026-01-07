@@ -1,6 +1,13 @@
 /**
  * Validator service for Hex-Do-Cube
  * Provides functions to validate rows, columns, beams, and 4x4 sub-squares for uniqueness
+ *
+ * PERFORMANCE NOTES:
+ * - Validation is O(n) per constraint (16 cells per constraint)
+ * - Full cube validation checks 256 rows + 256 columns + 256 beams + 768 sub-squares = 1536 constraints
+ * - Total complexity: O(1536 × 16) = O(24,576) operations - acceptable for on-demand validation
+ * - Validation should ONLY run on user request (button click), not on every cell change
+ * - Future optimization: Early exit on first error, incremental validation for single cell changes
  */
 
 import type { Cell, HexValue, Position } from '../models/Cell.js';
