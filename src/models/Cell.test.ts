@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'bun:test';
 import {
-  type Cell,
   type CellType,
   type HexValue,
   type Position,
