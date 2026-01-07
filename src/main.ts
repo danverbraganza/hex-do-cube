@@ -1,101 +1,194 @@
 /**
  * Entry point for Hex-Do-Cube
- * Example integration showing how to wire up all components with proper view state management
+ * Wires up all models, services, renderers, and UI components
  */
 
-// Example imports - these demonstrate how to wire up components for view state management
-// Imports are prefixed with _ to indicate they're unused in this stub but shown for documentation
-import type { SceneManager as _SceneManager } from './renderer/SceneManager.js';
-import type { CubeRenderer as _CubeRenderer } from './renderer/CubeRenderer.js';
-import type { FaceRenderer as _FaceRenderer } from './renderer/FaceRenderer.js';
-import type { MinimapRenderer as _MinimapRenderer } from './renderer/MinimapRenderer.js';
-import type { InputController as _InputController } from './ui/InputController.js';
-import type { GameUI as _GameUI } from './ui/GameUI.js';
-import type { CellEditor as _CellEditor } from './ui/CellEditor.js';
-import type { ViewStateManager as _ViewStateManager } from './ui/ViewStateManager.js';
-import type { createCube as _createCube } from './models/Cube.js';
-import type { createGameState as _createGameState } from './models/GameState.js';
+// Models
+import { createGameState, createGameStateFromCube } from './models/GameState.js';
+
+// Services
+import { loadGameState, saveGameState, hasGameState } from './services/storage.js';
+import { generatePuzzle } from './services/generator.js';
+
+// Renderers
+import { SceneManager } from './renderer/SceneManager.js';
+import { CubeRenderer } from './renderer/CubeRenderer.js';
+import { FaceRenderer } from './renderer/FaceRenderer.js';
+import { MinimapRenderer } from './renderer/MinimapRenderer.js';
+
+// UI
+import { InputController } from './ui/InputController.js';
+import { CellEditor } from './ui/CellEditor.js';
+import { GameUI } from './ui/GameUI.js';
+import { ViewStateManager } from './ui/ViewStateManager.js';
 
 console.log('Hex-Do-Cube initialized');
 
 /**
  * Initialize and start the game
- * This is an example integration - actual implementation may vary based on HTML structure
  */
 export function init(): void {
   console.log('Game initialization...');
 
-  // Example of how components should be wired together for proper view state transitions:
-  //
-  // 1. Create container elements
-  // const container = document.getElementById('game-container');
-  // if (!container) throw new Error('Game container not found');
-  //
+  // 1. Get container element
+  const container = document.getElementById('app');
+  if (!container) {
+    throw new Error('App container not found');
+  }
+
+  // Set up basic styling for container
+  container.style.cssText = `
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
+  `;
+
   // 2. Initialize Three.js scene
-  // const sceneManager = new SceneManager({ container });
-  //
-  // 3. Create game state and cube
-  // const cube = createCube();
-  // const gameState = createGameState(cube, 'easy');
-  //
-  // 4. Initialize renderers
-  // const cubeRenderer = new CubeRenderer(cube);
-  // sceneManager.add(cubeRenderer.getContainer());
-  //
-  // const faceRenderer = new FaceRenderer(cubeRenderer, sceneManager);
-  //
-  // const minimapRenderer = new MinimapRenderer(
-  //   cube,
-  //   sceneManager.getRenderer()
-  // );
-  //
-  // 5. Create ViewStateManager to coordinate view transitions
-  // const viewStateManager = new ViewStateManager({
-  //   sceneManager,
-  //   faceRenderer,
-  //   minimapRenderer,
-  // });
-  //
-  // 6. Initialize input controller
-  // const inputController = new InputController(
-  //   {
-  //     canvas: sceneManager.getRenderer().domElement,
-  //   },
-  //   sceneManager,
-  //   cubeRenderer,
-  //   faceRenderer,
-  //   minimapRenderer,
-  //   cube
-  // );
-  //
-  // 7. Initialize cell editor
-  // const cellEditor = new CellEditor({ cube, cubeRenderer });
-  //
-  // 8. Initialize game UI with InputController reference
-  // const gameUI = new GameUI({
-  //   container,
-  //   sceneManager,
-  //   inputController, // Pass InputController so Home button can properly exit face-on view
-  //   cellEditor,
-  //   gameState,
-  // });
-  //
-  // 9. Start render loop with ViewStateManager.update() or FaceRenderer.update()
-  // sceneManager.startRenderLoop(() => {
-  //   // Update view state animations (layer transitions) each frame
-  //   viewStateManager.update();
-  //   // OR if not using ViewStateManager:
-  //   // faceRenderer.update();
-  //
-  //   // Render minimap
-  //   const canvas = sceneManager.getRenderer().domElement;
-  //   minimapRenderer.render(canvas.width, canvas.height);
-  // });
-  //
-  // IMPORTANT: The key integration points for view state transitions are:
-  // - ViewStateManager coordinates all components during transitions
-  // - ViewStateManager.update() must be called each frame for smooth layer transitions
-  // - GameUI receives InputController to properly exit face-on view via Home button
-  // - InputController handles double-click on face (enter) and double-click on minimap (exit)
-  // - All transitions are coordinated through a single source of truth
+  const sceneManager = new SceneManager({
+    container,
+    backgroundColor: 0x1a1a1a,
+    cameraDistance: 50
+  });
+
+  // 3. Check storage for saved game, or create empty cube initially
+  let gameState;
+  if (hasGameState()) {
+    try {
+      const loaded = loadGameState();
+      if (loaded) {
+        console.log('Loaded saved game from storage');
+        gameState = loaded;
+      } else {
+        console.log('No saved game found, creating new empty game');
+        gameState = createGameState('easy');
+      }
+    } catch (error) {
+      console.error('Failed to load saved game:', error);
+      console.log('Creating new empty game');
+      gameState = createGameState('easy');
+    }
+  } else {
+    console.log('No saved game found, creating new empty game');
+    gameState = createGameState('easy');
+  }
+
+  // 4. Initialize CubeRenderer with cube
+  const cubeRenderer = new CubeRenderer(gameState.cube);
+  sceneManager.add(cubeRenderer.getContainer());
+
+  // 5. Initialize FaceRenderer
+  const faceRenderer = new FaceRenderer(cubeRenderer, sceneManager);
+
+  // 6. Initialize MinimapRenderer
+  const minimapRenderer = new MinimapRenderer(
+    gameState.cube,
+    sceneManager.getRenderer()
+  );
+
+  // 7. Initialize ViewStateManager to coordinate view transitions
+  const viewStateManager = new ViewStateManager({
+    sceneManager,
+    faceRenderer,
+    minimapRenderer,
+  });
+
+  // 8. Initialize InputController
+  const inputController = new InputController(
+    {
+      canvas: sceneManager.getRenderer().domElement,
+    },
+    sceneManager,
+    cubeRenderer,
+    faceRenderer,
+    minimapRenderer,
+    gameState.cube
+  );
+
+  // 9. Initialize CellEditor
+  const cellEditor = new CellEditor(
+    gameState.cube,
+    cubeRenderer,
+    {
+      autoValidate: false, // On-demand validation only
+      showErrorHighlights: true,
+    }
+  );
+
+  // 10. Initialize GameUI
+  const gameUI = new GameUI({
+    container,
+    sceneManager,
+    inputController,
+    cellEditor,
+    gameState,
+  });
+
+  // Set up auto-save on cell value changes
+  inputController.onCellValueChange(() => {
+    try {
+      saveGameState(gameState);
+      console.log('Game state auto-saved');
+    } catch (error) {
+      console.error('Failed to auto-save game state:', error);
+    }
+  });
+
+  // Set up new game handler
+  gameUI.onNewGame((difficulty) => {
+    console.log(`Generating new ${difficulty} puzzle... This may take 2-5 minutes.`);
+
+    // Show loading state (in a real app, this would be a loading spinner)
+    // For now, we'll just disable the button and log
+    console.log('Please wait while generating puzzle...');
+
+    // Generate puzzle asynchronously to avoid blocking UI
+    setTimeout(() => {
+      try {
+        const newCube = generatePuzzle(difficulty);
+        const newGameState = createGameStateFromCube(newCube, difficulty);
+
+        // Update all components with new game state
+        Object.assign(gameState, newGameState);
+
+        cubeRenderer.setCube(gameState.cube);
+        minimapRenderer.setCube(gameState.cube);
+        inputController.setCube(gameState.cube);
+        cellEditor.setCube(gameState.cube);
+        gameUI.setGameState(gameState);
+
+        // Save new game
+        saveGameState(gameState);
+
+        // Reset camera to canonical view
+        sceneManager.resetCamera();
+
+        console.log('New puzzle generated successfully!');
+      } catch (error) {
+        console.error('Failed to generate puzzle:', error);
+        alert('Failed to generate puzzle. Please try again.');
+      }
+    }, 100);
+  });
+
+  // 11. Start render loop
+  sceneManager.startRenderLoop(() => {
+    // Update view state animations (layer transitions) each frame
+    viewStateManager.update();
+
+    // Render minimap
+    const canvas = sceneManager.getRenderer().domElement;
+    minimapRenderer.render(canvas.width, canvas.height);
+  });
+
+  console.log('Hex-Do-Cube ready! Double-click on a face to enter editing view.');
+}
+
+// Start the game when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
 }
