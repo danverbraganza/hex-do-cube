@@ -41,3 +41,4 @@ coverage/
 # Task tracking (bd)
 .beads/*.db
 .beads/*.db-*
+__pycache__/
