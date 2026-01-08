@@ -45,7 +45,7 @@ export class SceneManager {
 
   constructor(config: SceneManagerConfig) {
     this.container = config.container;
-    this.cameraDistance = config.cameraDistance ?? 50;
+    this.cameraDistance = config.cameraDistance ?? 37.5;
 
     // Initialize scene
     this.scene = new THREE.Scene();
@@ -222,6 +222,11 @@ export class SceneManager {
       if (callback) {
         callback();
       }
+
+      // Ensure full viewport is set before main render
+      const width = this.container.clientWidth;
+      const height = this.container.clientHeight;
+      this.renderer.setViewport(0, 0, width, height);
 
       this.renderer.render(this.scene, this.camera);
     };

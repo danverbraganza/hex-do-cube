@@ -105,9 +105,12 @@ export class CubeRenderer {
       errorColor: config.errorColor ?? 0xe74c3c,
     };
 
-    // Create container group
+    // Create container group at world origin
+    // The container itself stays at (0, 0, 0) - all child meshes are positioned
+    // relative to this origin with offsets that center the cube's geometric center at (0, 0, 0)
     this.container = new THREE.Group();
     this.container.name = 'CubeRenderer';
+    this.container.position.set(0, 0, 0); // Explicitly set to origin (redundant but clear)
 
     // Create shared geometry
     this.cellGeometry = new THREE.BoxGeometry(
@@ -182,31 +185,38 @@ export class CubeRenderer {
    *
    * CENTERING STRATEGY:
    * - Cube has 16 cells per dimension (indices 0-15)
-   * - Geometric center is at index 7.5 (between cells 7 and 8)
-   * - Offset positions the cube so this geometric center is at world origin (0, 0, 0)
-   * - This makes the cube perfectly centered in the viewport
-   * - Camera lookAt(0, 0, 0) targets the cube's center
+   * - Cell centers are positioned at i * spacing where i = 0..15
+   * - With spacing = cellSize + cellGap (default 1.1), cells span from 0 to 16.5
+   * - The geometric center is halfway: (0 + 15 * spacing) / 2 = 7.5 * spacing
+   * - We apply this offset so the cube's geometric center aligns with world origin (0,0,0)
+   * - Camera lookAt(0,0,0) targets this center, centering the cube in the viewport
+   *
+   * VERIFICATION:
+   * - Cell 0 position: 0 - 8.25 = -8.25
+   * - Cell 15 position: 16.5 - 8.25 = 8.25
+   * - Center: (-8.25 + 8.25) / 2 = 0 ✓
    */
   private initializeCellMeshes(): void {
     const spacing = this.config.cellSize + this.config.cellGap;
 
-    // Offset to center the cube at origin
-    // For 16 cells (0-15), the geometric center is at index 7.5
-    // offset = 7.5 * spacing = (15 * spacing) / 2
-    const offset = (15 * spacing) / 2;
+    // Calculate offset to center the cube at world origin (0, 0, 0)
+    // For 16 cells indexed 0-15, the center is at (0 + 15*spacing)/2 = 7.5 * spacing
+    const numCells = 16;
+    const maxIndex = numCells - 1; // 15
+    const offset = (maxIndex * spacing) / 2;
 
-    for (let i = 0; i < 16; i++) {
-      for (let j = 0; j < 16; j++) {
-        for (let k = 0; k < 16; k++) {
+    for (let i = 0; i < numCells; i++) {
+      for (let j = 0; j < numCells; j++) {
+        for (let k = 0; k < numCells; k++) {
           const cell = this.cube.cells[i][j][k];
           const mesh = this.createCellMesh(cell);
 
-          // Position the mesh in 3D space
-          // Subtract offset to center the cube at origin (0, 0, 0)
+          // Position mesh with offset so cube center is at world origin
+          // Mapping: i=y(vertical), j=x(horizontal-right), k=z(depth)
           mesh.position.set(
-            j * spacing - offset,
-            i * spacing - offset,
-            k * spacing - offset
+            j * spacing - offset,  // x: left(-) to right(+)
+            i * spacing - offset,  // y: bottom(-) to top(+)
+            k * spacing - offset   // z: back(-) to front(+)
           );
 
           // Store mesh reference
@@ -448,5 +458,33 @@ export class CubeRenderer {
    */
   private positionKey(position: Position): string {
     return `${position[0]},${position[1]},${position[2]}`;
+  }
+
+  /**
+   * Get the bounding box of the entire cube in world space
+   * This is useful for verification that the cube is centered at origin
+   *
+   * @returns The min and max corners of the cube's bounding box
+   */
+  public getCubeBounds(): { min: THREE.Vector3; max: THREE.Vector3; center: THREE.Vector3 } {
+    const spacing = this.config.cellSize + this.config.cellGap;
+    const numCells = 16;
+    const maxIndex = numCells - 1;
+    const offset = (maxIndex * spacing) / 2;
+
+    // Calculate bounds after offset is applied
+    const cellHalfSize = this.config.cellSize / 2;
+    const minPos = 0 * spacing - offset - cellHalfSize;  // Cell 0's min edge
+    const maxPos = maxIndex * spacing - offset + cellHalfSize;  // Cell 15's max edge
+
+    return {
+      min: new THREE.Vector3(minPos, minPos, minPos),
+      max: new THREE.Vector3(maxPos, maxPos, maxPos),
+      center: new THREE.Vector3(
+        (minPos + maxPos) / 2,
+        (minPos + maxPos) / 2,
+        (minPos + maxPos) / 2
+      )
+    };
   }
 }

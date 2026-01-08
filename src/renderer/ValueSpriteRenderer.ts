@@ -75,9 +75,12 @@ export class ValueSpriteRenderer {
       cellGap: config.cellGap ?? 0.1,
     };
 
-    // Create container group
+    // Create container group at world origin
+    // The container itself stays at (0, 0, 0) - all child sprites are positioned
+    // relative to this origin with the same offsets as CubeRenderer to match cell positions
     this.container = new THREE.Group();
     this.container.name = 'ValueSpriteRenderer';
+    this.container.position.set(0, 0, 0); // Explicitly set to origin (redundant but clear)
 
     // Generate textures for all hex values
     this.generateTextures();
@@ -139,24 +142,33 @@ export class ValueSpriteRenderer {
 
   /**
    * Initialize sprites for all cells that have values
+   *
+   * CENTERING: Sprites use the same offset as CubeRenderer to ensure
+   * they appear at the center of their respective cells, with the
+   * entire cube centered at world origin (0,0,0).
    */
   private initializeSprites(): void {
     const spacing = this.config.cellSize + this.config.cellGap;
-    const offset = (15 * spacing) / 2; // Center the cube at origin
 
-    for (let i = 0; i < 16; i++) {
-      for (let j = 0; j < 16; j++) {
-        for (let k = 0; k < 16; k++) {
+    // Calculate offset to center the cube at world origin (0, 0, 0)
+    // Must match CubeRenderer.ts offset calculation
+    const numCells = 16;
+    const maxIndex = numCells - 1; // 15
+    const offset = (maxIndex * spacing) / 2;
+
+    for (let i = 0; i < numCells; i++) {
+      for (let j = 0; j < numCells; j++) {
+        for (let k = 0; k < numCells; k++) {
           const cell = this.cube.cells[i][j][k];
 
           if (cell.value !== null) {
             const sprite = this.createSprite(cell);
 
-            // Position the sprite at cell center
+            // Position sprite at cell center with offset so cube center is at world origin
             sprite.position.set(
-              j * spacing - offset,
-              i * spacing - offset,
-              k * spacing - offset
+              j * spacing - offset,  // x: matches CubeRenderer
+              i * spacing - offset,  // y: matches CubeRenderer
+              k * spacing - offset   // z: matches CubeRenderer
             );
 
             // Store sprite reference
@@ -228,9 +240,11 @@ export class ValueSpriteRenderer {
         // Create new sprite
         const sprite = this.createSprite(cell);
 
-        // Position the sprite
+        // Position the sprite with offset to center cube at world origin
         const spacing = this.config.cellSize + this.config.cellGap;
-        const offset = (15 * spacing) / 2;
+        const numCells = 16;
+        const maxIndex = numCells - 1; // 15
+        const offset = (maxIndex * spacing) / 2;
         sprite.position.set(
           j * spacing - offset,
           i * spacing - offset,
