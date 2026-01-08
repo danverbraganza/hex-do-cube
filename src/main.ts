@@ -99,8 +99,7 @@ export function init(): void {
   // 2. Initialize Three.js scene
   const sceneManager = new SceneManager({
     container,
-    backgroundColor: 0x1a1a1a,
-    cameraDistance: 37.5
+    // backgroundColor and cameraDistance use default values from RenderConfig
   });
 
   // 3. Check storage for saved game, or load cached puzzle

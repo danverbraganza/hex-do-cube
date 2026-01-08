@@ -12,6 +12,7 @@
  */
 
 import * as THREE from 'three';
+import { COLORS, LIGHTING } from '../config/RenderConfig.js';
 
 export type CameraMode = 'isometric' | 'face-on';
 
@@ -50,7 +51,7 @@ export class SceneManager {
     // Initialize scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(
-      config.backgroundColor ?? 0x1a1a1a
+      config.backgroundColor ?? COLORS.BACKGROUND
     );
 
     // Initialize camera (perspective for isometric-style view)
@@ -121,11 +122,17 @@ export class SceneManager {
    */
   private setupLighting(): void {
     // Ambient light provides base illumination
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    this.ambientLight = new THREE.AmbientLight(
+      LIGHTING.LIGHT_COLOR,
+      LIGHTING.AMBIENT_INTENSITY
+    );
     this.scene.add(this.ambientLight);
 
     // Directional light adds depth and highlights
-    this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    this.directionalLight = new THREE.DirectionalLight(
+      LIGHTING.LIGHT_COLOR,
+      LIGHTING.DIRECTIONAL_INTENSITY
+    );
     this.directionalLight.position.set(10, 10, 10);
     this.scene.add(this.directionalLight);
   }

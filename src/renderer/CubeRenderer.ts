@@ -23,6 +23,7 @@ import * as THREE from 'three';
 import type { Cube } from '../models/Cube.js';
 import type { Cell, Position } from '../models/Cell.js';
 import { ValueSpriteRenderer } from './ValueSpriteRenderer.js';
+import { OPACITY } from '../config/RenderConfig.js';
 
 /**
  * Visual state for a cell (hover, selected, error)
@@ -96,7 +97,7 @@ export class CubeRenderer {
     this.config = {
       cellSize: config.cellSize ?? 1,
       cellGap: config.cellGap ?? 0.1,
-      filledOpacity: config.filledOpacity ?? 0.6,
+      filledOpacity: config.filledOpacity ?? OPACITY.FILLED,
       emptyOpacity: config.emptyOpacity ?? 0.05,
       givenColor: config.givenColor ?? 0x4a90e2,
       editableColor: config.editableColor ?? 0x7ed321,

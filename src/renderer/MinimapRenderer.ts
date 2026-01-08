@@ -22,6 +22,7 @@ import * as THREE from 'three';
 import type { Cube } from '../models/Cube.js';
 import type { Cell, HexValue, Position } from '../models/Cell.js';
 import type { Face } from '../models/Cube.js';
+import { COLORS, LIGHTING, OPACITY } from '../config/RenderConfig.js';
 
 /**
  * Configuration for MinimapRenderer
@@ -121,13 +122,13 @@ export class MinimapRenderer {
     this.config = {
       viewportSize: config.viewportSize ?? 200,
       margin: config.margin ?? 20,
-      cellSize: config.cellSize ?? 0.8,
-      cellGap: config.cellGap ?? 0.05,
-      cameraDistance: config.cameraDistance ?? 30,
-      backgroundColor: config.backgroundColor ?? 0x1a1a1a,
+      cellSize: config.cellSize ?? 0.8, // Intentionally smaller than main (0.8 vs 1.0)
+      cellGap: config.cellGap ?? 0.05, // Intentionally smaller than main (0.05 vs 0.1)
+      cameraDistance: config.cameraDistance ?? 30, // Intentionally different than main (30 vs 37.5)
+      backgroundColor: config.backgroundColor ?? COLORS.BACKGROUND,
       backgroundAlpha: config.backgroundAlpha ?? 0.8,
-      filledOpacity: config.filledOpacity ?? 0.6,
-      emptyOpacity: config.emptyOpacity ?? 0.1,
+      filledOpacity: config.filledOpacity ?? OPACITY.FILLED,
+      emptyOpacity: config.emptyOpacity ?? 0.1, // Intentionally higher than CubeRenderer (0.1 vs 0.05)
       highlightColor: config.highlightColor ?? 0xffd700,
       highlightOpacity: config.highlightOpacity ?? 0.3,
     };
@@ -185,11 +186,17 @@ export class MinimapRenderer {
    */
   private setupLighting(): void {
     // Ambient light for overall illumination
-    this.ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    this.ambientLight = new THREE.AmbientLight(
+      LIGHTING.LIGHT_COLOR,
+      LIGHTING.AMBIENT_INTENSITY
+    );
     this.scene.add(this.ambientLight);
 
     // Directional light for depth
-    this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    this.directionalLight = new THREE.DirectionalLight(
+      LIGHTING.LIGHT_COLOR,
+      LIGHTING.DIRECTIONAL_INTENSITY
+    );
     this.directionalLight.position.set(10, 10, 10);
     this.scene.add(this.directionalLight);
   }
