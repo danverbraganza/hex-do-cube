@@ -187,6 +187,20 @@ export function init(): void {
     gameState,
   });
 
+  // 12. Set up layer indicator to update when view mode changes
+  viewStateManager.onViewModeChange((mode, _face, layer) => {
+    if (mode === 'face-on' && layer !== undefined) {
+      gameUI.showLayerIndicator(layer);
+    } else {
+      gameUI.hideLayerIndicator();
+    }
+  });
+
+  // Also listen to layer changes from FaceRenderer (for scrolling)
+  faceRenderer.onLayerChange((_face, layer) => {
+    gameUI.updateLayerIndicator(layer);
+  });
+
   // Set up auto-save on cell value changes
   inputController.onCellValueChange(() => {
     try {

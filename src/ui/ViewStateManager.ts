@@ -78,6 +78,8 @@ export class ViewStateManager {
       if (this.faceRenderer.getCurrentLayer() !== layer) {
         this.faceRenderer.setLayer(layer);
         this.minimapRenderer.setHighlightedLayer(face, layer);
+        // Notify listeners of layer change
+        this.notifyViewModeChange('face-on', face, layer);
       }
       return;
     }

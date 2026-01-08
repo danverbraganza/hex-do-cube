@@ -54,6 +54,9 @@ export class FaceRenderer {
   private transitionFromLayer: number = 0;
   private transitionToLayer: number = 0;
 
+  // Layer change callbacks
+  private layerChangeCallbacks: Array<(face: Face, layer: number) => void> = [];
+
   constructor(
     cubeRenderer: CubeRenderer,
     sceneManager: SceneManager,
@@ -152,6 +155,9 @@ export class FaceRenderer {
 
     // Update current layer immediately (discrete layer approach)
     this.currentLayer = layer;
+
+    // Notify listeners of layer change
+    this.notifyLayerChange();
   }
 
   /**
@@ -376,9 +382,30 @@ export class FaceRenderer {
   }
 
   /**
+   * Register a callback for layer changes
+   * @param callback - Function to call when the layer changes
+   */
+  public onLayerChange(callback: (face: Face, layer: number) => void): void {
+    this.layerChangeCallbacks.push(callback);
+  }
+
+  /**
+   * Notify all layer change callbacks
+   */
+  private notifyLayerChange(): void {
+    if (this.currentFace === null) {
+      return;
+    }
+    for (const callback of this.layerChangeCallbacks) {
+      callback(this.currentFace, this.currentLayer);
+    }
+  }
+
+  /**
    * Dispose of resources
    */
   public dispose(): void {
     this.exitFaceOnView();
+    this.layerChangeCallbacks = [];
   }
 }

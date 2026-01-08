@@ -59,6 +59,7 @@ export class GameUI {
   private difficultySelect!: HTMLSelectElement;
   private winNotification!: HTMLDivElement;
   private wrongCompletionNotification!: HTMLDivElement;
+  private layerIndicator!: HTMLDivElement;
 
   // Face view control buttons
   private xyViewButton!: HTMLButtonElement;
@@ -277,12 +278,33 @@ export class GameUI {
     `;
     this.wrongCompletionNotification.innerHTML = 'Cube Complete but Incorrect!<br/><span style="font-size: 16px; font-weight: normal;">Check the highlighted errors</span>';
 
+    // Layer indicator (initially hidden, shown only in face-on view)
+    this.layerIndicator = document.createElement('div');
+    this.layerIndicator.id = 'layer-indicator';
+    this.layerIndicator.style.cssText = `
+      position: absolute;
+      top: 16px;
+      right: 50%;
+      transform: translateX(50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: #ffffff;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: bold;
+      pointer-events: none;
+      display: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    `;
+    this.layerIndicator.textContent = 'Layer: 0 / 16';
+
     // Assemble HUD
     this.hudOverlay.appendChild(topLeftControls);
     this.hudOverlay.appendChild(topRightControls);
     this.hudOverlay.appendChild(bottomLeftControls);
     this.hudOverlay.appendChild(this.winNotification);
     this.hudOverlay.appendChild(this.wrongCompletionNotification);
+    this.hudOverlay.appendChild(this.layerIndicator);
 
     // Add to container
     this.container.appendChild(this.hudOverlay);
@@ -516,6 +538,30 @@ export class GameUI {
    */
   public hideWin(): void {
     this.hideWinNotification();
+  }
+
+  /**
+   * Show the layer indicator with the current layer
+   * @param layer - The current layer (0-15)
+   */
+  public showLayerIndicator(layer: number): void {
+    this.layerIndicator.textContent = `Layer: ${layer + 1} / 16`;
+    this.layerIndicator.style.display = 'block';
+  }
+
+  /**
+   * Hide the layer indicator
+   */
+  public hideLayerIndicator(): void {
+    this.layerIndicator.style.display = 'none';
+  }
+
+  /**
+   * Update the layer indicator with a new layer value
+   * @param layer - The new layer (0-15)
+   */
+  public updateLayerIndicator(layer: number): void {
+    this.layerIndicator.textContent = `Layer: ${layer + 1} / 16`;
   }
 
   /**
