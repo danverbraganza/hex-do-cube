@@ -45,6 +45,7 @@ export class CellEditor {
   private cube: Cube;
   private renderer: CubeRenderer;
   private config: Required<CellEditorConfig>;
+  private solution: HexValue[][][]; // The correct solution for comparison
 
   // Validation state
   private lastValidationResult: CubeValidationResult | null = null;
@@ -57,10 +58,12 @@ export class CellEditor {
   constructor(
     cube: Cube,
     renderer: CubeRenderer,
+    solution: HexValue[][][],
     config: CellEditorConfig = {}
   ) {
     this.cube = cube;
     this.renderer = renderer;
+    this.solution = solution;
 
     // Apply default configuration
     this.config = {
@@ -123,6 +126,9 @@ export class CellEditor {
 
   /**
    * Validate the entire cube and update visual feedback
+   * Distinguishes between:
+   * - Given cells in conflict (green highlight)
+   * - User cells with wrong values (red highlight)
    * @returns The validation result
    */
   public validate(): CubeValidationResult {
@@ -157,7 +163,8 @@ export class CellEditor {
     for (const posKey of this.errorPositions) {
       const position = this.parsePositionKey(posKey);
       const state = this.renderer.getCellState(position);
-      if (state === 'error') {
+      // Clear any error-related state (error, conflict-given, wrong)
+      if (state === 'error' || state === 'conflict-given' || state === 'wrong') {
         this.renderer.clearCellState(position);
       }
     }
@@ -166,6 +173,9 @@ export class CellEditor {
 
   /**
    * Update error highlights based on validation results
+   * Applies different highlighting based on cell type and correctness:
+   * - GREEN (conflict-given): Given cells involved in constraint violations
+   * - RED (wrong): User-entered cells with incorrect values (compared to solution)
    */
   private updateErrorHighlights(result: CubeValidationResult): void {
     // Clear previous error highlights
@@ -176,26 +186,52 @@ export class CellEditor {
       return;
     }
 
-    // Collect all error positions
-    const newErrorPositions = new Set<string>();
+    // Collect all positions in conflicts
+    const conflictPositions = new Set<string>();
     for (const error of result.errors) {
       for (const position of error.cells) {
+        // Skip undefined positions (shouldn't happen, but be defensive)
+        if (!position || position.length !== 3) {
+          continue;
+        }
         const key = this.positionKey(position);
-        newErrorPositions.add(key);
+        conflictPositions.add(key);
       }
     }
 
-    // Apply error state to cells, but don't override selected state
-    for (const posKey of newErrorPositions) {
+    // Apply appropriate highlighting to each conflicting cell
+    for (const posKey of conflictPositions) {
       const position = this.parsePositionKey(posKey);
+      const [i, j, k] = position;
+      const cell = this.cube.cells[i][j][k];
       const currentState = this.renderer.getCellState(position);
 
-      // Only set error state if cell is not currently selected
-      // (selected state takes precedence for UX)
-      if (currentState !== 'selected') {
-        this.renderer.setCellState(position, 'error');
+      // Skip if cell is currently selected (selected state takes precedence)
+      if (currentState === 'selected') {
+        this.errorPositions.add(posKey);
+        continue;
       }
 
+      // Determine the appropriate highlight state
+      let highlightState: 'conflict-given' | 'wrong' | 'error';
+
+      if (cell.type === 'given') {
+        // Given cells in conflict get GREEN highlight
+        highlightState = 'conflict-given';
+      } else {
+        // User cells: check if value is wrong compared to solution
+        const correctValue = this.solution[i][j][k];
+        if (cell.value !== correctValue) {
+          // User cell with WRONG value gets RED highlight
+          highlightState = 'wrong';
+        } else {
+          // User cell with CORRECT value but in conflict (shouldn't happen in valid puzzle)
+          // Use generic error state
+          highlightState = 'error';
+        }
+      }
+
+      this.renderer.setCellState(position, highlightState);
       this.errorPositions.add(posKey);
     }
   }
@@ -247,10 +283,20 @@ export class CellEditor {
   /**
    * Update the cube reference (e.g., when loading a new puzzle)
    */
-  public setCube(cube: Cube): void {
+  public setCube(cube: Cube, solution?: HexValue[][][]): void {
     this.cube = cube;
+    if (solution) {
+      this.solution = solution;
+    }
     this.clearErrorHighlights();
     this.lastValidationResult = null;
+  }
+
+  /**
+   * Update the solution reference
+   */
+  public setSolution(solution: HexValue[][][]): void {
+    this.solution = solution;
   }
 
   /**

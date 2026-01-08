@@ -171,6 +171,7 @@ export function init(): void {
   const cellEditor = new CellEditor(
     gameState.cube,
     cubeRenderer,
+    gameState.solution,
     {
       autoValidate: false, // On-demand validation only
       showErrorHighlights: true,

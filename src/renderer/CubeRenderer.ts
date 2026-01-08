@@ -26,9 +26,11 @@ import { ValueSpriteRenderer } from './ValueSpriteRenderer.js';
 import { COLORS, OPACITY } from '../config/RenderConfig.js';
 
 /**
- * Visual state for a cell (hover, selected, error)
+ * Visual state for a cell (hover, selected, error, conflict-given, wrong)
+ * - 'conflict-given': Green highlight for given cells involved in conflicts
+ * - 'wrong': Red highlight for user-entered cells with incorrect values
  */
-export type CellState = 'normal' | 'hover' | 'selected' | 'error';
+export type CellState = 'normal' | 'hover' | 'selected' | 'error' | 'conflict-given' | 'wrong';
 
 /**
  * Configuration for CubeRenderer
@@ -52,6 +54,10 @@ export interface CubeRendererConfig {
   selectedColor?: number;
   /** Color for error state */
   errorColor?: number;
+  /** Color for conflict-given state (green) */
+  conflictGivenColor?: number;
+  /** Color for wrong state (red) */
+  wrongColor?: number;
 }
 
 /**
@@ -76,6 +82,8 @@ export class CubeRenderer {
     hover: THREE.MeshStandardMaterial;
     selected: THREE.MeshStandardMaterial;
     error: THREE.MeshStandardMaterial;
+    conflictGiven: THREE.MeshStandardMaterial;
+    wrong: THREE.MeshStandardMaterial;
   };
 
   // Container for all meshes
@@ -107,6 +115,8 @@ export class CubeRenderer {
       hoverColor: config.hoverColor ?? 0xffd700,
       selectedColor: config.selectedColor ?? 0xff9500,
       errorColor: config.errorColor ?? 0xe74c3c,
+      conflictGivenColor: config.conflictGivenColor ?? 0x2ecc71, // Green for given cells in conflict
+      wrongColor: config.wrongColor ?? 0xff0000, // Red for wrong user cells
     };
 
     // Create container group at world origin
@@ -177,6 +187,18 @@ export class CubeRenderer {
       }),
       error: new THREE.MeshStandardMaterial({
         color: this.config.errorColor,
+        transparent: true,
+        opacity: 0.7,
+        depthWrite: false,
+      }),
+      conflictGiven: new THREE.MeshStandardMaterial({
+        color: this.config.conflictGivenColor,
+        transparent: true,
+        opacity: 0.7,
+        depthWrite: false,
+      }),
+      wrong: new THREE.MeshStandardMaterial({
+        color: this.config.wrongColor,
         transparent: true,
         opacity: 0.7,
         depthWrite: false,
@@ -257,6 +279,8 @@ export class CubeRenderer {
     if (state === 'hover') return this.materials.hover;
     if (state === 'selected') return this.materials.selected;
     if (state === 'error') return this.materials.error;
+    if (state === 'conflict-given') return this.materials.conflictGiven;
+    if (state === 'wrong') return this.materials.wrong;
 
     // Default materials based on cell value and type
     if (cell.value === null) {
