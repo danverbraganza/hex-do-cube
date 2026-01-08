@@ -3,12 +3,12 @@
  * Handles mouse and keyboard input for navigation and cell editing.
  *
  * Responsibilities:
- * - Middle-mouse drag: Rotate cube in 3D view
+ * - Left-mouse drag or middle-mouse drag: Rotate cube in 3D view
+ * - Left-mouse click: Select cell for editing (if not dragged)
  * - Double-click on face: Enter face-on view
  * - Mouse wheel in face-on view: Navigate layers
  * - Double-click on minimap: Return to 3D rotational view
  * - Keyboard input: Handle hex value input (0-9, a-f) for cell editing
- * - Click on cell: Select cell for editing
  * - Track view mode (3D vs face-on)
  * - Manage cell selection state
  */
@@ -68,10 +68,13 @@ export class InputController {
   // Cell selection state
   private selectedCell: Position | null = null;
 
-  // Mouse state for middle-button drag
+  // Mouse state for drag rotation (left or middle button)
   private isMiddleMouseDown: boolean = false;
+  private isLeftMouseDown: boolean = false;
+  private isDragging: boolean = false;
   private lastMouseX: number = 0;
   private lastMouseY: number = 0;
+  private dragThreshold: number = 5; // pixels to move before it's considered a drag
 
   // Double-click detection
   private lastClickTime: number = 0;
@@ -85,6 +88,7 @@ export class InputController {
   private boundHandleMouseDown: (e: MouseEvent) => void;
   private boundHandleMouseMove: (e: MouseEvent) => void;
   private boundHandleMouseUp: (e: MouseEvent) => void;
+  private boundHandleMouseLeave: (e: MouseEvent) => void;
   private boundHandleWheel: (e: WheelEvent) => void;
   private boundHandleKeyDown: (e: KeyboardEvent) => void;
   private boundHandleContextMenu: (e: MouseEvent) => void;
@@ -115,6 +119,7 @@ export class InputController {
     this.boundHandleMouseDown = this.handleMouseDown.bind(this);
     this.boundHandleMouseMove = this.handleMouseMove.bind(this);
     this.boundHandleMouseUp = this.handleMouseUp.bind(this);
+    this.boundHandleMouseLeave = this.handleMouseLeave.bind(this);
     this.boundHandleWheel = this.handleWheel.bind(this);
     this.boundHandleKeyDown = this.handleKeyDown.bind(this);
     this.boundHandleContextMenu = this.handleContextMenu.bind(this);
@@ -131,6 +136,7 @@ export class InputController {
     this.canvas.addEventListener('mousedown', this.boundHandleMouseDown);
     this.canvas.addEventListener('mousemove', this.boundHandleMouseMove);
     this.canvas.addEventListener('mouseup', this.boundHandleMouseUp);
+    this.canvas.addEventListener('mouseleave', this.boundHandleMouseLeave);
     this.canvas.addEventListener('wheel', this.boundHandleWheel, { passive: false });
     this.canvas.addEventListener('contextmenu', this.boundHandleContextMenu);
 
@@ -145,6 +151,7 @@ export class InputController {
     this.canvas.removeEventListener('mousedown', this.boundHandleMouseDown);
     this.canvas.removeEventListener('mousemove', this.boundHandleMouseMove);
     this.canvas.removeEventListener('mouseup', this.boundHandleMouseUp);
+    this.canvas.removeEventListener('mouseleave', this.boundHandleMouseLeave);
     this.canvas.removeEventListener('wheel', this.boundHandleWheel);
     this.canvas.removeEventListener('contextmenu', this.boundHandleContextMenu);
     document.removeEventListener('keydown', this.boundHandleKeyDown);
@@ -165,7 +172,11 @@ export class InputController {
 
     // Left mouse button (button 0)
     if (event.button === 0) {
-      this.handleLeftClick(event);
+      this.isLeftMouseDown = true;
+      this.isDragging = false;
+      this.lastMouseX = event.clientX;
+      this.lastMouseY = event.clientY;
+      // Don't prevent default yet - wait to see if it's a click or drag
     }
   }
 
@@ -284,8 +295,22 @@ export class InputController {
    * Handle mouse move events
    */
   private handleMouseMove(event: MouseEvent): void {
-    // Middle mouse drag - rotate camera in 3D view
-    if (this.isMiddleMouseDown && this.viewMode === '3d-rotational') {
+    // Check if left mouse is down and might be dragging
+    if (this.isLeftMouseDown && !this.isDragging && this.viewMode === '3d-rotational') {
+      const deltaX = Math.abs(event.clientX - this.lastMouseX);
+      const deltaY = Math.abs(event.clientY - this.lastMouseY);
+
+      // If mouse moved beyond threshold, it's a drag not a click
+      if (deltaX > this.dragThreshold || deltaY > this.dragThreshold) {
+        this.isDragging = true;
+      }
+    }
+
+    // Left or middle mouse drag - rotate camera in 3D view
+    const isRotating = (this.isMiddleMouseDown || (this.isLeftMouseDown && this.isDragging))
+                       && this.viewMode === '3d-rotational';
+
+    if (isRotating) {
       event.preventDefault();
 
       const deltaX = event.clientX - this.lastMouseX;
@@ -312,6 +337,25 @@ export class InputController {
     if (event.button === 1) {
       this.isMiddleMouseDown = false;
     }
+
+    // Left mouse button release
+    if (event.button === 0) {
+      // Only process as click if it wasn't a drag
+      if (this.isLeftMouseDown && !this.isDragging) {
+        this.handleLeftClick(event);
+      }
+      this.isLeftMouseDown = false;
+      this.isDragging = false;
+    }
+  }
+
+  /**
+   * Handle mouse leaving the canvas (cancel any drag operation)
+   */
+  private handleMouseLeave(_event: MouseEvent): void {
+    this.isMiddleMouseDown = false;
+    this.isLeftMouseDown = false;
+    this.isDragging = false;
   }
 
   /**
