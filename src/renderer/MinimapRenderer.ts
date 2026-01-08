@@ -403,8 +403,16 @@ export class MinimapRenderer {
     this.renderer.setScissor(x, y, width, height);
     this.renderer.setScissorTest(true);
 
+    // Clear the minimap region (color and depth) before rendering
+    // This ensures the minimap renders cleanly without interference from main scene
+    this.renderer.autoClear = false;
+    this.renderer.clear(true, true, false); // Clear color and depth, but not stencil
+
     // Render minimap scene
     this.renderer.render(this.scene, this.camera);
+
+    // Reset autoClear for next frame
+    this.renderer.autoClear = true;
 
     // Reset to full viewport
     this.renderer.setViewport(0, 0, canvasWidth, canvasHeight);
