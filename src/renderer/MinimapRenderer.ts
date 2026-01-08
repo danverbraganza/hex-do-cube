@@ -106,6 +106,10 @@ export class MinimapRenderer {
   private highlightedFace: Face | null = null;
   private faceHighlightMeshes: Map<Face, THREE.Mesh> = new Map();
 
+  // Layer highlighting
+  private highlightedLayer: { face: Face; layer: number } | null = null;
+  private layerHighlightMeshes: Map<Face, THREE.Mesh[]> = new Map();
+
   // Lighting
   private ambientLight!: THREE.AmbientLight;
   private directionalLight!: THREE.DirectionalLight;
@@ -165,6 +169,9 @@ export class MinimapRenderer {
 
     // Initialize face highlight meshes
     this.initializeFaceHighlights();
+
+    // Initialize layer highlight meshes
+    this.initializeLayerHighlights();
 
     // Add container to scene
     this.scene.add(this.container);
@@ -328,6 +335,55 @@ export class MinimapRenderer {
   }
 
   /**
+   * Initialize layer highlight meshes (16 per face, one for each layer depth)
+   */
+  private initializeLayerHighlights(): void {
+    const spacing = this.config.cellSize + this.config.cellGap;
+    const size = 16 * spacing; // Size of one face
+    const offset = (15 * spacing) / 2; // Center offset
+
+    // Create thin planes for each layer
+    const planeGeometry = new THREE.PlaneGeometry(size, size);
+    const planeMaterial = new THREE.MeshBasicMaterial({
+      color: this.config.highlightColor,
+      transparent: true,
+      opacity: this.config.highlightOpacity,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+
+    // Create layer highlights for each face
+    const faces: Face[] = ['i', 'j', 'k'];
+    for (const face of faces) {
+      const layerMeshes: THREE.Mesh[] = [];
+
+      for (let layer = 0; layer < 16; layer++) {
+        const mesh = new THREE.Mesh(planeGeometry, planeMaterial.clone());
+        mesh.visible = false;
+
+        // Position based on face and layer
+        if (face === 'i') {
+          // i-face: horizontal planes at different y (vertical) positions
+          mesh.rotation.x = -Math.PI / 2;
+          mesh.position.y = layer * spacing - offset;
+        } else if (face === 'j') {
+          // j-face: vertical planes at different x (horizontal) positions
+          mesh.rotation.y = Math.PI / 2;
+          mesh.position.x = layer * spacing - offset;
+        } else {
+          // k-face: vertical planes at different z (depth) positions
+          mesh.position.z = layer * spacing - offset;
+        }
+
+        layerMeshes.push(mesh);
+        this.scene.add(mesh);
+      }
+
+      this.layerHighlightMeshes.set(face, layerMeshes);
+    }
+  }
+
+  /**
    * Update a specific cell's appearance
    * Uses shared materials from cache - no disposal needed
    */
@@ -384,6 +440,38 @@ export class MinimapRenderer {
    */
   public getHighlightedFace(): Face | null {
     return this.highlightedFace;
+  }
+
+  /**
+   * Highlight a specific layer within a face (for face-on mode)
+   * @param face - The face containing the layer ('i', 'j', or 'k'), or null to clear
+   * @param layer - The layer depth (0-15), or null to clear
+   */
+  public setHighlightedLayer(face: Face | null, layer: number | null): void {
+    // Hide all layer highlights
+    for (const meshes of this.layerHighlightMeshes.values()) {
+      for (const mesh of meshes) {
+        mesh.visible = false;
+      }
+    }
+
+    // Show the specified layer highlight
+    if (face !== null && layer !== null) {
+      const layerMeshes = this.layerHighlightMeshes.get(face);
+      if (layerMeshes && layer >= 0 && layer < 16) {
+        layerMeshes[layer].visible = true;
+      }
+    }
+
+    // Update state
+    this.highlightedLayer = face !== null && layer !== null ? { face, layer } : null;
+  }
+
+  /**
+   * Get the currently highlighted layer
+   */
+  public getHighlightedLayer(): { face: Face; layer: number } | null {
+    return this.highlightedLayer;
   }
 
   /**
@@ -496,10 +584,20 @@ export class MinimapRenderer {
       }
     }
 
+    // Dispose of layer highlight materials
+    for (const meshes of this.layerHighlightMeshes.values()) {
+      for (const mesh of meshes) {
+        if (mesh.material instanceof THREE.Material) {
+          mesh.material.dispose();
+        }
+      }
+    }
+
     // Clear scene
     this.scene.clear();
     this.cellMeshes.clear();
     this.faceHighlightMeshes.clear();
+    this.layerHighlightMeshes.clear();
   }
 
   /**

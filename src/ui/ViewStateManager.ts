@@ -73,6 +73,7 @@ export class ViewStateManager {
       // Just update the layer if different
       if (this.faceRenderer.getCurrentLayer() !== layer) {
         this.faceRenderer.setLayer(layer);
+        this.minimapRenderer.setHighlightedLayer(face, layer);
       }
       return;
     }
@@ -84,6 +85,7 @@ export class ViewStateManager {
     this.faceRenderer.enterFaceOnView(face, layer);
     this.sceneManager.setFaceOnView(face, layer);
     this.minimapRenderer.setHighlightedFace(face);
+    this.minimapRenderer.setHighlightedLayer(face, layer);
     this.subsquareSeparatorRenderer?.setMode('face-on', face, layer);
 
     // Notify listeners
@@ -107,6 +109,7 @@ export class ViewStateManager {
     this.faceRenderer.exitFaceOnView();
     this.sceneManager.resetCamera();
     this.minimapRenderer.setHighlightedFace(null);
+    this.minimapRenderer.setHighlightedLayer(null, null);
     this.subsquareSeparatorRenderer?.setMode('3d');
 
     // Notify listeners
@@ -192,11 +195,13 @@ export class ViewStateManager {
       this.currentMode = '3d-rotational';
       this.sceneManager.resetCamera();
       this.minimapRenderer.setHighlightedFace(null);
+      this.minimapRenderer.setHighlightedLayer(null, null);
     } else if (this.currentMode === '3d-rotational' && faceRendererActive) {
       // State mismatch: FaceRenderer thinks it's active but we don't
       // Force FaceRenderer to exit
       this.faceRenderer.exitFaceOnView();
       this.minimapRenderer.setHighlightedFace(null);
+      this.minimapRenderer.setHighlightedLayer(null, null);
     }
   }
 

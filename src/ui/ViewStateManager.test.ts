@@ -98,13 +98,19 @@ class MockFaceRenderer implements Partial<FaceRenderer> {
  */
 class MockMinimapRenderer implements Partial<MinimapRenderer> {
   public setHighlightedFaceCalls: Array<Face | null> = [];
+  public setHighlightedLayerCalls: Array<{ face: Face | null; layer: number | null }> = [];
 
   setHighlightedFace(face: Face | null): void {
     this.setHighlightedFaceCalls.push(face);
   }
 
+  setHighlightedLayer(face: Face | null, layer: number | null): void {
+    this.setHighlightedLayerCalls.push({ face, layer });
+  }
+
   reset(): void {
     this.setHighlightedFaceCalls = [];
+    this.setHighlightedLayerCalls = [];
   }
 }
 
@@ -185,6 +191,8 @@ describe('ViewStateManager', () => {
 
       expect(mockMinimapRenderer.setHighlightedFaceCalls).toHaveLength(1);
       expect(mockMinimapRenderer.setHighlightedFaceCalls[0]).toBe('j');
+      expect(mockMinimapRenderer.setHighlightedLayerCalls).toHaveLength(1);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls[0]).toEqual({ face: 'j', layer: 3 });
     });
 
     it('should update layer when entering same face with different layer', () => {
@@ -200,6 +208,9 @@ describe('ViewStateManager', () => {
       expect(mockFaceRenderer.setLayerCalls).toHaveLength(1);
       expect(mockFaceRenderer.setLayerCalls[0]).toBe(10);
       expect(viewStateManager.getCurrentLayer()).toBe(10);
+      // MinimapRenderer should also be updated with new layer
+      expect(mockMinimapRenderer.setHighlightedLayerCalls).toHaveLength(1);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls[0]).toEqual({ face: 'k', layer: 10 });
     });
 
     it('should not re-enter if already in same face and layer', () => {
@@ -271,6 +282,8 @@ describe('ViewStateManager', () => {
 
       expect(mockMinimapRenderer.setHighlightedFaceCalls).toHaveLength(1);
       expect(mockMinimapRenderer.setHighlightedFaceCalls[0]).toBe(null);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls).toHaveLength(1);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls[0]).toEqual({ face: null, layer: null });
     });
 
     it('should not exit if already in 3D view', () => {
@@ -296,6 +309,8 @@ describe('ViewStateManager', () => {
       expect(mockSceneManager.resetCameraCalls).toBe(1);
       expect(mockMinimapRenderer.setHighlightedFaceCalls).toHaveLength(1);
       expect(mockMinimapRenderer.setHighlightedFaceCalls[0]).toBe(null);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls).toHaveLength(1);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls[0]).toEqual({ face: null, layer: null });
     });
   });
 
@@ -455,6 +470,8 @@ describe('ViewStateManager', () => {
       expect(mockSceneManager.resetCameraCalls).toBe(1);
       expect(mockMinimapRenderer.setHighlightedFaceCalls).toHaveLength(1);
       expect(mockMinimapRenderer.setHighlightedFaceCalls[0]).toBe(null);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls).toHaveLength(1);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls[0]).toEqual({ face: null, layer: null });
     });
 
     it('should fix state mismatch when FaceRenderer thinks active but ViewStateManager does not', () => {
@@ -472,6 +489,8 @@ describe('ViewStateManager', () => {
       expect(mockFaceRenderer.exitFaceOnViewCalls).toBe(1);
       expect(mockMinimapRenderer.setHighlightedFaceCalls).toHaveLength(1);
       expect(mockMinimapRenderer.setHighlightedFaceCalls[0]).toBe(null);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls).toHaveLength(1);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls[0]).toEqual({ face: null, layer: null });
     });
 
     it('should not make changes when state is consistent in face-on mode', () => {
@@ -551,6 +570,8 @@ describe('ViewStateManager', () => {
       expect(mockFaceRenderer.getCurrentLayer()).toBe(7);
       expect(mockSceneManager.setFaceOnViewCalls).toHaveLength(1);
       expect(mockMinimapRenderer.setHighlightedFaceCalls).toHaveLength(1);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls).toHaveLength(1);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls[0]).toEqual({ face: 'k', layer: 7 });
 
       // Exit face view
       viewStateManager.exitFaceOnView();
@@ -564,6 +585,8 @@ describe('ViewStateManager', () => {
       expect(mockSceneManager.resetCameraCalls).toBe(1);
       expect(mockMinimapRenderer.setHighlightedFaceCalls).toHaveLength(2);
       expect(mockMinimapRenderer.setHighlightedFaceCalls[1]).toBe(null);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls).toHaveLength(2);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls[1]).toEqual({ face: null, layer: null });
     });
 
     it('should prevent end-on view bug by always aligning camera with active face', () => {
