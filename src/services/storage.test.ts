@@ -446,4 +446,137 @@ describe('storage service', () => {
       console.log(`Fully filled game state size: ${sizeInKB.toFixed(2)} KB (4096 cells)`);
     });
   });
+
+  describe('solution serialization', () => {
+    test('saves and loads solution correctly', () => {
+      const solution = createDummySolution();
+      const state = createGameState('easy', solution);
+
+      saveGameState(state);
+      const loaded = loadGameState();
+
+      expect(loaded).not.toBeNull();
+      expect(loaded!.solution).toBeDefined();
+      expect(loaded!.solution.length).toBe(16);
+    });
+
+    test('preserves all solution values through serialization', () => {
+      // Create a solution with varied values
+      const solution: HexValue[][][] = [];
+      for (let i = 0; i < 16; i++) {
+        solution[i] = [];
+        for (let j = 0; j < 16; j++) {
+          solution[i][j] = [];
+          for (let k = 0; k < 16; k++) {
+            // Use a pattern to create different values
+            const value = ((i + j * 2 + k * 3) % 16).toString(16) as HexValue;
+            solution[i][j][k] = value;
+          }
+        }
+      }
+
+      const state = createGameState('easy', solution);
+      saveGameState(state);
+      const loaded = loadGameState();
+
+      expect(loaded).not.toBeNull();
+
+      // Verify all solution values match
+      for (let i = 0; i < 16; i++) {
+        for (let j = 0; j < 16; j++) {
+          for (let k = 0; k < 16; k++) {
+            expect(loaded!.solution[i][j][k]).toBe(solution[i][j][k]);
+          }
+        }
+      }
+    });
+
+    test('solution remains separate from cube state after serialization', () => {
+      const solution = createDummySolution(); // All '0'
+      const state = createGameState('easy', solution);
+
+      // Set some cube cells to different values
+      state.cube.cells[0][0][0] = createCell([0, 0, 0] as const, 'f', 'editable');
+      state.cube.cells[5][5][5] = createCell([5, 5, 5] as const, 'a', 'editable');
+
+      saveGameState(state);
+      const loaded = loadGameState();
+
+      expect(loaded).not.toBeNull();
+
+      // Solution should still be '0'
+      expect(loaded!.solution[0][0][0]).toBe('0');
+      expect(loaded!.solution[5][5][5]).toBe('0');
+
+      // Cube should have user values
+      expect(loaded!.cube.cells[0][0][0].value).toBe('f');
+      expect(loaded!.cube.cells[5][5][5].value).toBe('a');
+    });
+
+    test('solution has no null values after deserialization', () => {
+      const solution = createDummySolution();
+      const state = createGameState('easy', solution);
+
+      saveGameState(state);
+      const loaded = loadGameState();
+
+      expect(loaded).not.toBeNull();
+
+      // Verify no null values in solution
+      for (let i = 0; i < 16; i++) {
+        for (let j = 0; j < 16; j++) {
+          for (let k = 0; k < 16; k++) {
+            expect(loaded!.solution[i][j][k]).not.toBeNull();
+            expect(loaded!.solution[i][j][k]).toBeDefined();
+          }
+        }
+      }
+    });
+
+    test('throws error when solution is missing in serialized data', () => {
+      const invalidData = {
+        version: 1,
+        cells: [],
+        difficulty: 'easy',
+        isComplete: false,
+        isCorrect: null
+        // solution is missing
+      };
+      localStorage.setItem('hex-do-cube-game-state', JSON.stringify(invalidData));
+
+      expect(() => loadGameState()).toThrow('missing or invalid solution array');
+    });
+
+    test('throws error when solution is not an array', () => {
+      const invalidData = {
+        version: 1,
+        cells: [],
+        difficulty: 'easy',
+        isComplete: false,
+        isCorrect: null,
+        solution: 'not-an-array'
+      };
+      localStorage.setItem('hex-do-cube-game-state', JSON.stringify(invalidData));
+
+      expect(() => loadGameState()).toThrow('missing or invalid solution array');
+    });
+
+    test('solution structure is correct 16x16x16 after deserialization', () => {
+      const solution = createDummySolution();
+      const state = createGameState('easy', solution);
+
+      saveGameState(state);
+      const loaded = loadGameState();
+
+      expect(loaded).not.toBeNull();
+      expect(loaded!.solution.length).toBe(16);
+
+      for (let i = 0; i < 16; i++) {
+        expect(loaded!.solution[i].length).toBe(16);
+        for (let j = 0; j < 16; j++) {
+          expect(loaded!.solution[i][j].length).toBe(16);
+        }
+      }
+    });
+  });
 });

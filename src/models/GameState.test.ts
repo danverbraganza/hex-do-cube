@@ -266,4 +266,81 @@ describe('GameState Model', () => {
       expect(isGameWon(gameState)).toBe(false); // But not complete
     });
   });
+
+  describe('solution storage', () => {
+    it('should store solution in createGameState', () => {
+      const solution = createDummySolution();
+      const gameState = createGameState('easy', solution);
+
+      expect(gameState.solution).toBeDefined();
+      expect(gameState.solution).toBe(solution);
+    });
+
+    it('should store solution in createGameStateFromCube', () => {
+      const cube = createCube();
+      const solution = createDummySolution();
+      const gameState = createGameStateFromCube(cube, 'easy', solution);
+
+      expect(gameState.solution).toBeDefined();
+      expect(gameState.solution).toBe(solution);
+    });
+
+    it('should keep solution separate from cube', () => {
+      const solution = createDummySolution();
+      const gameState = createGameState('easy', solution);
+
+      // Modify a cube cell
+      setCellValue(gameState.cube.cells[0][0][0], 'f');
+
+      // Solution should remain unchanged
+      expect(gameState.solution[0][0][0]).toBe('0');
+      expect(gameState.cube.cells[0][0][0].value).toBe('f');
+    });
+
+    it('should have a complete 16x16x16 solution array', () => {
+      const solution = createDummySolution();
+      const gameState = createGameState('easy', solution);
+
+      // Verify dimensions
+      expect(gameState.solution.length).toBe(16);
+      for (let i = 0; i < 16; i++) {
+        expect(gameState.solution[i].length).toBe(16);
+        for (let j = 0; j < 16; j++) {
+          expect(gameState.solution[i][j].length).toBe(16);
+        }
+      }
+    });
+
+    it('should have no null values in solution', () => {
+      const solution = createDummySolution();
+      const gameState = createGameState('easy', solution);
+
+      // Check all 4096 cells
+      for (let i = 0; i < 16; i++) {
+        for (let j = 0; j < 16; j++) {
+          for (let k = 0; k < 16; k++) {
+            expect(gameState.solution[i][j][k]).not.toBeNull();
+            expect(gameState.solution[i][j][k]).toBeDefined();
+          }
+        }
+      }
+    });
+
+    it('should allow different solution values than cube values', () => {
+      const solution = createDummySolution(); // All '0'
+      const gameState = createGameState('easy', solution);
+
+      // Set cube cells to different values
+      setCellValue(gameState.cube.cells[0][0][0], 'a');
+      setCellValue(gameState.cube.cells[1][1][1], 'b');
+
+      // Solution should still be '0'
+      expect(gameState.solution[0][0][0]).toBe('0');
+      expect(gameState.solution[1][1][1]).toBe('0');
+
+      // Cube should have different values
+      expect(gameState.cube.cells[0][0][0].value).toBe('a');
+      expect(gameState.cube.cells[1][1][1].value).toBe('b');
+    });
+  });
 });
