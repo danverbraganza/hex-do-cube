@@ -54,6 +54,8 @@ export class SceneManager {
     targetPosition: THREE.Vector3;
     startUp: THREE.Vector3;
     targetUp: THREE.Vector3;
+    startLookAt: THREE.Vector3;
+    targetLookAt: THREE.Vector3;
     startTime: number;
     duration: number;
   } | null = null;
@@ -258,7 +260,7 @@ export class SceneManager {
   }
 
   /**
-   * Animate camera to a target position and orientation
+   * Animate camera to a target position and orientation (looking at origin)
    * @param targetPosition - Target camera position
    * @param targetUp - Target camera up vector
    * @param duration - Animation duration in milliseconds (default: 400ms)
@@ -268,8 +270,31 @@ export class SceneManager {
     targetUp: THREE.Vector3,
     duration: number = 400
   ): void {
+    // For backward compatibility, animate looking at origin
+    this.animateCameraToWithLookAt(targetPosition, new THREE.Vector3(0, 0, 0), targetUp, duration);
+  }
+
+  /**
+   * Animate camera to a target position and orientation with custom lookAt point
+   * @param targetPosition - Target camera position
+   * @param targetLookAt - Target point to look at
+   * @param targetUp - Target camera up vector
+   * @param duration - Animation duration in milliseconds (default: 400ms)
+   */
+  private animateCameraToWithLookAt(
+    targetPosition: THREE.Vector3,
+    targetLookAt: THREE.Vector3,
+    targetUp: THREE.Vector3,
+    duration: number = 400
+  ): void {
     // Use the currently active camera for animation
     const camera = this.cameraMode === 'isometric' ? this.perspectiveCamera : this.orthographicCamera;
+
+    // Calculate current lookAt point by projecting forward from camera
+    const currentLookAt = new THREE.Vector3();
+    camera.getWorldDirection(currentLookAt);
+    currentLookAt.multiplyScalar(this.cameraDistance);
+    currentLookAt.add(camera.position);
 
     this.cameraAnimation = {
       active: true,
@@ -277,6 +302,8 @@ export class SceneManager {
       targetPosition: targetPosition.clone(),
       startUp: camera.up.clone(),
       targetUp: targetUp.clone(),
+      startLookAt: currentLookAt,
+      targetLookAt: targetLookAt.clone(),
       startTime: performance.now(),
       duration,
     };
@@ -315,8 +342,14 @@ export class SceneManager {
       easedProgress
     );
 
-    // Always look at cube center
-    camera.lookAt(0, 0, 0);
+    // Interpolate lookAt point
+    const currentLookAt = new THREE.Vector3();
+    currentLookAt.lerpVectors(
+      this.cameraAnimation.startLookAt,
+      this.cameraAnimation.targetLookAt,
+      easedProgress
+    );
+    camera.lookAt(currentLookAt);
 
     // Check if animation is complete
     if (progress >= 1) {
@@ -328,46 +361,104 @@ export class SceneManager {
   }
 
   /**
+   * Calculate the world position of a layer along a face axis
+   * @param layer - The layer index (0-15)
+   * @returns The world coordinate of that layer
+   */
+  private getLayerPosition(layer: number): number {
+    // Match CubeRenderer's cell positioning:
+    // spacing = cellSize + cellGap = 1.0 + 0.1 = 1.1
+    // offset = 7.5 * spacing = 8.25
+    // layer position = layer * spacing - offset
+    const spacing = 1.1;
+    const offset = 7.5 * spacing;
+    return layer * spacing - offset;
+  }
+
+  /**
    * Set camera to face-on view for a specific face with smooth animation
    * @param face - The face to view ('i', 'j', or 'k')
-   * @param _layer - The layer depth (0-15) - currently unused, for future implementation
+   * @param layer - The layer depth (0-15)
    * @param animated - Whether to animate the transition (default: true)
    *
-   * All face-on views look at the cube's center (0, 0, 0) to ensure
-   * the cube remains centered in the viewport from any viewing angle.
+   * Camera is positioned to look at the specific layer plane.
    * Uses orthographic camera for true 2D appearance.
    */
-  public setFaceOnView(face: 'i' | 'j' | 'k', _layer: number, animated: boolean = true): void {
+  public setFaceOnView(face: 'i' | 'j' | 'k', layer: number, animated: boolean = true): void {
     // Switch to orthographic camera for face-on view
     this.cameraMode = 'face-on';
     this.currentCamera = this.orthographicCamera;
 
+    const { position, lookAt, up } = this.calculateFaceOnCameraParams(face, layer);
+
+    if (animated) {
+      this.animateCameraToWithLookAt(position, lookAt, up);
+    } else {
+      // Instant snap
+      this.orthographicCamera.position.copy(position);
+      this.orthographicCamera.up.copy(up);
+      this.orthographicCamera.lookAt(lookAt);
+    }
+  }
+
+  /**
+   * Calculate camera parameters for face-on view of a specific layer
+   * @param face - The face to view
+   * @param layer - The layer depth (0-15)
+   * @returns Camera position, lookAt point, and up vector
+   */
+  private calculateFaceOnCameraParams(face: 'i' | 'j' | 'k', layer: number): {
+    position: THREE.Vector3;
+    lookAt: THREE.Vector3;
+    up: THREE.Vector3;
+  } {
     const distance = this.cameraDistance;
-    let targetPosition: THREE.Vector3;
-    let targetUp: THREE.Vector3;
+    const layerPos = this.getLayerPosition(layer);
+
+    let position: THREE.Vector3;
+    let lookAt: THREE.Vector3;
+    let up: THREE.Vector3;
 
     switch (face) {
-      case 'i': // Top/bottom face (y-axis)
-        targetPosition = new THREE.Vector3(0, distance, 0);
-        targetUp = new THREE.Vector3(0, 0, -1);
+      case 'i': // Top/bottom face (y-axis) - camera looks down/up Y axis
+        position = new THREE.Vector3(0, layerPos + distance, 0);
+        lookAt = new THREE.Vector3(0, layerPos, 0);
+        up = new THREE.Vector3(0, 0, -1);
         break;
-      case 'j': // Right/left face (x-axis)
-        targetPosition = new THREE.Vector3(distance, 0, 0);
-        targetUp = new THREE.Vector3(0, 1, 0);
+      case 'j': // Right/left face (x-axis) - camera looks along X axis
+        position = new THREE.Vector3(layerPos + distance, 0, 0);
+        lookAt = new THREE.Vector3(layerPos, 0, 0);
+        up = new THREE.Vector3(0, 1, 0);
         break;
-      case 'k': // Front/back face (z-axis)
-        targetPosition = new THREE.Vector3(0, 0, distance);
-        targetUp = new THREE.Vector3(0, 1, 0);
+      case 'k': // Front/back face (z-axis) - camera looks along Z axis
+        position = new THREE.Vector3(0, 0, layerPos + distance);
+        lookAt = new THREE.Vector3(0, 0, layerPos);
+        up = new THREE.Vector3(0, 1, 0);
         break;
     }
 
+    return { position, lookAt, up };
+  }
+
+  /**
+   * Update camera position for a layer change in face-on view
+   * @param face - The current face being viewed
+   * @param layer - The new layer depth (0-15)
+   * @param animated - Whether to animate the transition (default: true)
+   */
+  public updateFaceOnLayer(face: 'i' | 'j' | 'k', layer: number, animated: boolean = true): void {
+    if (this.cameraMode !== 'face-on') {
+      return; // Only update in face-on mode
+    }
+
+    const { position, lookAt, up } = this.calculateFaceOnCameraParams(face, layer);
+
     if (animated) {
-      this.animateCameraTo(targetPosition, targetUp);
+      this.animateCameraToWithLookAt(position, lookAt, up);
     } else {
-      // Instant snap (for backward compatibility or when animation is not desired)
-      this.orthographicCamera.position.copy(targetPosition);
-      this.orthographicCamera.up.copy(targetUp);
-      this.orthographicCamera.lookAt(0, 0, 0);
+      this.orthographicCamera.position.copy(position);
+      this.orthographicCamera.up.copy(up);
+      this.orthographicCamera.lookAt(lookAt);
     }
   }
 

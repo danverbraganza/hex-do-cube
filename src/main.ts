@@ -197,8 +197,10 @@ export function init(): void {
   });
 
   // Also listen to layer changes from FaceRenderer (for scrolling)
-  faceRenderer.onLayerChange((_face, layer) => {
+  faceRenderer.onLayerChange((face, layer) => {
     gameUI.updateLayerIndicator(layer);
+    // Move camera to follow the layer
+    sceneManager.updateFaceOnLayer(face, layer, true);
   });
 
   // Set up auto-save on cell value changes
