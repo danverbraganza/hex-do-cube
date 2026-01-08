@@ -24,6 +24,23 @@ import {
   resetValidationStatus,
 } from './models/GameState.js';
 
+/**
+ * Creates a dummy solution for testing (all cells filled with '0')
+ */
+function createDummySolution(): HexValue[][][] {
+  const solution: HexValue[][][] = [];
+  for (let i = 0; i < 16; i++) {
+    solution[i] = [];
+    for (let j = 0; j < 16; j++) {
+      solution[i][j] = [];
+      for (let k = 0; k < 16; k++) {
+        solution[i][j][k] = '0';
+      }
+    }
+  }
+  return solution;
+}
+
 // Services
 import { validateCube } from './services/validator.js';
 import {
@@ -89,7 +106,7 @@ function createSimplePuzzle(): Cube {
 describe('Integration: Full Game Flow', () => {
   describe('New game → Edit → Validate → Win', () => {
     test('creates new game with empty cube', () => {
-      const gameState = createGameState('easy');
+      const gameState = createGameState('easy', createDummySolution());
 
       expect(gameState).toBeDefined();
       expect(gameState.cube).toBeDefined();
@@ -100,7 +117,7 @@ describe('Integration: Full Game Flow', () => {
     });
 
     test('edits cells and verifies cube state updates', () => {
-      const gameState = createGameState('easy');
+      const gameState = createGameState('easy', createDummySolution());
 
       // Edit some cells
       const pos1: Position = [0, 0, 0];
@@ -120,7 +137,7 @@ describe('Integration: Full Game Flow', () => {
     });
 
     test('validates partial cube with no errors', () => {
-      const gameState = createGameState('easy');
+      const gameState = createGameState('easy', createDummySolution());
 
       // Add valid cells (no conflicts)
       setCellValue(getCell(gameState.cube, [0, 0, 0]), 'a');
@@ -136,7 +153,7 @@ describe('Integration: Full Game Flow', () => {
     });
 
     test('validates partial cube and detects errors', () => {
-      const gameState = createGameState('easy');
+      const gameState = createGameState('easy', createDummySolution());
 
       // Add duplicate in same row
       setCellValue(getCell(gameState.cube, [0, 0, 0]), 'a');
@@ -151,7 +168,7 @@ describe('Integration: Full Game Flow', () => {
     });
 
     test('detects completion when cube is filled', () => {
-      const gameState = createGameState('easy');
+      const gameState = createGameState('easy', createDummySolution());
 
       // Fill entire cube with same value (invalid but complete)
       for (let i = 0; i < 16; i++) {
@@ -174,7 +191,7 @@ describe('Integration: Full Game Flow', () => {
     });
 
     test('detects win condition: complete and valid', () => {
-      const gameState = createGameState('easy');
+      const gameState = createGameState('easy', createDummySolution());
       gameState.cube = createMinimalValidCube();
 
       // Validate the game state
@@ -196,7 +213,7 @@ describe('Integration: Full Game Flow', () => {
     });
 
     test('does not win if complete but invalid', () => {
-      const gameState = createGameState('easy');
+      const gameState = createGameState('easy', createDummySolution());
 
       // Fill entire cube with same value (complete but invalid)
       for (let i = 0; i < 16; i++) {
@@ -215,7 +232,7 @@ describe('Integration: Full Game Flow', () => {
     });
 
     test('full game flow: start → edit → validate → fix → validate → win', () => {
-      const gameState = createGameState('easy');
+      const gameState = createGameState('easy', createDummySolution());
 
       // Step 1: Start with empty cube
       expect(isGameWon(gameState)).toBe(false);
@@ -250,7 +267,7 @@ describe('Integration: Full Game Flow', () => {
 
   describe('Realistic editing scenarios', () => {
     test('cannot edit given cells', () => {
-      const gameState = createGameState('easy');
+      const gameState = createGameState('easy', createDummySolution());
       const cube = createSimplePuzzle();
       gameState.cube = cube;
 
@@ -263,7 +280,7 @@ describe('Integration: Full Game Flow', () => {
     });
 
     test('can edit only editable cells', () => {
-      const gameState = createGameState('easy');
+      const gameState = createGameState('easy', createDummySolution());
       const cube = createSimplePuzzle();
       gameState.cube = cube;
 
@@ -282,7 +299,7 @@ describe('Integration: Full Game Flow', () => {
     });
 
     test('tracks completion progress during editing', () => {
-      const gameState = createGameState('easy');
+      const gameState = createGameState('easy', createDummySolution());
       const initialCount = countFilledCells(gameState.cube);
       expect(initialCount).toBe(0);
 
@@ -295,7 +312,7 @@ describe('Integration: Full Game Flow', () => {
     });
 
     test('maintains validation state across edits', () => {
-      const gameState = createGameState('easy');
+      const gameState = createGameState('easy', createDummySolution());
 
       // Start valid
       setCellValue(getCell(gameState.cube, [0, 0, 0]), 'a');
@@ -354,7 +371,7 @@ describe('Integration: Storage Persistence', () => {
   });
 
   test('saves and loads game state round-trip', () => {
-    const original = createGameState('easy');
+    const original = createGameState('easy', createDummySolution());
 
     // Populate with some data
     setCellValue(getCell(original.cube, [0, 0, 0]), 'a');
@@ -376,7 +393,7 @@ describe('Integration: Storage Persistence', () => {
 
   test('simulates save/load across "sessions"', () => {
     // Session 1: Start game and make progress
-    const session1 = createGameState('easy');
+    const session1 = createGameState('easy', createDummySolution());
     setCellValue(getCell(session1.cube, [0, 0, 0]), '1');
     setCellValue(getCell(session1.cube, [1, 0, 0]), '2');
     setCellValue(getCell(session1.cube, [2, 0, 0]), '3');
@@ -403,7 +420,7 @@ describe('Integration: Storage Persistence', () => {
   });
 
   test('preserves given vs editable cell types', () => {
-    const original = createGameState('easy');
+    const original = createGameState('easy', createDummySolution());
     original.cube = createSimplePuzzle();
 
     saveGameState(original);
@@ -421,7 +438,7 @@ describe('Integration: Storage Persistence', () => {
 
   test('handles game progress: save, load, continue, win', () => {
     // Start game
-    const game = createGameState('easy');
+    const game = createGameState('easy', createDummySolution());
     createValidRow(game.cube, 0, 0);
     saveGameState(game);
 
@@ -443,7 +460,7 @@ describe('Integration: Storage Persistence', () => {
 
   test('clears game state and starts fresh', () => {
     // Create and save a game
-    const game1 = createGameState('easy');
+    const game1 = createGameState('easy', createDummySolution());
     setCellValue(getCell(game1.cube, [0, 0, 0]), 'a');
     saveGameState(game1);
     expect(hasGameState()).toBe(true);
@@ -454,16 +471,16 @@ describe('Integration: Storage Persistence', () => {
     expect(loadGameState()).toBeNull();
 
     // Start new game
-    const game2 = createGameState('easy');
+    const game2 = createGameState('easy', createDummySolution());
     expect(countFilledCells(game2.cube)).toBe(0);
   });
 
   test('overwrites previous save on subsequent saves', () => {
-    const game1 = createGameState('easy');
+    const game1 = createGameState('easy', createDummySolution());
     setCellValue(getCell(game1.cube, [0, 0, 0]), 'a');
     saveGameState(game1);
 
-    const game2 = createGameState('easy');
+    const game2 = createGameState('easy', createDummySolution());
     setCellValue(getCell(game2.cube, [0, 0, 0]), 'b');
     saveGameState(game2);
 
@@ -487,7 +504,7 @@ describe('Integration: Multi-Module Coordination', () => {
     expect(validationResult.isValid).toBe(false);
 
     // Create GameState and validate
-    const gameState = createGameState('easy');
+    const gameState = createGameState('easy', createDummySolution());
     gameState.cube = cube;
     const gameValidation = validateGameState(gameState);
 
@@ -508,7 +525,7 @@ describe('Integration: Multi-Module Coordination', () => {
     (global as any).localStorage = localStorageMock;
 
     // Create and modify game state
-    const gameState = createGameState('easy');
+    const gameState = createGameState('easy', createDummySolution());
     setCellValue(getCell(gameState.cube, [0, 0, 0]), 'a');
     validateGameState(gameState);
 
@@ -558,7 +575,7 @@ describe('Integration: Multi-Module Coordination', () => {
     (global as any).localStorage = localStorageMock;
 
     // 1. Create game
-    const game = createGameState('easy');
+    const game = createGameState('easy', createDummySolution());
     expect(game.isCorrect).toBe(null);
 
     // 2. Edit cells
@@ -596,7 +613,7 @@ describe('Integration: Multi-Module Coordination', () => {
 
 describe('Integration: Error Handling Across Modules', () => {
   test('handles validation errors gracefully', () => {
-    const gameState = createGameState('easy');
+    const gameState = createGameState('easy', createDummySolution());
 
     // Create multiple errors
     setCellValue(getCell(gameState.cube, [0, 0, 0]), 'a');
@@ -615,7 +632,7 @@ describe('Integration: Error Handling Across Modules', () => {
   });
 
   test('handles invalid cell modifications', () => {
-    const gameState = createGameState('easy');
+    const gameState = createGameState('easy', createDummySolution());
     gameState.cube = createSimplePuzzle();
 
     const givenCell = getCell(gameState.cube, [0, 0, 0]);
@@ -638,7 +655,7 @@ describe('Integration: Error Handling Across Modules', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (global as any).localStorage = badStorage;
 
-    const gameState = createGameState('easy');
+    const gameState = createGameState('easy', createDummySolution());
 
     // Should throw storage error (storage service wraps it)
     expect(() => saveGameState(gameState)).toThrow('LocalStorage is not available');
@@ -647,7 +664,7 @@ describe('Integration: Error Handling Across Modules', () => {
 
 describe('Integration: Complex Game Scenarios', () => {
   test('scenario: player fills cube incorrectly, validates, fixes, wins', () => {
-    const gameState = createGameState('easy');
+    const gameState = createGameState('easy', createDummySolution());
 
     // Player fills first row incorrectly
     for (let i = 0; i < 16; i++) {
@@ -669,7 +686,7 @@ describe('Integration: Complex Game Scenarios', () => {
   });
 
   test('scenario: multiple validation cycles during gameplay', () => {
-    const gameState = createGameState('easy');
+    const gameState = createGameState('easy', createDummySolution());
     let validationCount = 0;
 
     // Validation 1: Empty cube
@@ -699,7 +716,7 @@ describe('Integration: Complex Game Scenarios', () => {
   });
 
   test('scenario: progressive completion tracking', () => {
-    const gameState = createGameState('easy');
+    const gameState = createGameState('easy', createDummySolution());
     const totalCells = 16 * 16 * 16;
 
     // Track completion percentage
@@ -738,7 +755,7 @@ describe('Integration: Complex Game Scenarios', () => {
     (global as any).localStorage = localStorageMock;
 
     // Save initial state
-    const game1 = createGameState('easy');
+    const game1 = createGameState('easy', createDummySolution());
     setCellValue(getCell(game1.cube, [0, 0, 0]), 'a');
     const initialCount = countFilledCells(game1.cube);
     saveGameState(game1);

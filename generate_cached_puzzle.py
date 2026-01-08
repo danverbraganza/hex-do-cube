@@ -110,18 +110,27 @@ def generate_cached_puzzle(difficulty='easy', output_path='src/data/cached-puzzl
     print(f'        - Given cells: {given_count}')
     print(f'        - Empty cells: {empty_count}')
 
-    # Step 4: Create JSON structure
+    # Step 4: Create solution array (16x16x16 with all values)
+    print('[4/5] Creating solution array...')
+    solution = [
+        [[HEX[cube[z][r][c]] for c in range(16)] for r in range(16)]
+        for z in range(16)
+    ]
+    print(f'      ✓ Solution array created (16x16x16)')
+
+    # Step 5: Create JSON structure
     cached_puzzle = {
         'version': 1,
         'difficulty': difficulty,
         'generatedAt': datetime.utcnow().isoformat() + 'Z',
         'cells': cells,
         'givenCellCount': given_count,
-        'emptyCellCount': empty_count
+        'emptyCellCount': empty_count,
+        'solution': solution
     }
 
     # Write to file
-    print(f'[4/4] Writing to {output_path}...')
+    print(f'[5/5] Writing to {output_path}...')
     output_file = Path(output_path)
     output_file.parent.mkdir(parents=True, exist_ok=True)
 

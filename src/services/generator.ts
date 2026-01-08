@@ -201,11 +201,23 @@ function removeCells(solvedCube: Cube, difficulty: Difficulty): Cube {
 /**
  * Generates a new puzzle cube at the specified difficulty
  * @param difficulty - The difficulty level (default: 'easy')
- * @returns A cube with some cells empty (puzzle) and others given (clues)
+ * @returns An object containing the puzzle cube and the complete solution
  */
-export function generatePuzzle(difficulty: Difficulty = 'easy'): Cube {
+export function generatePuzzle(difficulty: Difficulty = 'easy'): { cube: Cube; solution: HexValue[][][] } {
   // Phase 1: Generate a fully solved cube
   const solvedCube = generateSolvedCube();
+
+  // Extract solution as 3D array
+  const solution: HexValue[][][] = [];
+  for (let i = 0; i < 16; i++) {
+    solution[i] = [];
+    for (let j = 0; j < 16; j++) {
+      solution[i][j] = [];
+      for (let k = 0; k < 16; k++) {
+        solution[i][j][k] = solvedCube.cells[i][j][k].value;
+      }
+    }
+  }
 
   // Phase 2: Remove cells based on difficulty
   const puzzle = removeCells(solvedCube, difficulty);
@@ -229,5 +241,5 @@ export function generatePuzzle(difficulty: Difficulty = 'easy'): Cube {
     }
   }
 
-  return finalPuzzle;
+  return { cube: finalPuzzle, solution };
 }

@@ -40,13 +40,15 @@ interface CachedPuzzle {
   givenCellCount: number;
   /** Total number of empty cells */
   emptyCellCount: number;
+  /** Complete solution (16x16x16 array, all cells filled) */
+  solution: HexValue[][][];
 }
 
 /**
  * Serializes a generated puzzle cube to the cached format
  * Only stores non-empty cells to save space
  */
-function serializePuzzle(cube: Cube): CachedPuzzle {
+function serializePuzzle(cube: Cube, solution: HexValue[][][]): CachedPuzzle {
   const cells: SerializedCell[] = [];
   let givenCount = 0;
   let emptyCount = 0;
@@ -80,7 +82,8 @@ function serializePuzzle(cube: Cube): CachedPuzzle {
     generatedAt: new Date().toISOString(),
     cells,
     givenCellCount: givenCount,
-    emptyCellCount: emptyCount
+    emptyCellCount: emptyCount,
+    solution
   };
 }
 
@@ -101,13 +104,13 @@ async function main() {
   try {
     // Generate the puzzle
     console.log('[1/3] Generating puzzle...');
-    const puzzle = generatePuzzle('easy');
+    const { cube: puzzle, solution } = generatePuzzle('easy');
     const generationTime = ((Date.now() - startTime) / 1000).toFixed(1);
     console.log(`      ✓ Puzzle generated in ${generationTime}s`);
 
     // Serialize to JSON
     console.log('[2/3] Serializing puzzle...');
-    const cached = serializePuzzle(puzzle);
+    const cached = serializePuzzle(puzzle, solution);
     const json = JSON.stringify(cached, null, 2);
     console.log(`      ✓ Serialized ${cached.cells.length} cells`);
     console.log(`        - Given cells: ${cached.givenCellCount}`);

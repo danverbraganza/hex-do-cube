@@ -15,10 +15,27 @@ import {
 import { createCube, isCubeFilled } from './Cube.js';
 import { setCellValue, type HexValue } from './Cell.js';
 
+/**
+ * Creates a dummy solution for testing (all cells filled with '0')
+ */
+function createDummySolution(): HexValue[][][] {
+  const solution: HexValue[][][] = [];
+  for (let i = 0; i < 16; i++) {
+    solution[i] = [];
+    for (let j = 0; j < 16; j++) {
+      solution[i][j] = [];
+      for (let k = 0; k < 16; k++) {
+        solution[i][j][k] = '0';
+      }
+    }
+  }
+  return solution;
+}
+
 describe('GameState Model', () => {
   describe('createGameState', () => {
     it('should create a new game state with empty cube', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       expect(gameState.cube).toBeDefined();
       expect(gameState.difficulty).toBe('easy');
       expect(gameState.isComplete).toBe(false);
@@ -26,7 +43,7 @@ describe('GameState Model', () => {
     });
 
     it('should support custom difficulty', () => {
-      const gameState = createGameState('easy');
+      const gameState = createGameState('easy', createDummySolution());
       expect(gameState.difficulty).toBe('easy');
     });
   });
@@ -34,7 +51,7 @@ describe('GameState Model', () => {
   describe('createGameStateFromCube', () => {
     it('should create game state from existing cube', () => {
       const cube = createCube();
-      const gameState = createGameStateFromCube(cube);
+      const gameState = createGameStateFromCube(cube, 'easy', createDummySolution());
       expect(gameState.cube).toBe(cube);
       expect(gameState.difficulty).toBe('easy');
       expect(gameState.isComplete).toBe(false);
@@ -44,19 +61,19 @@ describe('GameState Model', () => {
 
   describe('checkCompletion', () => {
     it('should return false for empty cube', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       expect(checkCompletion(gameState)).toBe(false);
     });
 
     it('should return false for partially filled cube', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       // Fill only first cell
       setCellValue(gameState.cube.cells[0][0][0], '0');
       expect(checkCompletion(gameState)).toBe(false);
     });
 
     it('should return true for completely filled cube', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       // Fill all cells with '0' (won't be valid, but will be complete)
       for (let i = 0; i < 16; i++) {
         for (let j = 0; j < 16; j++) {
@@ -72,7 +89,7 @@ describe('GameState Model', () => {
 
   describe('validateGameState', () => {
     it('should mark incomplete cube as not complete', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       const result = validateGameState(gameState);
       expect(gameState.isComplete).toBe(false);
       expect(gameState.isCorrect).toBe(true); // Empty cube is valid (no conflicts)
@@ -80,7 +97,7 @@ describe('GameState Model', () => {
     });
 
     it('should detect complete but invalid cube', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       // Fill all cells with '0' - complete but invalid (duplicates everywhere)
       for (let i = 0; i < 16; i++) {
         for (let j = 0; j < 16; j++) {
@@ -97,7 +114,7 @@ describe('GameState Model', () => {
     });
 
     it('should detect complete and valid cube', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       // Fill cube with a simple valid pattern (each row has 0-f)
       for (let i = 0; i < 16; i++) {
         for (let j = 0; j < 16; j++) {
@@ -117,7 +134,7 @@ describe('GameState Model', () => {
     });
 
     it('should update isCorrect to false when validation fails', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       // Create a simple duplicate in a row
       setCellValue(gameState.cube.cells[0][0][0], 'a');
       setCellValue(gameState.cube.cells[1][0][0], 'a'); // duplicate in same row
@@ -128,7 +145,7 @@ describe('GameState Model', () => {
     });
 
     it('should update isCorrect to true when validation passes', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       // Create a valid partial fill
       setCellValue(gameState.cube.cells[0][0][0], 'a');
       setCellValue(gameState.cube.cells[1][0][0], 'b');
@@ -141,40 +158,40 @@ describe('GameState Model', () => {
 
   describe('isGameWon', () => {
     it('should return false for empty cube', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       expect(isGameWon(gameState)).toBe(false);
     });
 
     it('should return false when isComplete is false', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       gameState.isComplete = false;
       gameState.isCorrect = true;
       expect(isGameWon(gameState)).toBe(false);
     });
 
     it('should return false when isCorrect is false', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       gameState.isComplete = true;
       gameState.isCorrect = false;
       expect(isGameWon(gameState)).toBe(false);
     });
 
     it('should return false when isCorrect is null', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       gameState.isComplete = true;
       gameState.isCorrect = null;
       expect(isGameWon(gameState)).toBe(false);
     });
 
     it('should return true when both complete and correct', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       gameState.isComplete = true;
       gameState.isCorrect = true;
       expect(isGameWon(gameState)).toBe(true);
     });
 
     it('should return false for wrong completion (complete but incorrect)', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       // Fill all cells with '0' - complete but invalid
       for (let i = 0; i < 16; i++) {
         for (let j = 0; j < 16; j++) {
@@ -192,14 +209,14 @@ describe('GameState Model', () => {
 
   describe('resetValidationStatus', () => {
     it('should reset isCorrect to null', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       gameState.isCorrect = true;
       resetValidationStatus(gameState);
       expect(gameState.isCorrect).toBeNull();
     });
 
     it('should not affect other fields', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
       const cube = gameState.cube;
       const difficulty = gameState.difficulty;
       gameState.isComplete = true;
@@ -216,7 +233,7 @@ describe('GameState Model', () => {
 
   describe('win condition integration', () => {
     it('should properly detect win after validation of solved cube', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
 
       // Fill with a valid simple pattern for first row
       // This is a simplified test - in reality we'd need a full valid solution
@@ -235,7 +252,7 @@ describe('GameState Model', () => {
     });
 
     it('should not consider partial cube as won even if valid', () => {
-      const gameState = createGameState();
+      const gameState = createGameState('easy', createDummySolution());
 
       // Fill first row validly but leave rest empty
       const hexValues: HexValue[] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];

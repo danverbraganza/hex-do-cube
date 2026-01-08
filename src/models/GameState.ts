@@ -4,6 +4,7 @@
  */
 
 import { Cube, createCube, isCubeFilled, type ValidationResult } from './Cube.js';
+import type { HexValue } from './Cell.js';
 
 /**
  * Difficulty levels for puzzle generation
@@ -19,19 +20,22 @@ export interface GameState {
   difficulty: Difficulty;
   isComplete: boolean;
   isCorrect: boolean | null; // null = not yet checked
+  solution: HexValue[][][]; // 16x16x16 array with all cells filled (never null)
 }
 
 /**
  * Creates a new game state with an empty cube
  * @param difficulty - The difficulty level (default: 'easy')
+ * @param solution - The complete solution for the puzzle (16x16x16 array)
  * @returns A new GameState instance
  */
-export function createGameState(difficulty: Difficulty = 'easy'): GameState {
+export function createGameState(difficulty: Difficulty = 'easy', solution: HexValue[][][]): GameState {
   return {
     cube: createCube(),
     difficulty,
     isComplete: false,
-    isCorrect: null
+    isCorrect: null,
+    solution
   };
 }
 
@@ -40,14 +44,16 @@ export function createGameState(difficulty: Difficulty = 'easy'): GameState {
  * Useful for loading saved games or testing
  * @param cube - The cube to use
  * @param difficulty - The difficulty level (default: 'easy')
+ * @param solution - The complete solution for the puzzle (16x16x16 array)
  * @returns A new GameState instance
  */
-export function createGameStateFromCube(cube: Cube, difficulty: Difficulty = 'easy'): GameState {
+export function createGameStateFromCube(cube: Cube, difficulty: Difficulty = 'easy', solution: HexValue[][][]): GameState {
   return {
     cube,
     difficulty,
     isComplete: false,
-    isCorrect: null
+    isCorrect: null,
+    solution
   };
 }
 

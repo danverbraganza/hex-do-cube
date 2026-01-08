@@ -44,12 +44,13 @@ interface CachedPuzzle {
   }>;
   givenCellCount: number;
   emptyCellCount: number;
+  solution: HexValue[][][]; // 16x16x16 array with all cells filled (never null)
 }
 
 /**
- * Loads the cached puzzle and converts it to a Cube
+ * Loads the cached puzzle and converts it to a Cube, also returns solution
  */
-function loadCachedPuzzle(): ReturnType<typeof createCube> {
+function loadCachedPuzzle(): { cube: ReturnType<typeof createCube>; solution: HexValue[][][] } {
   const cached = cachedPuzzleData as CachedPuzzle;
   const cube = createCube();
 
@@ -65,7 +66,7 @@ function loadCachedPuzzle(): ReturnType<typeof createCube> {
   }
 
   console.log(`Loaded cached puzzle with ${cached.givenCellCount} given cells`);
-  return cube;
+  return { cube, solution: cached.solution };
 }
 
 /**
@@ -112,19 +113,19 @@ export function init(): void {
         gameState = loaded;
       } else {
         console.log('No saved game found, loading cached puzzle');
-        const cachedCube = loadCachedPuzzle();
-        gameState = createGameStateFromCube(cachedCube, 'easy');
+        const { cube, solution } = loadCachedPuzzle();
+        gameState = createGameStateFromCube(cube, 'easy', solution);
       }
     } catch (error) {
       console.error('Failed to load saved game:', error);
       console.log('Loading cached puzzle instead');
-      const cachedCube = loadCachedPuzzle();
-      gameState = createGameStateFromCube(cachedCube, 'easy');
+      const { cube, solution } = loadCachedPuzzle();
+      gameState = createGameStateFromCube(cube, 'easy', solution);
     }
   } else {
     console.log('No saved game found, loading cached puzzle');
-    const cachedCube = loadCachedPuzzle();
-    gameState = createGameStateFromCube(cachedCube, 'easy');
+    const { cube, solution } = loadCachedPuzzle();
+    gameState = createGameStateFromCube(cube, 'easy', solution);
   }
 
   // 4. Initialize CubeRenderer with cube
@@ -199,8 +200,8 @@ export function init(): void {
     // Generate puzzle asynchronously to avoid blocking UI
     setTimeout(() => {
       try {
-        const newCube = generatePuzzle(difficulty);
-        const newGameState = createGameStateFromCube(newCube, difficulty);
+        const { cube: newCube, solution: newSolution } = generatePuzzle(difficulty);
+        const newGameState = createGameStateFromCube(newCube, difficulty, newSolution);
 
         // Update all components with new game state
         Object.assign(gameState, newGameState);

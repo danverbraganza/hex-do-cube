@@ -30,6 +30,7 @@ interface SerializedGameState {
   difficulty: Difficulty;
   isComplete: boolean;
   isCorrect: boolean | null;
+  solution: HexValue[][][]; // 16x16x16 array with all cells filled
   version: number; // For future schema migrations
 }
 
@@ -84,6 +85,7 @@ function serializeGameState(state: GameState): SerializedGameState {
     difficulty: state.difficulty,
     isComplete: state.isComplete,
     isCorrect: state.isCorrect,
+    solution: state.solution,
     version: SCHEMA_VERSION
   };
 }
@@ -107,6 +109,10 @@ function deserializeGameState(serialized: SerializedGameState): GameState {
 
   if (!serialized.difficulty) {
     throw new Error('Invalid serialized data: missing difficulty');
+  }
+
+  if (!serialized.solution || !Array.isArray(serialized.solution)) {
+    throw new Error('Invalid serialized data: missing or invalid solution array');
   }
 
   // Create empty cube
@@ -138,7 +144,8 @@ function deserializeGameState(serialized: SerializedGameState): GameState {
     cube,
     difficulty: serialized.difficulty,
     isComplete: serialized.isComplete ?? false,
-    isCorrect: serialized.isCorrect ?? null
+    isCorrect: serialized.isCorrect ?? null,
+    solution: serialized.solution
   };
 }
 
