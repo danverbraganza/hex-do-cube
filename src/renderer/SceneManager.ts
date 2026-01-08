@@ -34,7 +34,10 @@ export interface SceneManagerConfig {
 
 export class SceneManager {
   private scene: THREE.Scene;
-  private camera: THREE.PerspectiveCamera;
+  private perspectiveCamera: THREE.PerspectiveCamera;
+  private orthographicCamera: THREE.OrthographicCamera;
+  private currentCamera: THREE.Camera;
+  private cameraMode: CameraMode = 'isometric';
   private renderer: THREE.WebGLRenderer;
   private container: HTMLElement;
 
@@ -65,14 +68,30 @@ export class SceneManager {
       config.backgroundColor ?? COLORS.BACKGROUND
     );
 
-    // Initialize camera (perspective for isometric-style view)
+    // Initialize perspective camera for isometric-style view
     const aspect = this.container.clientWidth / this.container.clientHeight;
-    this.camera = new THREE.PerspectiveCamera(
+    this.perspectiveCamera = new THREE.PerspectiveCamera(
       config.fov ?? 50,
       aspect,
       config.near ?? 0.1,
       config.far ?? 1000
     );
+
+    // Initialize orthographic camera for face-on view
+    // Size the orthographic view to show the full cube (16 cells + gaps)
+    // With cellSize=1, cellGap=0.1, total size is about 17.5 units
+    const orthoSize = 10; // Half-size to show in each direction
+    this.orthographicCamera = new THREE.OrthographicCamera(
+      -orthoSize * aspect, // left
+      orthoSize * aspect,  // right
+      orthoSize,           // top
+      -orthoSize,          // bottom
+      config.near ?? 0.1,
+      config.far ?? 1000
+    );
+
+    // Start with perspective camera
+    this.currentCamera = this.perspectiveCamera;
 
     // Set up canonical isometric view
     // i-face up (positive y), j-face right (positive x), k-face left (negative z)
@@ -119,11 +138,16 @@ export class SceneManager {
     // Position camera at an isometric angle
     // Using equal components gives the classic isometric look
     const distance = this.cameraDistance;
-    this.camera.position.set(distance, distance, distance);
+    this.perspectiveCamera.position.set(distance, distance, distance);
 
     // Look at cube center (origin)
-    this.camera.lookAt(0, 0, 0);
-    this.camera.up.set(0, 1, 0);
+    this.perspectiveCamera.lookAt(0, 0, 0);
+    this.perspectiveCamera.up.set(0, 1, 0);
+
+    // Also set up orthographic camera at same position (though it won't be used in 3D view)
+    this.orthographicCamera.position.set(distance, distance, distance);
+    this.orthographicCamera.lookAt(0, 0, 0);
+    this.orthographicCamera.up.set(0, 1, 0);
   }
 
   /**
@@ -154,9 +178,19 @@ export class SceneManager {
   private handleResize(): void {
     const width = this.container.clientWidth;
     const height = this.container.clientHeight;
+    const aspect = width / height;
 
-    this.camera.aspect = width / height;
-    this.camera.updateProjectionMatrix();
+    // Update perspective camera
+    this.perspectiveCamera.aspect = aspect;
+    this.perspectiveCamera.updateProjectionMatrix();
+
+    // Update orthographic camera
+    const orthoSize = 10;
+    this.orthographicCamera.left = -orthoSize * aspect;
+    this.orthographicCamera.right = orthoSize * aspect;
+    this.orthographicCamera.top = orthoSize;
+    this.orthographicCamera.bottom = -orthoSize;
+    this.orthographicCamera.updateProjectionMatrix();
 
     this.renderer.setSize(width, height);
   }
@@ -167,11 +201,17 @@ export class SceneManager {
    * @param deltaPolar - Vertical rotation in radians
    *
    * The camera orbits around the cube's center at origin (0, 0, 0)
+   * Only works in isometric mode (perspective camera)
    */
   public rotateCamera(deltaAzimuth: number, deltaPolar: number): void {
+    // Only rotate in isometric mode
+    if (this.cameraMode !== 'isometric') {
+      return;
+    }
+
     // Convert current camera position to spherical coordinates
     const spherical = new THREE.Spherical();
-    spherical.setFromVector3(this.camera.position);
+    spherical.setFromVector3(this.perspectiveCamera.position);
 
     // Apply rotation deltas
     spherical.theta += deltaAzimuth;
@@ -182,10 +222,10 @@ export class SceneManager {
     spherical.phi = Math.max(epsilon, Math.min(Math.PI - epsilon, spherical.phi));
 
     // Convert back to Cartesian coordinates
-    this.camera.position.setFromSpherical(spherical);
+    this.perspectiveCamera.position.setFromSpherical(spherical);
 
     // Keep looking at cube center
-    this.camera.lookAt(0, 0, 0);
+    this.perspectiveCamera.lookAt(0, 0, 0);
   }
 
   /**
@@ -193,6 +233,10 @@ export class SceneManager {
    * @param animated - Whether to animate the transition (default: true)
    */
   public resetCamera(animated: boolean = true): void {
+    // Switch to perspective camera for 3D rotational view
+    this.cameraMode = 'isometric';
+    this.currentCamera = this.perspectiveCamera;
+
     if (animated) {
       const distance = this.cameraDistance;
       const targetPosition = new THREE.Vector3(distance, distance, distance);
@@ -224,11 +268,14 @@ export class SceneManager {
     targetUp: THREE.Vector3,
     duration: number = 400
   ): void {
+    // Use the currently active camera for animation
+    const camera = this.cameraMode === 'isometric' ? this.perspectiveCamera : this.orthographicCamera;
+
     this.cameraAnimation = {
       active: true,
-      startPosition: this.camera.position.clone(),
+      startPosition: camera.position.clone(),
       targetPosition: targetPosition.clone(),
-      startUp: this.camera.up.clone(),
+      startUp: camera.up.clone(),
       targetUp: targetUp.clone(),
       startTime: performance.now(),
       duration,
@@ -251,22 +298,25 @@ export class SceneManager {
     // Apply easing function
     const easedProgress = this.easeInOutCubic(progress);
 
+    // Get the camera to animate based on current mode
+    const camera = this.cameraMode === 'isometric' ? this.perspectiveCamera : this.orthographicCamera;
+
     // Interpolate position
-    this.camera.position.lerpVectors(
+    camera.position.lerpVectors(
       this.cameraAnimation.startPosition,
       this.cameraAnimation.targetPosition,
       easedProgress
     );
 
     // Interpolate up vector
-    this.camera.up.lerpVectors(
+    camera.up.lerpVectors(
       this.cameraAnimation.startUp,
       this.cameraAnimation.targetUp,
       easedProgress
     );
 
     // Always look at cube center
-    this.camera.lookAt(0, 0, 0);
+    camera.lookAt(0, 0, 0);
 
     // Check if animation is complete
     if (progress >= 1) {
@@ -285,8 +335,13 @@ export class SceneManager {
    *
    * All face-on views look at the cube's center (0, 0, 0) to ensure
    * the cube remains centered in the viewport from any viewing angle.
+   * Uses orthographic camera for true 2D appearance.
    */
   public setFaceOnView(face: 'i' | 'j' | 'k', _layer: number, animated: boolean = true): void {
+    // Switch to orthographic camera for face-on view
+    this.cameraMode = 'face-on';
+    this.currentCamera = this.orthographicCamera;
+
     const distance = this.cameraDistance;
     let targetPosition: THREE.Vector3;
     let targetUp: THREE.Vector3;
@@ -310,9 +365,9 @@ export class SceneManager {
       this.animateCameraTo(targetPosition, targetUp);
     } else {
       // Instant snap (for backward compatibility or when animation is not desired)
-      this.camera.position.copy(targetPosition);
-      this.camera.up.copy(targetUp);
-      this.camera.lookAt(0, 0, 0);
+      this.orthographicCamera.position.copy(targetPosition);
+      this.orthographicCamera.up.copy(targetUp);
+      this.orthographicCamera.lookAt(0, 0, 0);
     }
   }
 
@@ -336,8 +391,8 @@ export class SceneManager {
       const height = this.container.clientHeight;
       this.renderer.setViewport(0, 0, width, height);
 
-      // Render main scene first
-      this.renderer.render(this.scene, this.camera);
+      // Render main scene first (using the currently active camera)
+      this.renderer.render(this.scene, this.currentCamera);
 
       // Then run callback (e.g., for minimap rendering on top)
       if (callback) {
@@ -362,7 +417,7 @@ export class SceneManager {
    * Render a single frame (for manual rendering without loop)
    */
   public render(): void {
-    this.renderer.render(this.scene, this.camera);
+    this.renderer.render(this.scene, this.currentCamera);
   }
 
   /**
@@ -387,10 +442,31 @@ export class SceneManager {
   }
 
   /**
-   * Get the Three.js camera
+   * Get the currently active Three.js camera
    */
-  public getCamera(): THREE.PerspectiveCamera {
-    return this.camera;
+  public getCamera(): THREE.Camera {
+    return this.currentCamera;
+  }
+
+  /**
+   * Get the perspective camera (for 3D rotational view)
+   */
+  public getPerspectiveCamera(): THREE.PerspectiveCamera {
+    return this.perspectiveCamera;
+  }
+
+  /**
+   * Get the orthographic camera (for face-on view)
+   */
+  public getOrthographicCamera(): THREE.OrthographicCamera {
+    return this.orthographicCamera;
+  }
+
+  /**
+   * Get the current camera mode
+   */
+  public getCameraMode(): CameraMode {
+    return this.cameraMode;
   }
 
   /**
