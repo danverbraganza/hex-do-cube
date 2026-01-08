@@ -100,7 +100,7 @@ export function init(): void {
   const sceneManager = new SceneManager({
     container,
     backgroundColor: 0x1a1a1a,
-    cameraDistance: 50
+    cameraDistance: 37.5
   });
 
   // 3. Check storage for saved game, or load cached puzzle

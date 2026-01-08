@@ -45,7 +45,7 @@ export class SceneManager {
 
   constructor(config: SceneManagerConfig) {
     this.container = config.container;
-    this.cameraDistance = config.cameraDistance ?? 50;
+    this.cameraDistance = config.cameraDistance ?? 37.5;
 
     // Initialize scene
     this.scene = new THREE.Scene();
