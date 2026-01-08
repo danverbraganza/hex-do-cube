@@ -23,7 +23,7 @@ import * as THREE from 'three';
 import type { Cube } from '../models/Cube.js';
 import type { Cell, Position } from '../models/Cell.js';
 import { ValueSpriteRenderer } from './ValueSpriteRenderer.js';
-import { OPACITY } from '../config/RenderConfig.js';
+import { COLORS, OPACITY } from '../config/RenderConfig.js';
 
 /**
  * Visual state for a cell (hover, selected, error)
@@ -155,7 +155,7 @@ export class CubeRenderer {
         depthWrite: false,
       }),
       empty: new THREE.MeshStandardMaterial({
-        color: 0xffffff,
+        color: COLORS.WHITE,
         transparent: true,
         opacity: this.config.emptyOpacity,
         depthWrite: false,

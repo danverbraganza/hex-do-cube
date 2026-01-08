@@ -265,7 +265,7 @@ export class MinimapRenderer {
     if (cell.value === null) {
       // Empty cell - very low opacity
       material = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
+        color: COLORS.WHITE,
         transparent: true,
         opacity: this.config.emptyOpacity,
         depthWrite: false,

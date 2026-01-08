@@ -23,6 +23,8 @@
 export const COLORS = {
   /** Background color for scenes (dark gray) */
   BACKGROUND: 0x1a1a1a,
+  /** White color for empty cells and sprites */
+  WHITE: 0xffffff,
 } as const;
 
 /**
