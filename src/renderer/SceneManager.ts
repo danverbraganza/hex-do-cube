@@ -223,6 +223,11 @@ export class SceneManager {
         callback();
       }
 
+      // Ensure full viewport is set before main render
+      const width = this.container.clientWidth;
+      const height = this.container.clientHeight;
+      this.renderer.setViewport(0, 0, width, height);
+
       this.renderer.render(this.scene, this.camera);
     };
 
