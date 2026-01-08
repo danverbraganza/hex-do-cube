@@ -4,11 +4,17 @@
  */
 
 // Models
-import { createGameState, createGameStateFromCube } from './models/GameState.js';
+import { createGameStateFromCube } from './models/GameState.js';
+import { createCube } from './models/Cube.js';
+import { createCell } from './models/Cell.js';
+import type { HexValue, CellType } from './models/Cell.js';
 
 // Services
 import { loadGameState, saveGameState, hasGameState } from './services/storage.js';
 import { generatePuzzle } from './services/generator.js';
+
+// Data
+import cachedPuzzleData from './data/cached-puzzle.json';
 
 // Renderers
 import { SceneManager } from './renderer/SceneManager.js';
@@ -23,6 +29,44 @@ import { GameUI } from './ui/GameUI.js';
 import { ViewStateManager } from './ui/ViewStateManager.js';
 
 console.log('Hex-Do-Cube initialized');
+
+/**
+ * Cached puzzle format (matches generate-puzzle.ts output)
+ */
+interface CachedPuzzle {
+  version: number;
+  difficulty: 'easy';
+  generatedAt: string;
+  cells: Array<{
+    position: [number, number, number];
+    value: HexValue;
+    type: CellType;
+  }>;
+  givenCellCount: number;
+  emptyCellCount: number;
+}
+
+/**
+ * Loads the cached puzzle and converts it to a Cube
+ */
+function loadCachedPuzzle(): ReturnType<typeof createCube> {
+  const cached = cachedPuzzleData as CachedPuzzle;
+  const cube = createCube();
+
+  // Populate cube with cached cells
+  for (const serializedCell of cached.cells) {
+    const [i, j, k] = serializedCell.position;
+    const cell = createCell(
+      [i, j, k] as const,
+      serializedCell.value,
+      serializedCell.type
+    );
+    cube.cells[i][j][k] = cell;
+  }
+
+  console.log(`Loaded cached puzzle with ${cached.givenCellCount} given cells`);
+  return cube;
+}
 
 /**
  * Initialize and start the game
@@ -53,7 +97,7 @@ export function init(): void {
     cameraDistance: 50
   });
 
-  // 3. Check storage for saved game, or create empty cube initially
+  // 3. Check storage for saved game, or load cached puzzle
   let gameState;
   if (hasGameState()) {
     try {
@@ -62,17 +106,20 @@ export function init(): void {
         console.log('Loaded saved game from storage');
         gameState = loaded;
       } else {
-        console.log('No saved game found, creating new empty game');
-        gameState = createGameState('easy');
+        console.log('No saved game found, loading cached puzzle');
+        const cachedCube = loadCachedPuzzle();
+        gameState = createGameStateFromCube(cachedCube, 'easy');
       }
     } catch (error) {
       console.error('Failed to load saved game:', error);
-      console.log('Creating new empty game');
-      gameState = createGameState('easy');
+      console.log('Loading cached puzzle instead');
+      const cachedCube = loadCachedPuzzle();
+      gameState = createGameStateFromCube(cachedCube, 'easy');
     }
   } else {
-    console.log('No saved game found, creating new empty game');
-    gameState = createGameState('easy');
+    console.log('No saved game found, loading cached puzzle');
+    const cachedCube = loadCachedPuzzle();
+    gameState = createGameStateFromCube(cachedCube, 'easy');
   }
 
   // 4. Initialize CubeRenderer with cube
