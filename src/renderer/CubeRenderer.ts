@@ -179,10 +179,21 @@ export class CubeRenderer {
 
   /**
    * Initialize meshes for all 4096 cells
+   *
+   * CENTERING STRATEGY:
+   * - Cube has 16 cells per dimension (indices 0-15)
+   * - Geometric center is at index 7.5 (between cells 7 and 8)
+   * - Offset positions the cube so this geometric center is at world origin (0, 0, 0)
+   * - This makes the cube perfectly centered in the viewport
+   * - Camera lookAt(0, 0, 0) targets the cube's center
    */
   private initializeCellMeshes(): void {
     const spacing = this.config.cellSize + this.config.cellGap;
-    const offset = (15 * spacing) / 2; // Center the cube at origin
+
+    // Offset to center the cube at origin
+    // For 16 cells (0-15), the geometric center is at index 7.5
+    // offset = 7.5 * spacing = (15 * spacing) / 2
+    const offset = (15 * spacing) / 2;
 
     for (let i = 0; i < 16; i++) {
       for (let j = 0; j < 16; j++) {
@@ -191,6 +202,7 @@ export class CubeRenderer {
           const mesh = this.createCellMesh(cell);
 
           // Position the mesh in 3D space
+          // Subtract offset to center the cube at origin (0, 0, 0)
           mesh.position.set(
             j * spacing - offset,
             i * spacing - offset,

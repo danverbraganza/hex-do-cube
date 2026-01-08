@@ -96,13 +96,20 @@ export class SceneManager {
    * - j-face (right) points right
    * - k-face (left) points left
    *
-   * This corresponds to viewing the cube from angle (1, 1, 1) looking at origin
+   * This corresponds to viewing the cube from angle (1, 1, 1) looking at origin.
+   *
+   * CUBE CENTERING:
+   * - The 16x16x16 cube is centered at world origin (0, 0, 0)
+   * - Camera looks at (0, 0, 0) to target the cube's geometric center
+   * - This ensures the cube appears centered in the viewport
    */
   private setupCanonicalView(): void {
     // Position camera at an isometric angle
     // Using equal components gives the classic isometric look
     const distance = this.cameraDistance;
     this.camera.position.set(distance, distance, distance);
+
+    // Look at cube center (origin)
     this.camera.lookAt(0, 0, 0);
     this.camera.up.set(0, 1, 0);
   }
@@ -140,6 +147,8 @@ export class SceneManager {
    * Rotate camera around the cube by specified angles
    * @param deltaAzimuth - Horizontal rotation in radians
    * @param deltaPolar - Vertical rotation in radians
+   *
+   * The camera orbits around the cube's center at origin (0, 0, 0)
    */
   public rotateCamera(deltaAzimuth: number, deltaPolar: number): void {
     // Convert current camera position to spherical coordinates
@@ -156,6 +165,8 @@ export class SceneManager {
 
     // Convert back to Cartesian coordinates
     this.camera.position.setFromSpherical(spherical);
+
+    // Keep looking at cube center
     this.camera.lookAt(0, 0, 0);
   }
 
@@ -170,6 +181,9 @@ export class SceneManager {
    * Set camera to face-on view for a specific face
    * @param face - The face to view ('i', 'j', or 'k')
    * @param _layer - The layer depth (0-15) - currently unused, for future implementation
+   *
+   * All face-on views look at the cube's center (0, 0, 0) to ensure
+   * the cube remains centered in the viewport from any viewing angle.
    */
   public setFaceOnView(face: 'i' | 'j' | 'k', _layer: number): void {
     const distance = this.cameraDistance;
@@ -177,17 +191,17 @@ export class SceneManager {
     switch (face) {
       case 'i': // Top/bottom face (y-axis)
         this.camera.position.set(0, distance, 0);
-        this.camera.lookAt(0, 0, 0);
+        this.camera.lookAt(0, 0, 0); // Look at cube center
         this.camera.up.set(0, 0, -1);
         break;
       case 'j': // Right/left face (x-axis)
         this.camera.position.set(distance, 0, 0);
-        this.camera.lookAt(0, 0, 0);
+        this.camera.lookAt(0, 0, 0); // Look at cube center
         this.camera.up.set(0, 1, 0);
         break;
       case 'k': // Front/back face (z-axis)
         this.camera.position.set(0, 0, distance);
-        this.camera.lookAt(0, 0, 0);
+        this.camera.lookAt(0, 0, 0); // Look at cube center
         this.camera.up.set(0, 1, 0);
         break;
     }
