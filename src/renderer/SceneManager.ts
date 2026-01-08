@@ -318,7 +318,7 @@ export class SceneManager {
 
   /**
    * Start the render loop
-   * @param callback - Optional callback to run each frame before rendering
+   * @param callback - Optional callback to run each frame after rendering main scene
    */
   public startRenderLoop(callback?: () => void): void {
     if (this.animationFrameId !== null) {
@@ -331,16 +331,18 @@ export class SceneManager {
       // Update camera animation if active
       this.updateCameraAnimation();
 
-      if (callback) {
-        callback();
-      }
-
       // Ensure full viewport is set before main render
       const width = this.container.clientWidth;
       const height = this.container.clientHeight;
       this.renderer.setViewport(0, 0, width, height);
 
+      // Render main scene first
       this.renderer.render(this.scene, this.camera);
+
+      // Then run callback (e.g., for minimap rendering on top)
+      if (callback) {
+        callback();
+      }
     };
 
     animate();
