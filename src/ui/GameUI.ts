@@ -56,6 +56,12 @@ export class GameUI {
   private winNotification!: HTMLDivElement;
   private wrongCompletionNotification!: HTMLDivElement;
 
+  // Face view control buttons
+  private xyViewButton!: HTMLButtonElement;
+  private xzViewButton!: HTMLButtonElement;
+  private yzViewButton!: HTMLButtonElement;
+  private homeViewButton!: HTMLButtonElement;
+
   // Callbacks
   private newGameCallbacks: NewGameCallback[] = [];
 
@@ -162,6 +168,68 @@ export class GameUI {
     topRightControls.appendChild(this.difficultySelect);
     topRightControls.appendChild(this.newGameButton);
 
+    // Bottom-left face view controls
+    const bottomLeftControls = document.createElement('div');
+    bottomLeftControls.style.cssText = `
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: auto;
+    `;
+
+    // Label for face view controls
+    const faceViewLabel = document.createElement('div');
+    faceViewLabel.textContent = 'Face Views:';
+    faceViewLabel.style.cssText = `
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    `;
+
+    // Container for face view buttons
+    const faceViewButtons = document.createElement('div');
+    faceViewButtons.style.cssText = `
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    `;
+
+    // XY face view button (looking down Z axis)
+    this.xyViewButton = document.createElement('button');
+    this.xyViewButton.textContent = 'XY Face';
+    this.xyViewButton.title = 'View XY face (looking down Z axis)';
+    this.applyButtonStyle(this.xyViewButton);
+
+    // XZ face view button (looking down Y axis)
+    this.xzViewButton = document.createElement('button');
+    this.xzViewButton.textContent = 'XZ Face';
+    this.xzViewButton.title = 'View XZ face (looking down Y axis)';
+    this.applyButtonStyle(this.xzViewButton);
+
+    // YZ face view button (looking down X axis)
+    this.yzViewButton = document.createElement('button');
+    this.yzViewButton.textContent = 'YZ Face';
+    this.yzViewButton.title = 'View YZ face (looking down X axis)';
+    this.applyButtonStyle(this.yzViewButton);
+
+    // Home/isometric view button
+    this.homeViewButton = document.createElement('button');
+    this.homeViewButton.textContent = 'Isometric';
+    this.homeViewButton.title = 'Return to isometric 3D view';
+    this.applyButtonStyle(this.homeViewButton);
+
+    faceViewButtons.appendChild(this.xyViewButton);
+    faceViewButtons.appendChild(this.xzViewButton);
+    faceViewButtons.appendChild(this.yzViewButton);
+    faceViewButtons.appendChild(this.homeViewButton);
+
+    bottomLeftControls.appendChild(faceViewLabel);
+    bottomLeftControls.appendChild(faceViewButtons);
+
     // Win notification (initially hidden)
     this.winNotification = document.createElement('div');
     this.winNotification.id = 'win-notification';
@@ -207,6 +275,7 @@ export class GameUI {
     // Assemble HUD
     this.hudOverlay.appendChild(topLeftControls);
     this.hudOverlay.appendChild(topRightControls);
+    this.hudOverlay.appendChild(bottomLeftControls);
     this.hudOverlay.appendChild(this.winNotification);
     this.hudOverlay.appendChild(this.wrongCompletionNotification);
 
@@ -266,6 +335,23 @@ export class GameUI {
     this.wrongCompletionNotification.addEventListener('click', () => {
       this.hideWrongCompletionNotification();
     });
+
+    // Face view button handlers
+    this.xyViewButton.addEventListener('click', () => {
+      this.handleXYViewButton();
+    });
+
+    this.xzViewButton.addEventListener('click', () => {
+      this.handleXZViewButton();
+    });
+
+    this.yzViewButton.addEventListener('click', () => {
+      this.handleYZViewButton();
+    });
+
+    this.homeViewButton.addEventListener('click', () => {
+      this.handleHomeViewButton();
+    });
   }
 
   /**
@@ -316,6 +402,44 @@ export class GameUI {
     // Confirm before starting new game (if current game has progress)
     // For simplicity, just start immediately for now
     this.notifyNewGame(difficulty);
+  }
+
+  /**
+   * Handle XY face view button click
+   * Snaps camera to view looking down the Z axis (viewing XY plane)
+   */
+  private handleXYViewButton(): void {
+    // XY face corresponds to 'k' face (Z axis)
+    // Use layer 0 as a default (middle of the cube would be layer 7-8)
+    this.sceneManager.setFaceOnView('k', 7);
+  }
+
+  /**
+   * Handle XZ face view button click
+   * Snaps camera to view looking down the Y axis (viewing XZ plane)
+   */
+  private handleXZViewButton(): void {
+    // XZ face corresponds to 'i' face (Y axis)
+    this.sceneManager.setFaceOnView('i', 7);
+  }
+
+  /**
+   * Handle YZ face view button click
+   * Snaps camera to view looking down the X axis (viewing YZ plane)
+   */
+  private handleYZViewButton(): void {
+    // YZ face corresponds to 'j' face (X axis)
+    this.sceneManager.setFaceOnView('j', 7);
+  }
+
+  /**
+   * Handle home view button click
+   * Returns to isometric 3D view
+   */
+  private handleHomeViewButton(): void {
+    // Same as the home button - return to canonical isometric view
+    this.inputController.returnTo3DView();
+    this.sceneManager.resetCamera();
   }
 
   /**
