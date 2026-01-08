@@ -44,6 +44,17 @@ export class SceneManager {
   private cameraDistance: number;
   private animationFrameId: number | null = null;
 
+  // Camera animation state
+  private cameraAnimation: {
+    active: boolean;
+    startPosition: THREE.Vector3;
+    targetPosition: THREE.Vector3;
+    startUp: THREE.Vector3;
+    targetUp: THREE.Vector3;
+    startTime: number;
+    duration: number;
+  } | null = null;
+
   constructor(config: SceneManagerConfig) {
     this.container = config.container;
     this.cameraDistance = config.cameraDistance ?? 37.5;
@@ -178,39 +189,130 @@ export class SceneManager {
   }
 
   /**
-   * Reset camera to canonical isometric view
+   * Reset camera to canonical isometric view with smooth animation
+   * @param animated - Whether to animate the transition (default: true)
    */
-  public resetCamera(): void {
-    this.setupCanonicalView();
+  public resetCamera(animated: boolean = true): void {
+    if (animated) {
+      const distance = this.cameraDistance;
+      const targetPosition = new THREE.Vector3(distance, distance, distance);
+      const targetUp = new THREE.Vector3(0, 1, 0);
+      this.animateCameraTo(targetPosition, targetUp);
+    } else {
+      this.setupCanonicalView();
+    }
   }
 
   /**
-   * Set camera to face-on view for a specific face
+   * Ease-in-ease-out function (smoothstep)
+   * Returns a smooth interpolation value between 0 and 1
+   */
+  private easeInOutCubic(t: number): number {
+    return t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  /**
+   * Animate camera to a target position and orientation
+   * @param targetPosition - Target camera position
+   * @param targetUp - Target camera up vector
+   * @param duration - Animation duration in milliseconds (default: 400ms)
+   */
+  private animateCameraTo(
+    targetPosition: THREE.Vector3,
+    targetUp: THREE.Vector3,
+    duration: number = 400
+  ): void {
+    this.cameraAnimation = {
+      active: true,
+      startPosition: this.camera.position.clone(),
+      targetPosition: targetPosition.clone(),
+      startUp: this.camera.up.clone(),
+      targetUp: targetUp.clone(),
+      startTime: performance.now(),
+      duration,
+    };
+  }
+
+  /**
+   * Update camera animation state (called each frame)
+   * Returns true if animation is still active, false if completed
+   */
+  private updateCameraAnimation(): boolean {
+    if (!this.cameraAnimation || !this.cameraAnimation.active) {
+      return false;
+    }
+
+    const now = performance.now();
+    const elapsed = now - this.cameraAnimation.startTime;
+    const progress = Math.min(elapsed / this.cameraAnimation.duration, 1);
+
+    // Apply easing function
+    const easedProgress = this.easeInOutCubic(progress);
+
+    // Interpolate position
+    this.camera.position.lerpVectors(
+      this.cameraAnimation.startPosition,
+      this.cameraAnimation.targetPosition,
+      easedProgress
+    );
+
+    // Interpolate up vector
+    this.camera.up.lerpVectors(
+      this.cameraAnimation.startUp,
+      this.cameraAnimation.targetUp,
+      easedProgress
+    );
+
+    // Always look at cube center
+    this.camera.lookAt(0, 0, 0);
+
+    // Check if animation is complete
+    if (progress >= 1) {
+      this.cameraAnimation.active = false;
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Set camera to face-on view for a specific face with smooth animation
    * @param face - The face to view ('i', 'j', or 'k')
    * @param _layer - The layer depth (0-15) - currently unused, for future implementation
+   * @param animated - Whether to animate the transition (default: true)
    *
    * All face-on views look at the cube's center (0, 0, 0) to ensure
    * the cube remains centered in the viewport from any viewing angle.
    */
-  public setFaceOnView(face: 'i' | 'j' | 'k', _layer: number): void {
+  public setFaceOnView(face: 'i' | 'j' | 'k', _layer: number, animated: boolean = true): void {
     const distance = this.cameraDistance;
+    let targetPosition: THREE.Vector3;
+    let targetUp: THREE.Vector3;
 
     switch (face) {
       case 'i': // Top/bottom face (y-axis)
-        this.camera.position.set(0, distance, 0);
-        this.camera.lookAt(0, 0, 0); // Look at cube center
-        this.camera.up.set(0, 0, -1);
+        targetPosition = new THREE.Vector3(0, distance, 0);
+        targetUp = new THREE.Vector3(0, 0, -1);
         break;
       case 'j': // Right/left face (x-axis)
-        this.camera.position.set(distance, 0, 0);
-        this.camera.lookAt(0, 0, 0); // Look at cube center
-        this.camera.up.set(0, 1, 0);
+        targetPosition = new THREE.Vector3(distance, 0, 0);
+        targetUp = new THREE.Vector3(0, 1, 0);
         break;
       case 'k': // Front/back face (z-axis)
-        this.camera.position.set(0, 0, distance);
-        this.camera.lookAt(0, 0, 0); // Look at cube center
-        this.camera.up.set(0, 1, 0);
+        targetPosition = new THREE.Vector3(0, 0, distance);
+        targetUp = new THREE.Vector3(0, 1, 0);
         break;
+    }
+
+    if (animated) {
+      this.animateCameraTo(targetPosition, targetUp);
+    } else {
+      // Instant snap (for backward compatibility or when animation is not desired)
+      this.camera.position.copy(targetPosition);
+      this.camera.up.copy(targetUp);
+      this.camera.lookAt(0, 0, 0);
     }
   }
 
@@ -225,6 +327,9 @@ export class SceneManager {
 
     const animate = (): void => {
       this.animationFrameId = requestAnimationFrame(animate);
+
+      // Update camera animation if active
+      this.updateCameraAnimation();
 
       if (callback) {
         callback();
