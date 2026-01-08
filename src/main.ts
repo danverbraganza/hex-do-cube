@@ -174,6 +174,7 @@ export function init(): void {
   const gameUI = new GameUI({
     container,
     sceneManager,
+    viewStateManager,
     inputController,
     cellEditor,
     gameState,

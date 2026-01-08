@@ -14,6 +14,7 @@ import type { GameState } from '../models/GameState.js';
 import type { SceneManager } from '../renderer/SceneManager.js';
 import type { CellEditor } from './CellEditor.js';
 import type { InputController } from './InputController.js';
+import type { ViewStateManager } from './ViewStateManager.js';
 import { isGameWon, validateGameState, checkCompletion, type Difficulty } from '../models/GameState.js';
 
 /**
@@ -24,6 +25,8 @@ export interface GameUIConfig {
   container: HTMLElement;
   /** Reference to the scene manager for camera control */
   sceneManager: SceneManager;
+  /** Reference to the view state manager for coordinated view transitions */
+  viewStateManager: ViewStateManager;
   /** Reference to the input controller for view transitions */
   inputController: InputController;
   /** Reference to the cell editor for validation */
@@ -43,6 +46,7 @@ export type NewGameCallback = (difficulty: Difficulty) => void;
 export class GameUI {
   private container: HTMLElement;
   private sceneManager: SceneManager;
+  private viewStateManager: ViewStateManager;
   private inputController: InputController;
   private cellEditor: CellEditor;
   private gameState: GameState;
@@ -68,6 +72,7 @@ export class GameUI {
   constructor(config: GameUIConfig) {
     this.container = config.container;
     this.sceneManager = config.sceneManager;
+    this.viewStateManager = config.viewStateManager;
     this.inputController = config.inputController;
     this.cellEditor = config.cellEditor;
     this.gameState = config.gameState;
@@ -410,8 +415,8 @@ export class GameUI {
    */
   private handleXYViewButton(): void {
     // XY face corresponds to 'k' face (Z axis)
-    // Use layer 0 as a default (middle of the cube would be layer 7-8)
-    this.sceneManager.setFaceOnView('k', 7);
+    // Use layer 7 as a default (middle of the cube)
+    this.viewStateManager.enterFaceOnView('k', 7);
   }
 
   /**
@@ -420,7 +425,7 @@ export class GameUI {
    */
   private handleXZViewButton(): void {
     // XZ face corresponds to 'i' face (Y axis)
-    this.sceneManager.setFaceOnView('i', 7);
+    this.viewStateManager.enterFaceOnView('i', 7);
   }
 
   /**
@@ -429,7 +434,7 @@ export class GameUI {
    */
   private handleYZViewButton(): void {
     // YZ face corresponds to 'j' face (X axis)
-    this.sceneManager.setFaceOnView('j', 7);
+    this.viewStateManager.enterFaceOnView('j', 7);
   }
 
   /**
