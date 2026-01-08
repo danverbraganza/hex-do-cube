@@ -96,8 +96,8 @@ export class CubeRenderer {
     this.config = {
       cellSize: config.cellSize ?? 1,
       cellGap: config.cellGap ?? 0.1,
-      filledOpacity: config.filledOpacity ?? 0.15,
-      emptyOpacity: config.emptyOpacity ?? 0,
+      filledOpacity: config.filledOpacity ?? 0.6,
+      emptyOpacity: config.emptyOpacity ?? 0.05,
       givenColor: config.givenColor ?? 0x4a90e2,
       editableColor: config.editableColor ?? 0x7ed321,
       hoverColor: config.hoverColor ?? 0xffd700,
