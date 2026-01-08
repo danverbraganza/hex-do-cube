@@ -21,6 +21,7 @@ import { SceneManager } from './renderer/SceneManager.js';
 import { CubeRenderer } from './renderer/CubeRenderer.js';
 import { FaceRenderer } from './renderer/FaceRenderer.js';
 import { MinimapRenderer } from './renderer/MinimapRenderer.js';
+import { SubsquareSeparatorRenderer } from './renderer/SubsquareSeparatorRenderer.js';
 
 // UI
 import { InputController } from './ui/InputController.js';
@@ -132,23 +133,28 @@ export function init(): void {
   const cubeRenderer = new CubeRenderer(gameState.cube);
   sceneManager.add(cubeRenderer.getContainer());
 
-  // 5. Initialize FaceRenderer
+  // 5. Initialize SubsquareSeparatorRenderer
+  const subsquareSeparatorRenderer = new SubsquareSeparatorRenderer();
+  sceneManager.add(subsquareSeparatorRenderer.getContainer());
+
+  // 6. Initialize FaceRenderer
   const faceRenderer = new FaceRenderer(cubeRenderer, sceneManager);
 
-  // 6. Initialize MinimapRenderer
+  // 7. Initialize MinimapRenderer
   const minimapRenderer = new MinimapRenderer(
     gameState.cube,
     sceneManager.getRenderer()
   );
 
-  // 7. Initialize ViewStateManager to coordinate view transitions
+  // 8. Initialize ViewStateManager to coordinate view transitions
   const viewStateManager = new ViewStateManager({
     sceneManager,
     faceRenderer,
     minimapRenderer,
+    subsquareSeparatorRenderer,
   });
 
-  // 8. Initialize InputController
+  // 9. Initialize InputController
   const inputController = new InputController(
     {
       canvas: sceneManager.getRenderer().domElement,
@@ -160,7 +166,7 @@ export function init(): void {
     gameState.cube
   );
 
-  // 9. Initialize CellEditor
+  // 10. Initialize CellEditor
   const cellEditor = new CellEditor(
     gameState.cube,
     cubeRenderer,
@@ -170,7 +176,7 @@ export function init(): void {
     }
   );
 
-  // 10. Initialize GameUI
+  // 11. Initialize GameUI
   const gameUI = new GameUI({
     container,
     sceneManager,
@@ -227,7 +233,7 @@ export function init(): void {
     }, 100);
   });
 
-  // 11. Start render loop
+  // 12. Start render loop
   sceneManager.startRenderLoop(() => {
     // Update view state animations (layer transitions) each frame
     viewStateManager.update();

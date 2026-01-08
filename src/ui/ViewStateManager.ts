@@ -16,6 +16,7 @@
 import type { SceneManager } from '../renderer/SceneManager.js';
 import type { FaceRenderer, Face } from '../renderer/FaceRenderer.js';
 import type { MinimapRenderer } from '../renderer/MinimapRenderer.js';
+import type { SubsquareSeparatorRenderer } from '../renderer/SubsquareSeparatorRenderer.js';
 
 /**
  * View mode types
@@ -29,6 +30,7 @@ export interface ViewStateManagerConfig {
   sceneManager: SceneManager;
   faceRenderer: FaceRenderer;
   minimapRenderer: MinimapRenderer;
+  subsquareSeparatorRenderer?: SubsquareSeparatorRenderer;
 }
 
 /**
@@ -43,6 +45,7 @@ export class ViewStateManager {
   private sceneManager: SceneManager;
   private faceRenderer: FaceRenderer;
   private minimapRenderer: MinimapRenderer;
+  private subsquareSeparatorRenderer?: SubsquareSeparatorRenderer;
 
   // Current view state
   private currentMode: ViewMode = '3d-rotational';
@@ -54,6 +57,7 @@ export class ViewStateManager {
     this.sceneManager = config.sceneManager;
     this.faceRenderer = config.faceRenderer;
     this.minimapRenderer = config.minimapRenderer;
+    this.subsquareSeparatorRenderer = config.subsquareSeparatorRenderer;
   }
 
   /**
@@ -80,6 +84,7 @@ export class ViewStateManager {
     this.faceRenderer.enterFaceOnView(face, layer);
     this.sceneManager.setFaceOnView(face, layer);
     this.minimapRenderer.setHighlightedFace(face);
+    this.subsquareSeparatorRenderer?.setMode('face-on', face, layer);
 
     // Notify listeners
     this.notifyViewModeChange('face-on', face, layer);
@@ -102,6 +107,7 @@ export class ViewStateManager {
     this.faceRenderer.exitFaceOnView();
     this.sceneManager.resetCamera();
     this.minimapRenderer.setHighlightedFace(null);
+    this.subsquareSeparatorRenderer?.setMode('3d');
 
     // Notify listeners
     this.notifyViewModeChange('3d-rotational');
