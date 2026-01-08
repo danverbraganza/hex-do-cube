@@ -90,6 +90,9 @@ export class CubeRenderer {
   // Value sprite renderer for billboard sprites
   private spriteRenderer: ValueSpriteRenderer;
 
+  // Current rendering mode
+  private renderMode: '3d' | 'face-on' = '3d';
+
   constructor(cube: Cube, config: CubeRendererConfig = {}) {
     this.cube = cube;
 
@@ -297,6 +300,31 @@ export class CubeRenderer {
     }
     // Update all sprites as well
     this.spriteRenderer.updateAllSprites();
+  }
+
+  /**
+   * Set rendering mode (3D or face-on)
+   * In face-on mode, empty cells are rendered opaque for single-layer clarity
+   * @param mode - '3d' for 3D rotational view, 'face-on' for face editing view
+   */
+  public setMode(mode: '3d' | 'face-on'): void {
+    if (this.renderMode === mode) {
+      return; // No change needed
+    }
+
+    this.renderMode = mode;
+
+    // Update empty cell material opacity based on mode
+    if (mode === 'face-on') {
+      // In face-on mode, empty cells should be opaque to prevent seeing through layers
+      this.materials.empty.opacity = 1.0;
+    } else {
+      // In 3D mode, empty cells are translucent/transparent
+      this.materials.empty.opacity = this.config.emptyOpacity;
+    }
+
+    // Update all cells to reflect the new material state
+    this.updateAllCells();
   }
 
   /**

@@ -17,6 +17,7 @@ import type { SceneManager } from '../renderer/SceneManager.js';
 import type { FaceRenderer, Face } from '../renderer/FaceRenderer.js';
 import type { MinimapRenderer } from '../renderer/MinimapRenderer.js';
 import type { SubsquareSeparatorRenderer } from '../renderer/SubsquareSeparatorRenderer.js';
+import type { CubeRenderer } from '../renderer/CubeRenderer.js';
 
 /**
  * View mode types
@@ -30,6 +31,7 @@ export interface ViewStateManagerConfig {
   sceneManager: SceneManager;
   faceRenderer: FaceRenderer;
   minimapRenderer: MinimapRenderer;
+  cubeRenderer: CubeRenderer;
   subsquareSeparatorRenderer?: SubsquareSeparatorRenderer;
 }
 
@@ -45,6 +47,7 @@ export class ViewStateManager {
   private sceneManager: SceneManager;
   private faceRenderer: FaceRenderer;
   private minimapRenderer: MinimapRenderer;
+  private cubeRenderer: CubeRenderer;
   private subsquareSeparatorRenderer?: SubsquareSeparatorRenderer;
 
   // Current view state
@@ -57,6 +60,7 @@ export class ViewStateManager {
     this.sceneManager = config.sceneManager;
     this.faceRenderer = config.faceRenderer;
     this.minimapRenderer = config.minimapRenderer;
+    this.cubeRenderer = config.cubeRenderer;
     this.subsquareSeparatorRenderer = config.subsquareSeparatorRenderer;
   }
 
@@ -86,6 +90,7 @@ export class ViewStateManager {
     this.sceneManager.setFaceOnView(face, layer);
     this.minimapRenderer.setHighlightedFace(face);
     this.minimapRenderer.setHighlightedLayer(face, layer);
+    this.cubeRenderer.setMode('face-on');
     this.subsquareSeparatorRenderer?.setMode('face-on', face, layer);
 
     // Notify listeners
@@ -110,6 +115,7 @@ export class ViewStateManager {
     this.sceneManager.resetCamera();
     this.minimapRenderer.setHighlightedFace(null);
     this.minimapRenderer.setHighlightedLayer(null, null);
+    this.cubeRenderer.setMode('3d');
     this.subsquareSeparatorRenderer?.setMode('3d');
 
     // Notify listeners

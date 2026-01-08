@@ -151,6 +151,7 @@ export function init(): void {
     sceneManager,
     faceRenderer,
     minimapRenderer,
+    cubeRenderer,
     subsquareSeparatorRenderer,
   });
 

@@ -3,6 +3,7 @@ import { ViewStateManager, type ViewMode, type ViewModeChangeCallback } from './
 import type { SceneManager } from '../renderer/SceneManager.js';
 import type { FaceRenderer, Face } from '../renderer/FaceRenderer.js';
 import type { MinimapRenderer } from '../renderer/MinimapRenderer.js';
+import type { CubeRenderer } from '../renderer/CubeRenderer.js';
 
 /**
  * Mock SceneManager for testing
@@ -114,21 +115,39 @@ class MockMinimapRenderer implements Partial<MinimapRenderer> {
   }
 }
 
+/**
+ * Mock CubeRenderer for testing
+ */
+class MockCubeRenderer implements Partial<CubeRenderer> {
+  public setModeCalls: Array<'3d' | 'face-on'> = [];
+
+  setMode(mode: '3d' | 'face-on'): void {
+    this.setModeCalls.push(mode);
+  }
+
+  reset(): void {
+    this.setModeCalls = [];
+  }
+}
+
 describe('ViewStateManager', () => {
   let viewStateManager: ViewStateManager;
   let mockSceneManager: MockSceneManager;
   let mockFaceRenderer: MockFaceRenderer;
   let mockMinimapRenderer: MockMinimapRenderer;
+  let mockCubeRenderer: MockCubeRenderer;
 
   beforeEach(() => {
     mockSceneManager = new MockSceneManager();
     mockFaceRenderer = new MockFaceRenderer();
     mockMinimapRenderer = new MockMinimapRenderer();
+    mockCubeRenderer = new MockCubeRenderer();
 
     viewStateManager = new ViewStateManager({
       sceneManager: mockSceneManager as unknown as SceneManager,
       faceRenderer: mockFaceRenderer as unknown as FaceRenderer,
       minimapRenderer: mockMinimapRenderer as unknown as MinimapRenderer,
+      cubeRenderer: mockCubeRenderer as unknown as CubeRenderer,
     });
   });
 
