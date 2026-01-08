@@ -28,6 +28,7 @@ import { InputController } from './ui/InputController.js';
 import { CellEditor } from './ui/CellEditor.js';
 import { GameUI } from './ui/GameUI.js';
 import { ViewStateManager } from './ui/ViewStateManager.js';
+import { MessagePanel } from './ui/MessagePanel.js';
 
 console.log('Hex-Do-Cube initialized');
 
@@ -178,7 +179,13 @@ export function init(): void {
     }
   );
 
-  // 11. Initialize GameUI
+  // 11. Initialize MessagePanel
+  const messagePanel = new MessagePanel({
+    container,
+    visible: true,
+  });
+
+  // 12. Initialize GameUI
   const gameUI = new GameUI({
     container,
     sceneManager,
@@ -188,7 +195,29 @@ export function init(): void {
     gameState,
   });
 
-  // 12. Set up layer indicator to update when view mode changes
+  // 13. Connect CellEditor validation to MessagePanel
+  cellEditor.onValidation((result) => {
+    if (!result.isValid && result.errors.length > 0) {
+      // Count wrong cells (cells with incorrect values)
+      const wrongCells = new Set<string>();
+      for (const error of result.errors) {
+        for (const position of error.cells) {
+          const [i, j, k] = position;
+          const cell = gameState.cube.cells[i][j][k];
+          const correctValue = gameState.solution[i][j][k];
+          if (cell.value !== correctValue && cell.type !== 'given') {
+            wrongCells.add(`${i},${j},${k}`);
+          }
+        }
+      }
+
+      if (wrongCells.size > 0) {
+        messagePanel.info(`Found ${wrongCells.size} incorrect cell${wrongCells.size > 1 ? 's' : ''}!`);
+      }
+    }
+  });
+
+  // 14. Set up layer indicator to update when view mode changes
   viewStateManager.onViewModeChange((mode, _face, layer) => {
     if (mode === 'face-on' && layer !== undefined) {
       gameUI.showLayerIndicator(layer);
@@ -204,23 +233,19 @@ export function init(): void {
     sceneManager.updateFaceOnLayer(face, layer, true);
   });
 
-  // Set up auto-save on cell value changes
+  // 15. Set up auto-save on cell value changes
   inputController.onCellValueChange(() => {
     try {
       saveGameState(gameState);
-      console.log('Game state auto-saved');
+      messagePanel.log('Game state auto-saved');
     } catch (error) {
       console.error('Failed to auto-save game state:', error);
     }
   });
 
-  // Set up new game handler
+  // 16. Set up new game handler
   gameUI.onNewGame((difficulty) => {
-    console.log(`Generating new ${difficulty} puzzle... This may take 2-5 minutes.`);
-
-    // Show loading state (in a real app, this would be a loading spinner)
-    // For now, we'll just disable the button and log
-    console.log('Please wait while generating puzzle...');
+    messagePanel.log(`Generating new ${difficulty} puzzle...`);
 
     // Generate puzzle asynchronously to avoid blocking UI
     setTimeout(() => {
@@ -243,7 +268,7 @@ export function init(): void {
         // Reset camera to canonical view
         sceneManager.resetCamera();
 
-        console.log('New puzzle generated successfully!');
+        messagePanel.log('New puzzle generated successfully');
       } catch (error) {
         console.error('Failed to generate puzzle:', error);
         alert('Failed to generate puzzle. Please try again.');
@@ -251,7 +276,7 @@ export function init(): void {
     }, 100);
   });
 
-  // 12. Start render loop
+  // 17. Start render loop
   sceneManager.startRenderLoop(() => {
     // Update view state animations (layer transitions) each frame
     viewStateManager.update();
@@ -261,6 +286,8 @@ export function init(): void {
     minimapRenderer.render(canvas.width, canvas.height);
   });
 
+  // 18. Show ready message
+  messagePanel.log('Hex-Do-Cube ready');
   console.log('Hex-Do-Cube ready! Double-click on a face to enter editing view.');
 }
 
