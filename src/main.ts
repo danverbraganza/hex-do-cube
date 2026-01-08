@@ -80,7 +80,13 @@ export function init(): void {
     throw new Error('App container not found');
   }
 
-  // Set up basic styling for container
+  // Set up basic styling for body and container to ensure no offsets
+  document.body.style.cssText = `
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  `;
+
   container.style.cssText = `
     width: 100vw;
     height: 100vh;
