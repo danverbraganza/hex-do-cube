@@ -16,6 +16,7 @@ import type { CellEditor } from './CellEditor.js';
 import type { InputController } from './InputController.js';
 import type { ViewStateManager } from './ViewStateManager.js';
 import { isGameWon, validateGameState, checkCompletion, type Difficulty } from '../models/GameState.js';
+import { WinScreenRenderer } from '../renderer/WinScreenRenderer.js';
 
 /**
  * Configuration for GameUI
@@ -51,6 +52,9 @@ export class GameUI {
   private cellEditor: CellEditor;
   private gameState: GameState;
 
+  // Win screen renderer for fireworks
+  private winScreenRenderer: WinScreenRenderer;
+
   // UI elements
   private hudOverlay!: HTMLDivElement;
   private homeButton!: HTMLButtonElement;
@@ -77,6 +81,10 @@ export class GameUI {
     this.inputController = config.inputController;
     this.cellEditor = config.cellEditor;
     this.gameState = config.gameState;
+
+    // Initialize win screen renderer
+    this.winScreenRenderer = new WinScreenRenderer();
+    this.sceneManager.add(this.winScreenRenderer.getContainer());
 
     this.initializeUI();
     this.attachEventHandlers();
@@ -244,18 +252,43 @@ export class GameUI {
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0, 150, 0, 0.95);
+      background: rgba(0, 0, 0, 0.5);
       color: #ffffff;
-      padding: 32px 48px;
-      border-radius: 8px;
-      font-size: 24px;
+      padding: 48px 64px;
+      border-radius: 16px;
+      font-size: 48px;
       font-weight: bold;
       text-align: center;
       pointer-events: auto;
       display: none;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+      cursor: pointer;
+      animation: winPulse 1.5s ease-in-out infinite;
     `;
-    this.winNotification.textContent = 'Congratulations! Puzzle Solved!';
+    this.winNotification.innerHTML = `
+      <div style="font-size: 48px; margin-bottom: 16px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);">
+        YOU WIN!
+      </div>
+      <div style="font-size: 18px; font-weight: normal; margin-top: 16px; opacity: 0.8;">
+        Click anywhere to dismiss
+      </div>
+    `;
+
+    // Add CSS animation for pulsing effect
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes winPulse {
+        0%, 100% {
+          transform: translate(-50%, -50%) scale(1);
+          text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.05);
+          text-shadow: 0 0 20px rgba(255, 215, 0, 1);
+        }
+      }
+    `;
+    document.head.appendChild(style);
 
     // Wrong completion notification (initially hidden)
     this.wrongCompletionNotification = document.createElement('div');
@@ -470,18 +503,36 @@ export class GameUI {
   }
 
   /**
-   * Show the win notification
+   * Show the win notification with fireworks and auto-rotation
    */
   private showWinNotification(): void {
     this.hideWrongCompletionNotification(); // Ensure only one notification shows
     this.winNotification.style.display = 'block';
+
+    // Start fireworks effect
+    this.winScreenRenderer.show();
+
+    // Start auto-rotation of the cube
+    this.sceneManager.startAutoRotation();
+
+    // Return to 3D view if in face-on mode
+    if (this.sceneManager.getCameraMode() !== 'isometric') {
+      this.inputController.returnTo3DView();
+      this.sceneManager.resetCamera(true);
+    }
   }
 
   /**
-   * Hide the win notification
+   * Hide the win notification and stop effects
    */
   private hideWinNotification(): void {
     this.winNotification.style.display = 'none';
+
+    // Stop fireworks effect
+    this.winScreenRenderer.hide();
+
+    // Stop auto-rotation
+    this.sceneManager.stopAutoRotation();
   }
 
   /**
@@ -565,6 +616,13 @@ export class GameUI {
   }
 
   /**
+   * Update win screen animations (call each frame)
+   */
+  public update(): void {
+    this.winScreenRenderer.update();
+  }
+
+  /**
    * Clean up resources and remove UI elements
    */
   public dispose(): void {
@@ -572,6 +630,9 @@ export class GameUI {
     if (this.hudOverlay.parentElement === this.container) {
       this.container.removeChild(this.hudOverlay);
     }
+
+    // Dispose win screen renderer
+    this.winScreenRenderer.dispose();
 
     // Clear callbacks
     this.newGameCallbacks = [];

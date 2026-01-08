@@ -281,6 +281,9 @@ export function init(): void {
     // Update view state animations (layer transitions) each frame
     viewStateManager.update();
 
+    // Update win screen animations (fireworks)
+    gameUI.update();
+
     // Render minimap
     const canvas = sceneManager.getRenderer().domElement;
     minimapRenderer.render(canvas.width, canvas.height);

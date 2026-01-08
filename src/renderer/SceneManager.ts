@@ -60,6 +60,19 @@ export class SceneManager {
     duration: number;
   } | null = null;
 
+  // Auto-rotation state
+  private autoRotation: {
+    active: boolean;
+    speed: number; // radians per second
+    axis: THREE.Vector3;
+  } = {
+    active: false,
+    speed: 0,
+    axis: new THREE.Vector3(0, 1, 0),
+  };
+
+  private lastAutoRotationTime: number = 0;
+
   constructor(config: SceneManagerConfig) {
     this.container = config.container;
     this.cameraDistance = config.cameraDistance ?? 37.5;
@@ -463,6 +476,58 @@ export class SceneManager {
   }
 
   /**
+   * Start auto-rotation of the camera around the cube
+   * @param speed - Rotation speed in radians per second (default: Math.PI / 6, which is 30 degrees/sec)
+   * @param axis - Rotation axis (default: Y axis for horizontal rotation)
+   */
+  public startAutoRotation(speed: number = Math.PI / 6, axis: THREE.Vector3 = new THREE.Vector3(0, 1, 0)): void {
+    this.autoRotation.active = true;
+    this.autoRotation.speed = speed;
+    this.autoRotation.axis = axis.clone().normalize();
+    this.lastAutoRotationTime = performance.now() / 1000;
+  }
+
+  /**
+   * Stop auto-rotation
+   */
+  public stopAutoRotation(): void {
+    this.autoRotation.active = false;
+  }
+
+  /**
+   * Check if auto-rotation is active
+   */
+  public isAutoRotating(): boolean {
+    return this.autoRotation.active;
+  }
+
+  /**
+   * Update auto-rotation (called each frame)
+   */
+  private updateAutoRotation(): void {
+    if (!this.autoRotation.active || this.cameraMode !== 'isometric') {
+      return;
+    }
+
+    const now = performance.now() / 1000;
+    const deltaTime = now - this.lastAutoRotationTime;
+    this.lastAutoRotationTime = now;
+
+    // Rotate camera around the axis
+    const angle = this.autoRotation.speed * deltaTime;
+
+    // Create rotation matrix
+    const rotationMatrix = new THREE.Matrix4();
+    rotationMatrix.makeRotationAxis(this.autoRotation.axis, angle);
+
+    // Apply rotation to camera position
+    this.perspectiveCamera.position.applyMatrix4(rotationMatrix);
+
+    // Keep looking at cube center
+    this.perspectiveCamera.lookAt(0, 0, 0);
+  }
+
+  /**
    * Start the render loop
    * @param callback - Optional callback to run each frame after rendering main scene
    */
@@ -476,6 +541,9 @@ export class SceneManager {
 
       // Update camera animation if active
       this.updateCameraAnimation();
+
+      // Update auto-rotation if active
+      this.updateAutoRotation();
 
       // Ensure full viewport is set before main render
       const width = this.container.clientWidth;
