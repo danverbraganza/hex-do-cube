@@ -1,7 +1,11 @@
 /**
  * Generator service for Hex-Do-Cube
- * Implements randomized backtracking algorithm to generate valid solved cubes
- * and creates puzzles by removing cells based on difficulty
+ * Implements mathematical Latin cube construction using GF(4) arithmetic
+ * for instant cube generation, and removes cells based on difficulty.
+ *
+ * The mathematical construction uses base-4 digit decomposition and XOR
+ * operations (GF(4) arithmetic) to compute cell values in O(1) time.
+ * This replaces the slow backtracking algorithm with instant generation.
  */
 
 import type { Cube } from '../models/Cube.js';
@@ -15,6 +19,54 @@ const HEX_VALUES: Exclude<HexValue, null>[] = [
   '0', '1', '2', '3', '4', '5', '6', '7',
   '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
 ];
+
+/**
+ * Computes the cell value at position (r, c, z) using mathematical construction.
+ *
+ * This function uses base-4 digit decomposition and XOR operations (GF(4) arithmetic)
+ * to compute values instantly in O(1) time.
+ *
+ * Algorithm:
+ * - Decompose each coordinate into base-4 digits: r = 4*ur + vr (ur, vr in 0..3)
+ * - Compute symbol digits using XOR:
+ *   - us = vr ^ uc ^ uz ^ vz  (high base-4 digit)
+ *   - vs = ur ^ vc ^ vz       (low base-4 digit)
+ * - Pack result: (us << 2) | vs  (returns 0..15)
+ *
+ * This construction guarantees all Latin cube constraints are satisfied:
+ * - All rows, columns, and beams contain each value 0-15 exactly once
+ * - All 4x4 sub-squares on all faces contain each value 0-15 exactly once
+ *
+ * @param r - Row coordinate (0-15)
+ * @param c - Column coordinate (0-15)
+ * @param z - Depth coordinate (0-15)
+ * @returns Value in range 0-15
+ */
+function cellValue(r: number, c: number, z: number): number {
+  // Base-4 decomposition: each coordinate becomes (u, v) where coord = 4*u + v
+  const ur = Math.floor(r / 4);
+  const vr = r % 4;
+  const uc = Math.floor(c / 4);
+  const vc = c % 4;
+  const uz = Math.floor(z / 4);
+  const vz = z % 4;
+
+  // XOR operations (GF(4) arithmetic)
+  const us = vr ^ uc ^ uz ^ vz;  // high base-4 digit of symbol
+  const vs = ur ^ vc ^ vz;        // low base-4 digit of symbol
+
+  // Pack into 0..15
+  return (us << 2) | vs;
+}
+
+/**
+ * Converts a numeric value (0-15) to its hexadecimal character representation
+ * @param value - Numeric value (0-15)
+ * @returns Hexadecimal character ('0'-'9', 'a'-'f')
+ */
+function valueToHex(value: number): Exclude<HexValue, null> {
+  return HEX_VALUES[value];
+}
 
 /**
  * Difficulty level configuration
@@ -50,206 +102,34 @@ function shuffle<T>(array: T[]): T[] {
 }
 
 /**
- * Gets all cells that affect the validity of a position
- * (same row, column, beam, and sub-squares)
- * @param cube - The cube
- * @param pos - The position to check
- * @returns Set of values that constrain this position
- */
-function getUsedValues(cube: Cube, pos: Position): Set<HexValue> {
-  const [i, j, k] = pos;
-  const values = new Set<HexValue>();
-
-  // Row (i varies, j and k fixed)
-  for (let ii = 0; ii < 16; ii++) {
-    if (ii !== i) { // Skip self
-      const val = cube.cells[ii][j][k].value;
-      if (val !== null) values.add(val);
-    }
-  }
-
-  // Column (j varies, i and k fixed)
-  for (let jj = 0; jj < 16; jj++) {
-    if (jj !== j) { // Skip self
-      const val = cube.cells[i][jj][k].value;
-      if (val !== null) values.add(val);
-    }
-  }
-
-  // Beam (k varies, i and j fixed)
-  for (let kk = 0; kk < 16; kk++) {
-    if (kk !== k) { // Skip self
-      const val = cube.cells[i][j][kk].value;
-      if (val !== null) values.add(val);
-    }
-  }
-
-  // Sub-squares on three planar faces
-  // i-face (i constant, j and k vary)
-  const iSubRow = Math.floor(j / 4);
-  const iSubCol = Math.floor(k / 4);
-  for (let jOffset = 0; jOffset < 4; jOffset++) {
-    for (let kOffset = 0; kOffset < 4; kOffset++) {
-      const jj = iSubRow * 4 + jOffset;
-      const kk = iSubCol * 4 + kOffset;
-      if (jj !== j || kk !== k) { // Skip self
-        const val = cube.cells[i][jj][kk].value;
-        if (val !== null) values.add(val);
-      }
-    }
-  }
-
-  // j-face (j constant, i and k vary)
-  const jSubRow = Math.floor(i / 4);
-  const jSubCol = Math.floor(k / 4);
-  for (let iOffset = 0; iOffset < 4; iOffset++) {
-    for (let kOffset = 0; kOffset < 4; kOffset++) {
-      const ii = jSubRow * 4 + iOffset;
-      const kk = jSubCol * 4 + kOffset;
-      if (ii !== i || kk !== k) { // Skip self
-        const val = cube.cells[ii][j][kk].value;
-        if (val !== null) values.add(val);
-      }
-    }
-  }
-
-  // k-face (k constant, i and j vary)
-  const kSubRow = Math.floor(i / 4);
-  const kSubCol = Math.floor(j / 4);
-  for (let iOffset = 0; iOffset < 4; iOffset++) {
-    for (let jOffset = 0; jOffset < 4; jOffset++) {
-      const ii = kSubRow * 4 + iOffset;
-      const jj = kSubCol * 4 + jOffset;
-      if (ii !== i || jj !== j) { // Skip self
-        const val = cube.cells[ii][jj][k].value;
-        if (val !== null) values.add(val);
-      }
-    }
-  }
-
-  return values;
-}
-
-/**
- * Gets valid values for a cell position based on current constraints
- * @param cube - The cube
- * @param pos - The position to check
- * @returns Array of valid hex values that can be placed at this position
- */
-function getValidValues(cube: Cube, pos: Position): Exclude<HexValue, null>[] {
-  const usedValues = getUsedValues(cube, pos);
-  return HEX_VALUES.filter(val => !usedValues.has(val));
-}
-
-/**
- * Finds the next empty cell position in the cube
- * Simple linear scan for efficiency
- * @param cube - The cube
- * @returns The next empty position, or null if cube is full
- */
-function findNextEmptyCell(cube: Cube): Position | null {
-  for (let i = 0; i < 16; i++) {
-    for (let j = 0; j < 16; j++) {
-      for (let k = 0; k < 16; k++) {
-        if (cube.cells[i][j][k].value === null) {
-          return [i, j, k] as const;
-        }
-      }
-    }
-  }
-  return null;
-}
-
-/**
- * Solves the cube using randomized backtracking with optimizations
- * @param cube - The cube to solve (modified in place)
- * @param maxBacktracks - Maximum number of backtracks before giving up (safety limit)
- * @returns true if solved successfully, false if no solution exists
- */
-function solveCubeBacktracking(cube: Cube, maxBacktracks: number = Infinity): boolean {
-  let backtrackCount = 0;
-
-  function solve(): boolean {
-    const pos = findNextEmptyCell(cube);
-
-    // Base case: no empty cells means we're done
-    if (pos === null) {
-      return true;
-    }
-
-    const [i, j, k] = pos;
-    const validValues = getValidValues(cube, pos);
-
-    // No valid values means this path is invalid
-    if (validValues.length === 0) {
-      backtrackCount++;
-      if (backtrackCount > maxBacktracks) {
-        return false; // Give up to prevent infinite loops
-      }
-      return false;
-    }
-
-    // Try values in random order for variety
-    shuffle(validValues);
-
-    for (const value of validValues) {
-      // Try this value
-      cube.cells[i][j][k].value = value;
-
-      // Recursively solve
-      if (solve()) {
-        return true;
-      }
-
-      // Backtrack
-      cube.cells[i][j][k].value = null;
-      backtrackCount++;
-      if (backtrackCount > maxBacktracks) {
-        return false; // Give up
-      }
-    }
-
-    return false;
-  }
-
-  return solve();
-}
-
-/**
- * Generates a fully solved valid cube using randomized backtracking
+ * Generates a fully solved valid cube using mathematical construction.
  *
- * PERFORMANCE NOTE: Generating a 16×16×16 cube with all constraints
- * (rows, columns, beams, and 768 sub-squares) is computationally intensive.
- * Generation may take several minutes on first attempt but usually succeeds
- * due to randomization in the backtracking algorithm.
+ * This function uses the cellValue() formula to instantly generate a valid
+ * 16x16x16 Latin cube that satisfies all constraints:
+ * - All rows, columns, and beams contain each value 0-15 exactly once
+ * - All 4x4 sub-squares on all faces contain each value 0-15 exactly once
  *
- * Future optimizations could include:
- * - Constraint propagation
- * - Better heuristics (MRV with look-ahead)
- * - Pre-seeded patterns with permutations
- * - Parallel generation attempts
+ * PERFORMANCE: This is instant (O(1) per cell, ~4096 operations total)
+ * compared to the previous backtracking approach which took 5+ minutes.
  *
  * @returns A cube with all cells filled with valid values
  */
 export function generateSolvedCube(): Cube {
   const cube = createCube();
 
-  // Use backtracking with no limit (let it run until success)
-  // The randomization should eventually find a solution
-  const solved = solveCubeBacktracking(cube, Infinity);
-
-  if (!solved) {
-    // This should not happen with Infinity limit unless there's a bug
-    throw new Error('Failed to generate a valid solved cube');
+  // Fill all 4096 cells using the mathematical construction
+  for (let i = 0; i < 16; i++) {
+    for (let j = 0; j < 16; j++) {
+      for (let k = 0; k < 16; k++) {
+        const numericValue = cellValue(i, j, k);
+        const hexValue = valueToHex(numericValue);
+        cube.cells[i][j][k].value = hexValue;
+      }
+    }
   }
 
   return cube;
 }
-
-// Note: countSolutions function removed for now
-// Full uniqueness checking is very computationally expensive for 4096 cells
-// For easy difficulty with 70% given cells, the puzzle is typically solvable
-// Future optimization: implement more efficient uniqueness checking if needed
 
 /**
  * Creates a deep copy of a cube
