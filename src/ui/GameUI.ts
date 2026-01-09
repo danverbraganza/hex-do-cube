@@ -17,6 +17,7 @@ import type { InputController } from './InputController.js';
 import type { ViewStateManager } from './ViewStateManager.js';
 import { isGameWon, validateGameState, checkCompletion, type Difficulty } from '../models/GameState.js';
 import { WinScreenRenderer } from '../renderer/WinScreenRenderer.js';
+import { Modal } from './Modal.js';
 
 /**
  * Configuration for GameUI
@@ -54,6 +55,9 @@ export class GameUI {
   // Win screen renderer for fireworks
   private winScreenRenderer: WinScreenRenderer;
 
+  // Confirmation modal
+  private confirmModal: Modal;
+
   // UI elements
   private hudOverlay!: HTMLDivElement;
   private homeButton!: HTMLButtonElement;
@@ -85,6 +89,9 @@ export class GameUI {
     // Initialize win screen renderer
     this.winScreenRenderer = new WinScreenRenderer();
     this.sceneManager.add(this.winScreenRenderer.getContainer());
+
+    // Initialize confirmation modal
+    this.confirmModal = new Modal();
 
     this.initializeUI();
     this.attachEventHandlers();
@@ -166,11 +173,23 @@ export class GameUI {
       cursor: pointer;
     `;
 
-    // Currently only Easy difficulty is supported
-    const easyOption = document.createElement('option');
-    easyOption.value = 'easy';
-    easyOption.textContent = 'Easy';
-    this.difficultySelect.appendChild(easyOption);
+    // Add all difficulty levels
+    const difficulties: Array<{ value: Difficulty; label: string }> = [
+      { value: 'trivial', label: 'Trivial (1 empty)' },
+      { value: 'easy', label: 'Easy (70% given)' },
+      { value: 'medium', label: 'Medium (50% given)' },
+      { value: 'hard', label: 'Hard (30% given)' }
+    ];
+
+    for (const diff of difficulties) {
+      const option = document.createElement('option');
+      option.value = diff.value;
+      option.textContent = diff.label;
+      this.difficultySelect.appendChild(option);
+    }
+
+    // Set default to 'easy'
+    this.difficultySelect.value = 'easy';
 
     // New game button
     this.newGameButton = document.createElement('button');
@@ -471,13 +490,41 @@ export class GameUI {
 
   /**
    * Handle new game button click
+   * Shows confirmation modal if user has progress, otherwise starts immediately
    */
   private handleNewGameButton(): void {
     const difficulty = this.difficultySelect.value as Difficulty;
 
-    // Confirm before starting new game (if current game has progress)
-    // For simplicity, just start immediately for now
-    this.notifyNewGame(difficulty);
+    // Check if user has progress (any editable cells filled)
+    if (this.hasUserProgress()) {
+      // Show confirmation modal
+      this.confirmModal.show({
+        message: 'You will lose your saved progress if you generate a new cube. Are you sure you want to do this?',
+        confirmText: 'Yes, start new',
+        cancelText: 'No, keep playing',
+        onConfirm: () => {
+          this.notifyNewGame(difficulty);
+        },
+        onCancel: () => {
+          // Do nothing, modal will close automatically
+        }
+      });
+    } else {
+      // No progress, start new game immediately
+      this.notifyNewGame(difficulty);
+    }
+  }
+
+  /**
+   * Check if the user has made any progress in the current game
+   * @returns true if any editable cells have been filled
+   */
+  private hasUserProgress(): boolean {
+    // Use filterCells to find any editable cells with values
+    const editableCellsWithValues = this.gameState.cube.filterCells(
+      (cell) => cell.type === 'editable' && cell.value !== null
+    );
+    return editableCellsWithValues.length > 0;
   }
 
   /**
@@ -652,6 +699,9 @@ export class GameUI {
 
     // Dispose win screen renderer
     this.winScreenRenderer.dispose();
+
+    // Dispose confirmation modal
+    this.confirmModal.dispose();
 
     // Clear callbacks
     this.newGameCallbacks = [];

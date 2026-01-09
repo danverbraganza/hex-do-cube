@@ -29,22 +29,30 @@ def generate_full_cube():
 def apply_difficulty(cube, difficulty='easy'):
     """
     Apply difficulty by randomly removing cells.
-    For 'easy': keep ~70% of cells as 'given'
+    - trivial: Only 1 cell empty (for testing/demo)
+    - easy: keep ~70% of cells as 'given'
+    - medium: keep ~50% of cells as 'given'
+    - hard: keep ~30% of cells as 'given'
 
     Returns: list of cell objects with position, value, and type
     """
     total_cells = 16 * 16 * 16  # 4096 cells
 
-    if difficulty == 'easy':
+    if difficulty == 'trivial':
+        # Special case: only 1 cell empty
+        target_given_count = total_cells - 1
+    elif difficulty == 'easy':
         given_ratio = 0.70
+        target_given_count = int(total_cells * given_ratio)
     elif difficulty == 'medium':
         given_ratio = 0.50
+        target_given_count = int(total_cells * given_ratio)
     elif difficulty == 'hard':
         given_ratio = 0.30
+        target_given_count = int(total_cells * given_ratio)
     else:
         given_ratio = 0.70
-
-    target_given_count = int(total_cells * given_ratio)
+        target_given_count = int(total_cells * given_ratio)
 
     # Create list of all positions
     all_positions = [

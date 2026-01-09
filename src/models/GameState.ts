@@ -8,9 +8,12 @@ import type { HexValue } from './Cell.js';
 
 /**
  * Difficulty levels for puzzle generation
- * Currently only 'easy' is supported (70% given cells)
+ * - trivial: Only 1 cell empty (for testing/quick demo)
+ * - easy: ~70% cells given (~2867 given, ~1229 empty)
+ * - medium: ~50% cells given (~2048 given, ~2048 empty)
+ * - hard: ~30% cells given (~1229 given, ~2867 empty)
  */
-export type Difficulty = 'easy';
+export type Difficulty = 'trivial' | 'easy' | 'medium' | 'hard';
 
 /**
  * GameState interface representing a complete game session

@@ -71,21 +71,27 @@ function valueToHex(value: number): Exclude<HexValue, null> {
 /**
  * Difficulty level configuration
  */
-export type Difficulty = 'easy';
+export type Difficulty = 'trivial' | 'easy' | 'medium' | 'hard';
 
 /**
  * Configuration for puzzle difficulty
  */
 interface DifficultyConfig {
-  /** Target percentage of cells to keep as given (0-1) */
-  givenCellsRatio: number;
+  /** Target percentage of cells to keep as given (0-1), or exact count for trivial */
+  givenCellsRatio?: number;
+  /** Exact number of cells to remove (used for trivial difficulty) */
+  cellsToRemove?: number;
 }
 
 /**
  * Difficulty configurations
+ * Total cells: 4096 (16^3)
  */
 const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
-  easy: { givenCellsRatio: 0.70 } // 70% given cells, 30% removed
+  trivial: { cellsToRemove: 1 }, // Only 1 cell empty for testing/demo
+  easy: { givenCellsRatio: 0.70 }, // ~70% given cells (~2867 given, ~1229 empty)
+  medium: { givenCellsRatio: 0.50 }, // ~50% given cells (~2048 given, ~2048 empty)
+  hard: { givenCellsRatio: 0.30 } // ~30% given cells (~1229 given, ~2867 empty)
 };
 
 /**
@@ -158,8 +164,19 @@ function copyCube(cube: Cube): Cube {
 function removeCells(solvedCube: Cube, difficulty: Difficulty): Cube {
   const config = DIFFICULTY_CONFIG[difficulty];
   const totalCells = 16 * 16 * 16; // 4096
-  const targetGivenCells = Math.floor(totalCells * config.givenCellsRatio);
-  const cellsToRemove = totalCells - targetGivenCells;
+
+  // Calculate cells to remove based on difficulty
+  let cellsToRemove: number;
+  if (config.cellsToRemove !== undefined) {
+    // Trivial difficulty: exact count
+    cellsToRemove = config.cellsToRemove;
+  } else if (config.givenCellsRatio !== undefined) {
+    // Other difficulties: percentage-based
+    const targetGivenCells = Math.floor(totalCells * config.givenCellsRatio);
+    cellsToRemove = totalCells - targetGivenCells;
+  } else {
+    throw new Error(`Invalid difficulty configuration: ${difficulty}`);
+  }
 
   // Create a working copy
   const puzzle = copyCube(solvedCube);
