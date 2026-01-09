@@ -226,41 +226,53 @@ export class SubsquareSeparatorRenderer {
   }
 
   /**
-   * Show only active layer's separators in face-on mode with opaque material
+   * Show only perpendicular separators in face-on mode with opaque material
+   *
+   * In face-on view, we hide planes parallel to the viewing plane (they block cells)
+   * and show planes perpendicular to the viewing plane (they appear as grid lines).
    *
    * @param face - The face being viewed ('i', 'j', or 'k')
    * @param layer - The current layer depth (0-15)
    */
   private showFaceOnMode(face: Face, layer: number): void {
     // Note: layer parameter preserved for potential future use (e.g., highlighting current layer's separators)
-    // Currently, we show all separator planes for the viewed axis
     void layer; // Explicitly mark as intentionally unused for now
 
     // Determine which planes to show based on face
-    // - 'i' face (looking down Y): show Y-axis separators (XZ planes)
-    // - 'j' face (looking down X): show X-axis separators (YZ planes)
-    // - 'k' face (looking down Z): show Z-axis separators (XY planes)
+    // We HIDE planes parallel to the viewing plane and SHOW planes perpendicular to it
+    //
+    // - 'i' face (looking down Y-axis, viewing XZ plane):
+    //   HIDE: Y-axis planes (parallel to XZ)
+    //   SHOW: X-axis and Z-axis planes (perpendicular to XZ, appear as grid lines)
+    //
+    // - 'j' face (looking down X-axis, viewing YZ plane):
+    //   HIDE: X-axis planes (parallel to YZ)
+    //   SHOW: Y-axis and Z-axis planes (perpendicular to YZ, appear as grid lines)
+    //
+    // - 'k' face (looking down Z-axis, viewing XY plane):
+    //   HIDE: Z-axis planes (parallel to XY)
+    //   SHOW: X-axis and Y-axis planes (perpendicular to XY, appear as grid lines)
 
     switch (face) {
-      case 'i': // Looking down Y-axis, show XZ planes (perpendicular to Y)
-        // Show Y-axis planes, hide X and Z planes
-        this.setPlaneVisibility(this.planesY, true, this.materialFaceOn);
-        this.setPlaneVisibility(this.planesX, false);
-        this.setPlaneVisibility(this.planesZ, false);
-        break;
-
-      case 'j': // Looking down X-axis, show YZ planes (perpendicular to X)
-        // Show X-axis planes, hide Y and Z planes
+      case 'i': // Looking down Y-axis, viewing XZ plane
+        // Hide Y-axis planes (parallel), show X and Z planes (perpendicular)
+        this.setPlaneVisibility(this.planesY, false);
         this.setPlaneVisibility(this.planesX, true, this.materialFaceOn);
-        this.setPlaneVisibility(this.planesY, false);
-        this.setPlaneVisibility(this.planesZ, false);
+        this.setPlaneVisibility(this.planesZ, true, this.materialFaceOn);
         break;
 
-      case 'k': // Looking down Z-axis, show XY planes (perpendicular to Z)
-        // Show Z-axis planes, hide X and Y planes
-        this.setPlaneVisibility(this.planesZ, true, this.materialFaceOn);
+      case 'j': // Looking down X-axis, viewing YZ plane
+        // Hide X-axis planes (parallel), show Y and Z planes (perpendicular)
         this.setPlaneVisibility(this.planesX, false);
-        this.setPlaneVisibility(this.planesY, false);
+        this.setPlaneVisibility(this.planesY, true, this.materialFaceOn);
+        this.setPlaneVisibility(this.planesZ, true, this.materialFaceOn);
+        break;
+
+      case 'k': // Looking down Z-axis, viewing XY plane
+        // Hide Z-axis planes (parallel), show X and Y planes (perpendicular)
+        this.setPlaneVisibility(this.planesZ, false);
+        this.setPlaneVisibility(this.planesX, true, this.materialFaceOn);
+        this.setPlaneVisibility(this.planesY, true, this.materialFaceOn);
         break;
     }
   }

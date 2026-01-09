@@ -22,7 +22,7 @@ import * as THREE from 'three';
 import type { Cube } from '../models/Cube.js';
 import type { Cell, HexValue, Position } from '../models/Cell.js';
 import type { Face } from '../models/Cube.js';
-import { COLORS, LIGHTING, OPACITY } from '../config/RenderConfig.js';
+import { COLORS, LIGHTING } from '../config/RenderConfig.js';
 
 /**
  * Configuration for MinimapRenderer
@@ -131,8 +131,8 @@ export class MinimapRenderer {
       cameraDistance: config.cameraDistance ?? 30, // Intentionally different than main (30 vs 37.5)
       backgroundColor: config.backgroundColor ?? COLORS.BACKGROUND,
       backgroundAlpha: config.backgroundAlpha ?? 0.8,
-      filledOpacity: config.filledOpacity ?? OPACITY.FILLED,
-      emptyOpacity: config.emptyOpacity ?? 0.1, // Intentionally higher than CubeRenderer (0.1 vs 0.05)
+      filledOpacity: config.filledOpacity ?? 0.35, // More translucent than main (0.35 vs 0.6)
+      emptyOpacity: config.emptyOpacity ?? 0.05, // Reduced from 0.1, ghostly appearance
       highlightColor: config.highlightColor ?? 0xffd700,
       highlightOpacity: config.highlightOpacity ?? 0.3,
     };
