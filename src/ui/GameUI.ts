@@ -141,12 +141,14 @@ export class GameUI {
     topLeftControls.appendChild(this.homeButton);
     topLeftControls.appendChild(this.checkButton);
 
-    // Top-right controls
+    // Top-right controls (positioned to account for MessagePanel width)
+    // MessagePanel is 280px wide when expanded, 40px when collapsed
+    // Position at right: 300px to ensure clear separation
     const topRightControls = document.createElement('div');
     topRightControls.style.cssText = `
       position: absolute;
       top: 16px;
-      right: 16px;
+      right: 300px;
       display: flex;
       gap: 8px;
       align-items: center;

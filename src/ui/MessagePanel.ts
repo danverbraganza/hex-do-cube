@@ -76,6 +76,12 @@ export class MessagePanel {
       }
     }
 
+    // Load showLogs state from localStorage
+    const savedShowLogs = localStorage.getItem(this.SHOW_LOGS_KEY);
+    if (savedShowLogs !== null) {
+      this.showLogs = savedShowLogs === 'true';
+    }
+
     this.initializeUI();
 
     if (config.visible === false) {
@@ -110,7 +116,7 @@ export class MessagePanel {
       transition: width 0.3s ease;
     `;
 
-    // Create header with title and collapse button
+    // Create header with title, checkbox, and collapse button
     this.headerElement = document.createElement('div');
     this.headerElement.className = 'message-panel-header';
     this.headerElement.style.cssText = `
@@ -121,6 +127,16 @@ export class MessagePanel {
       justify-content: space-between;
       align-items: center;
       flex-shrink: 0;
+      flex-wrap: wrap;
+      gap: 8px;
+    `;
+
+    // Create title and checkbox container
+    const leftContainer = document.createElement('div');
+    leftContainer.style.cssText = `
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     `;
 
     // Create title
@@ -131,6 +147,43 @@ export class MessagePanel {
       font-weight: 600;
       font-size: 14px;
     `;
+
+    // Create checkbox container
+    const checkboxContainer = document.createElement('div');
+    checkboxContainer.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    `;
+
+    // Create checkbox for showing/hiding logs
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = this.showLogs;
+    checkbox.id = 'show-logs';
+    checkbox.style.cssText = `
+      cursor: pointer;
+    `;
+
+    const label = document.createElement('label');
+    label.htmlFor = 'show-logs';
+    label.textContent = 'Logs';
+    label.style.cssText = `
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 11px;
+      cursor: pointer;
+    `;
+
+    checkbox.addEventListener('change', () => {
+      this.showLogs = checkbox.checked;
+      this.renderMessages();
+      localStorage.setItem(this.SHOW_LOGS_KEY, String(this.showLogs));
+    });
+
+    checkboxContainer.appendChild(checkbox);
+    checkboxContainer.appendChild(label);
+    leftContainer.appendChild(titleElement);
+    leftContainer.appendChild(checkboxContainer);
 
     // Create collapse button
     this.collapseButton = document.createElement('button');
@@ -164,7 +217,7 @@ export class MessagePanel {
       this.toggleCollapse();
     });
 
-    this.headerElement.appendChild(titleElement);
+    this.headerElement.appendChild(leftContainer);
     this.headerElement.appendChild(this.collapseButton);
 
     // Create message content container
@@ -254,9 +307,25 @@ export class MessagePanel {
   }
 
   /**
+   * Render all messages (used when filtering)
+   */
+  private renderMessages(): void {
+    this.messageListElement.innerHTML = '';
+    const visibleMessages = this.showLogs ? this.messages : this.messages.filter((m) => m.type === 'USER');
+    for (const message of visibleMessages) {
+      this.renderMessage(message);
+    }
+  }
+
+  /**
    * Render a single message to the message list
    */
   private renderMessage(message: Message): void {
+    // Skip rendering LOG messages if they are hidden
+    if (!this.showLogs && message.type === 'LOG') {
+      return;
+    }
+
     const messageElement = document.createElement('div');
     messageElement.className = message.type === 'LOG' ? 'message message-log' : 'message message-user';
     messageElement.style.cssText = `
@@ -266,9 +335,7 @@ export class MessagePanel {
       font-size: 12px;
       line-height: 1.4;
       word-wrap: break-word;
-      ${message.type === 'LOG'
-        ? 'color: rgba(255, 255, 255, 0.5);'
-        : 'color: rgba(255, 255, 255, 0.9); background: rgba(255, 255, 255, 0.05);'}
+      ${message.type === 'LOG' ? 'color: rgba(255, 255, 255, 0.5);' : 'color: rgba(255, 255, 255, 0.9); background: rgba(255, 255, 255, 0.05);'}
     `;
 
     // Format timestamp as HH:MM:SS
