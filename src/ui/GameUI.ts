@@ -344,7 +344,9 @@ export class GameUI {
       pointer-events: none;
       user-select: none;
     `;
-    this.versionDisplay.textContent = `v${__GIT_SHA__}`;
+    // Handle both build-time and test environments
+    const gitSha = typeof __GIT_SHA__ !== 'undefined' ? __GIT_SHA__ : 'dev';
+    this.versionDisplay.textContent = `v${gitSha}`;
 
     // Assemble HUD
     this.hudOverlay.appendChild(topLeftControls);
