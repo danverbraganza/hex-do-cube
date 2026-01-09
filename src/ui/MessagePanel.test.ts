@@ -437,4 +437,127 @@ describe('MessagePanel', () => {
       expect(button.innerHTML).toBe(initialText);
     });
   });
+
+  describe('Log Filtering', () => {
+    beforeEach(() => {
+      messagePanel = new MessagePanel({ container });
+      // Clear localStorage before each test
+      localStorage.removeItem('messagePanel-showLogs');
+    });
+
+    test('should show both LOG and USER messages by default', () => {
+      messagePanel.addMessage('User message', 'USER');
+      messagePanel.addMessage('Log message', 'LOG');
+
+      const messageList = container.querySelector('#message-list');
+      expect(messageList?.children.length).toBe(2);
+    });
+
+    test('should have logs checkbox checked by default', () => {
+      const checkbox = container.querySelector('#show-logs') as HTMLInputElement;
+      expect(checkbox).not.toBeNull();
+      expect(checkbox.checked).toBe(true);
+    });
+
+    test('should hide LOG messages when checkbox is unchecked', () => {
+      messagePanel.addMessage('User message', 'USER');
+      messagePanel.addMessage('Log message', 'LOG');
+
+      const checkbox = container.querySelector('#show-logs') as HTMLInputElement;
+      checkbox.checked = false;
+      checkbox.dispatchEvent(new Event('change'));
+
+      const messageList = container.querySelector('#message-list');
+      expect(messageList?.children.length).toBe(1);
+
+      // Verify the remaining message is the USER message
+      const messageElement = messageList?.children[0];
+      expect(messageElement?.className).toContain('message-user');
+    });
+
+    test('should show LOG messages when checkbox is checked', () => {
+      messagePanel.addMessage('User message', 'USER');
+      messagePanel.addMessage('Log message', 'LOG');
+
+      const checkbox = container.querySelector('#show-logs') as HTMLInputElement;
+
+      // Uncheck first
+      checkbox.checked = false;
+      checkbox.dispatchEvent(new Event('change'));
+
+      // Then check again
+      checkbox.checked = true;
+      checkbox.dispatchEvent(new Event('change'));
+
+      const messageList = container.querySelector('#message-list');
+      expect(messageList?.children.length).toBe(2);
+    });
+
+    test('should save filter state to localStorage', () => {
+      const checkbox = container.querySelector('#show-logs') as HTMLInputElement;
+
+      checkbox.checked = false;
+      checkbox.dispatchEvent(new Event('change'));
+      expect(localStorage.getItem('messagePanel-showLogs')).toBe('false');
+
+      checkbox.checked = true;
+      checkbox.dispatchEvent(new Event('change'));
+      expect(localStorage.getItem('messagePanel-showLogs')).toBe('true');
+    });
+
+    test('should restore filter state from localStorage', () => {
+      // Dispose the initial panel first
+      messagePanel.dispose();
+
+      // Set localStorage to hide logs
+      localStorage.setItem('messagePanel-showLogs', 'false');
+
+      // Create new panel which should restore the filter state
+      const newPanel = new MessagePanel({ container });
+
+      newPanel.addMessage('User message', 'USER');
+      newPanel.addMessage('Log message', 'LOG');
+
+      const messageList = container.querySelector('#message-list');
+      expect(messageList?.children.length).toBe(1);
+
+      newPanel.dispose();
+    });
+
+    test('should only hide LOG messages, not USER messages', () => {
+      messagePanel.addMessage('User message 1', 'USER');
+      messagePanel.addMessage('Log message', 'LOG');
+      messagePanel.addMessage('User message 2', 'USER');
+
+      const checkbox = container.querySelector('#show-logs') as HTMLInputElement;
+      checkbox.checked = false;
+      checkbox.dispatchEvent(new Event('change'));
+
+      const messageList = container.querySelector('#message-list');
+      expect(messageList?.children.length).toBe(2);
+
+      // Verify both are USER messages
+      const firstMessage = messageList?.children[0];
+      const secondMessage = messageList?.children[1];
+      expect(firstMessage?.className).toContain('message-user');
+      expect(secondMessage?.className).toContain('message-user');
+    });
+
+    test('should preserve message order when filtering', () => {
+      messagePanel.addMessage('First user message', 'USER');
+      messagePanel.addMessage('Log message', 'LOG');
+      messagePanel.addMessage('Second user message', 'USER');
+
+      const checkbox = container.querySelector('#show-logs') as HTMLInputElement;
+      checkbox.checked = false;
+      checkbox.dispatchEvent(new Event('change'));
+
+      const messageList = container.querySelector('#message-list');
+      const firstMessage = messageList?.children[0]?.textContent;
+      const secondMessage = messageList?.children[1]?.textContent;
+
+      expect(firstMessage).toContain('First user message');
+      expect(secondMessage).toContain('Second user message');
+    });
+  });
 });

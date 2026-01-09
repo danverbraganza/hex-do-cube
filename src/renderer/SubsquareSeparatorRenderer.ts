@@ -140,7 +140,7 @@ export class SubsquareSeparatorRenderer {
 
       // Position at boundary, centered on YZ plane
       mesh.position.set(
-        boundary * spacing - offset,
+        (boundary - 0.5) * spacing - offset,
         0, // Already centered
         0  // Already centered
       );
@@ -163,7 +163,7 @@ export class SubsquareSeparatorRenderer {
       // Position at boundary, centered on XZ plane
       mesh.position.set(
         0, // Already centered
-        boundary * spacing - offset,
+        (boundary - 0.5) * spacing - offset,
         0  // Already centered
       );
 
@@ -186,7 +186,7 @@ export class SubsquareSeparatorRenderer {
       mesh.position.set(
         0, // Already centered
         0, // Already centered
-        boundary * spacing - offset
+        (boundary - 0.5) * spacing - offset
       );
 
       // Default orientation (already perpendicular to Z-axis)
@@ -237,7 +237,7 @@ export class SubsquareSeparatorRenderer {
       case 'i': // Looking down Y-axis, viewing XZ plane
         // Create vertical lines (parallel to Z-axis) at X positions 4, 8, 12
         for (const boundary of boundaries) {
-          const x = boundary * spacing - offset;
+          const x = (boundary - 0.5) * spacing - offset;
           const geometry = new THREE.BoxGeometry(lineWidth, 0.001, fullSpan);
           const mesh = new THREE.Mesh(geometry, this.lineMaterial);
           mesh.position.set(x, layerPos, 0);
@@ -245,7 +245,7 @@ export class SubsquareSeparatorRenderer {
         }
         // Create horizontal lines (parallel to X-axis) at Z positions 4, 8, 12
         for (const boundary of boundaries) {
-          const z = boundary * spacing - offset;
+          const z = (boundary - 0.5) * spacing - offset;
           const geometry = new THREE.BoxGeometry(fullSpan, 0.001, lineWidth);
           const mesh = new THREE.Mesh(geometry, this.lineMaterial);
           mesh.position.set(0, layerPos, z);
@@ -256,7 +256,7 @@ export class SubsquareSeparatorRenderer {
       case 'j': // Looking down X-axis, viewing YZ plane
         // Create vertical lines (parallel to Z-axis) at Y positions 4, 8, 12
         for (const boundary of boundaries) {
-          const y = boundary * spacing - offset;
+          const y = (boundary - 0.5) * spacing - offset;
           const geometry = new THREE.BoxGeometry(0.001, lineWidth, fullSpan);
           const mesh = new THREE.Mesh(geometry, this.lineMaterial);
           mesh.position.set(layerPos, y, 0);
@@ -264,7 +264,7 @@ export class SubsquareSeparatorRenderer {
         }
         // Create horizontal lines (parallel to Y-axis) at Z positions 4, 8, 12
         for (const boundary of boundaries) {
-          const z = boundary * spacing - offset;
+          const z = (boundary - 0.5) * spacing - offset;
           const geometry = new THREE.BoxGeometry(0.001, fullSpan, lineWidth);
           const mesh = new THREE.Mesh(geometry, this.lineMaterial);
           mesh.position.set(layerPos, 0, z);
@@ -275,7 +275,7 @@ export class SubsquareSeparatorRenderer {
       case 'k': // Looking down Z-axis, viewing XY plane
         // Create vertical lines (parallel to Y-axis) at X positions 4, 8, 12
         for (const boundary of boundaries) {
-          const x = boundary * spacing - offset;
+          const x = (boundary - 0.5) * spacing - offset;
           const geometry = new THREE.BoxGeometry(lineWidth, fullSpan, 0.001);
           const mesh = new THREE.Mesh(geometry, this.lineMaterial);
           mesh.position.set(x, 0, layerPos);
@@ -283,7 +283,7 @@ export class SubsquareSeparatorRenderer {
         }
         // Create horizontal lines (parallel to X-axis) at Y positions 4, 8, 12
         for (const boundary of boundaries) {
-          const y = boundary * spacing - offset;
+          const y = (boundary - 0.5) * spacing - offset;
           const geometry = new THREE.BoxGeometry(fullSpan, lineWidth, 0.001);
           const mesh = new THREE.Mesh(geometry, this.lineMaterial);
           mesh.position.set(0, y, layerPos);

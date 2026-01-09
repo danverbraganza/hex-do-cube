@@ -197,7 +197,7 @@ describe('SubsquareSeparatorRenderer', () => {
 
       expect(xPlanes.length).toBe(3);
       xPlanes.forEach((plane, i) => {
-        const expectedX = expectedBoundaries[i] * spacing - offset;
+        const expectedX = (expectedBoundaries[i] - 0.5) * spacing - offset;
         expect(plane.position.x).toBeCloseTo(expectedX, 5);
         expect(plane.userData.boundary).toBe(expectedBoundaries[i]);
       });
@@ -210,7 +210,7 @@ describe('SubsquareSeparatorRenderer', () => {
 
       expect(yPlanes.length).toBe(3);
       yPlanes.forEach((plane, i) => {
-        const expectedY = expectedBoundaries[i] * spacing - offset;
+        const expectedY = (expectedBoundaries[i] - 0.5) * spacing - offset;
         expect(plane.position.y).toBeCloseTo(expectedY, 5);
         expect(plane.userData.boundary).toBe(expectedBoundaries[i]);
       });
@@ -223,7 +223,7 @@ describe('SubsquareSeparatorRenderer', () => {
 
       expect(zPlanes.length).toBe(3);
       zPlanes.forEach((plane, i) => {
-        const expectedZ = expectedBoundaries[i] * spacing - offset;
+        const expectedZ = (expectedBoundaries[i] - 0.5) * spacing - offset;
         expect(plane.position.z).toBeCloseTo(expectedZ, 5);
         expect(plane.userData.boundary).toBe(expectedBoundaries[i]);
       });
