@@ -207,3 +207,34 @@ export function cellsEqual(a: Cell, b: Cell): boolean {
     a.type === b.type
   );
 }
+
+/**
+ * Generate a unique string key for a cell position
+ * Useful for storing positions in Sets or Maps
+ * @param position - The [i, j, k] coordinates
+ * @returns A comma-separated string representation
+ */
+export function positionKey(position: Position): string {
+  return `${position[0]},${position[1]},${position[2]}`;
+}
+
+/**
+ * Parse a position key back to a Position tuple
+ * Inverse of positionKey()
+ * @param key - The comma-separated position string
+ * @returns The [i, j, k] position tuple
+ * @throws Error if key format is invalid
+ */
+export function parsePositionKey(key: string): Position {
+  const parts = key.split(',').map(Number);
+  if (parts.length !== 3 || parts.some(isNaN)) {
+    throw new Error(`Invalid position key format: "${key}". Expected format: "i,j,k"`);
+  }
+  const position: Position = [parts[0], parts[1], parts[2]];
+  if (!isValidPosition(position)) {
+    throw new Error(
+      `Invalid coordinates in position key: [${position.join(', ')}]. Each coordinate must be an integer in [0, 15].`
+    );
+  }
+  return position;
+}

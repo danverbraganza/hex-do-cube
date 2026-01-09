@@ -16,6 +16,8 @@ import {
   isValidHexValue,
   isValidPosition,
   parseHexValue,
+  parsePositionKey,
+  positionKey,
   setCellValue,
 } from './Cell';
 

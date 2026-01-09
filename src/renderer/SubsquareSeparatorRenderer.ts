@@ -16,6 +16,7 @@
  */
 
 import * as THREE from 'three';
+import { calculateSpacing, calculateCenterOffset } from './geometry.js';
 
 /**
  * Face type for face-on view
@@ -107,13 +108,12 @@ export class SubsquareSeparatorRenderer {
    * - Cube has 16 cells per dimension (indices 0-15)
    * - Subsquares are 4×4, so boundaries at indices 4, 8, 12
    * - Planes positioned at the gaps between cells
-   * - Same centering offset as CubeRenderer for consistent world origin alignment
+   * - Uses shared geometry utilities for consistent positioning
    */
   private initializeSeparatorPlanes(): void {
-    const spacing = this.config.cellSize + this.config.cellGap;
+    const spacing = calculateSpacing(this.config.cellSize, this.config.cellGap);
+    const offset = calculateCenterOffset(this.config.cellSize, this.config.cellGap);
     const numCells = 16;
-    const maxIndex = numCells - 1;
-    const offset = (maxIndex * spacing) / 2; // Center at world origin
 
     // Full cube span for plane dimensions
     const fullSpan = numCells * spacing;

@@ -15,7 +15,7 @@
 import type { Cube } from '../models/Cube.js';
 import type { Position, HexValue } from '../models/Cell.js';
 import type { CubeRenderer } from '../renderer/CubeRenderer.js';
-import { isCellEditable, setCellValue } from '../models/Cell.js';
+import { isCellEditable, setCellValue, positionKey, parsePositionKey } from '../models/Cell.js';
 import { validateCube, type CubeValidationResult } from '../services/validator.js';
 
 /**
@@ -161,7 +161,7 @@ export class CellEditor {
   public clearErrorHighlights(): void {
     // Clear error states for all previously highlighted cells
     for (const posKey of this.errorPositions) {
-      const position = this.parsePositionKey(posKey);
+      const position = parsePositionKey(posKey);
       const state = this.renderer.getCellState(position);
       // Clear any error-related state (error, conflict-given, wrong)
       if (state === 'error' || state === 'conflict-given' || state === 'wrong') {
@@ -194,14 +194,14 @@ export class CellEditor {
         if (!position || position.length !== 3) {
           continue;
         }
-        const key = this.positionKey(position);
+        const key = positionKey(position);
         conflictPositions.add(key);
       }
     }
 
     // Apply appropriate highlighting to each conflicting cell
     for (const posKey of conflictPositions) {
-      const position = this.parsePositionKey(posKey);
+      const position = parsePositionKey(posKey);
       const [i, j, k] = position;
       const cell = this.cube.cells[i][j][k];
       const currentState = this.renderer.getCellState(position);
@@ -242,7 +242,7 @@ export class CellEditor {
    * @returns true if the cell is part of a validation error
    */
   public isCellInError(position: Position): boolean {
-    const key = this.positionKey(position);
+    const key = positionKey(position);
     return this.errorPositions.has(key);
   }
 
@@ -326,20 +326,5 @@ export class CellEditor {
     this.validationCallbacks = [];
     this.editCallbacks = [];
     this.lastValidationResult = null;
-  }
-
-  /**
-   * Generate a unique string key for a cell position
-   */
-  private positionKey(position: Position): string {
-    return `${position[0]},${position[1]},${position[2]}`;
-  }
-
-  /**
-   * Parse a position key back to a Position tuple
-   */
-  private parsePositionKey(key: string): Position {
-    const parts = key.split(',').map(Number);
-    return [parts[0], parts[1], parts[2]] as Position;
   }
 }
