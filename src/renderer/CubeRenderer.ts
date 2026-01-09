@@ -302,13 +302,9 @@ export class CubeRenderer {
    * Update all cells' appearances (useful after bulk changes)
    */
   public updateAllCells(): void {
-    for (let i = 0; i < 16; i++) {
-      for (let j = 0; j < 16; j++) {
-        for (let k = 0; k < 16; k++) {
-          this.updateCell([i, j, k]);
-        }
-      }
-    }
+    this.cube.forEachCell((_cell, position) => {
+      this.updateCell(position);
+    });
     // Update all sprites as well
     this.spriteRenderer.updateAllSprites();
   }
@@ -347,7 +343,7 @@ export class CubeRenderer {
    * Set the visual state of a cell (hover, selected, error)
    */
   public setCellState(position: Position, state: CellState): void {
-    const key = this.positionKey(position);
+    const key = positionKey(position);
     this.cellStates.set(key, state);
     this.updateCell(position);
   }
@@ -356,7 +352,7 @@ export class CubeRenderer {
    * Get the visual state of a cell
    */
   public getCellState(position: Position): CellState {
-    const key = this.positionKey(position);
+    const key = positionKey(position);
     return this.cellStates.get(key) ?? 'normal';
   }
 
@@ -381,7 +377,7 @@ export class CubeRenderer {
    * Show or hide a specific cell
    */
   public setCellVisibility(position: Position, visible: boolean): void {
-    const key = this.positionKey(position);
+    const key = positionKey(position);
     const mesh = this.cellMeshes.get(key);
     if (mesh) {
       mesh.visible = visible;
@@ -500,7 +496,7 @@ export class CubeRenderer {
    * Get a specific cell mesh by position
    */
   public getMesh(position: Position): THREE.Mesh | undefined {
-    const key = this.positionKey(position);
+    const key = positionKey(position);
     return this.cellMeshes.get(key);
   }
 

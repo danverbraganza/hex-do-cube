@@ -168,7 +168,7 @@ export class ValueSpriteRenderer {
             sprite.position.set(worldPos.x, worldPos.y, worldPos.z);
 
             // Store sprite reference
-            const key = this.positionKey([i, j, k]);
+            const key = positionKey([i, j, k]);
             this.sprites.set(key, sprite);
 
             // Add to container
@@ -210,7 +210,7 @@ export class ValueSpriteRenderer {
    * Creates a new sprite if value changed from null, removes sprite if changed to null
    */
   public updateCell(position: Position): void {
-    const key = this.positionKey(position);
+    const key = positionKey(position);
     const [i, j, k] = position;
     const cell = this.cube.cells[i][j][k];
     const existingSprite = this.sprites.get(key);
@@ -269,7 +269,7 @@ export class ValueSpriteRenderer {
    * Show or hide a specific sprite
    */
   public setSpriteVisibility(position: Position, visible: boolean): void {
-    const key = this.positionKey(position);
+    const key = positionKey(position);
     const sprite = this.sprites.get(key);
     if (sprite) {
       sprite.visible = visible;
@@ -355,7 +355,7 @@ export class ValueSpriteRenderer {
    * Get a specific sprite by position
    */
   public getSprite(position: Position): THREE.Sprite | undefined {
-    const key = this.positionKey(position);
+    const key = positionKey(position);
     return this.sprites.get(key);
   }
 
