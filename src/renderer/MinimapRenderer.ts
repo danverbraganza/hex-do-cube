@@ -239,6 +239,9 @@ export class MinimapRenderer {
           const key = this.positionKey([i, j, k]);
           this.cellMeshes.set(key, mesh);
 
+          // Hide mesh (particles are now used for rendering)
+          mesh.visible = false;
+
           // Add to container
           this.container.add(mesh);
         }
@@ -327,7 +330,7 @@ export class MinimapRenderer {
 
     // Create points object
     this.particles = new THREE.Points(this.particleGeometry, material);
-    this.particles.visible = false; // Hidden initially (meshes still showing)
+    this.particles.visible = true; // Show particles
     this.scene.add(this.particles);
   }
 
