@@ -62,6 +62,9 @@ export class InputController {
   private minimapRenderer: MinimapRenderer;
   private cube: Cube;
 
+  // View state manager (optional, for coordinated view transitions)
+  private viewStateManager: import('./ViewStateManager.js').ViewStateManager | null = null; // Used conditionally in enterFaceOnView and exitFaceOnView
+
   // View state
   private viewMode: ViewMode = '3d-rotational';
 
@@ -487,10 +490,20 @@ export class InputController {
 
   /**
    * Enter face-on view for a specific face
+   * If ViewStateManager is available, delegates to it for coordinated transitions
+   * Otherwise, uses legacy direct approach
    */
-  private enterFaceOnView(face: 'i' | 'j' | 'k', layer: number): void {
+  private enterFaceOnView(face: 'i' | 'j' | 'k', layer?: number): void {
+    // If ViewStateManager is available, use it for coordinated transitions
+    if (this.viewStateManager) {
+      this.viewStateManager.enterFaceOnView(face, layer);
+      this.deselectCell(); // Clear selection when entering face-on view
+      return;
+    }
+
+    // Legacy fallback: direct control (if ViewStateManager not set)
     this.viewMode = 'face-on';
-    this.faceRenderer.enterFaceOnView(face, layer);
+    this.faceRenderer.enterFaceOnView(face, layer ?? 0);
     this.minimapRenderer.setHighlightedFace(face);
     this.deselectCell(); // Clear selection when entering face-on view
     this.notifyViewModeChange('face-on');
@@ -498,8 +511,18 @@ export class InputController {
 
   /**
    * Exit face-on view and return to 3D rotational view
+   * If ViewStateManager is available, delegates to it for coordinated transitions
+   * Otherwise, uses legacy direct approach
    */
   private exitFaceOnView(): void {
+    // If ViewStateManager is available, use it for coordinated transitions
+    if (this.viewStateManager) {
+      this.viewStateManager.exitFaceOnView();
+      this.deselectCell(); // Clear selection when exiting face-on view
+      return;
+    }
+
+    // Legacy fallback: direct control (if ViewStateManager not set)
     this.viewMode = '3d-rotational';
     this.faceRenderer.exitFaceOnView();
     this.minimapRenderer.setHighlightedFace(null);
@@ -569,6 +592,14 @@ export class InputController {
   public setCube(cube: Cube): void {
     this.cube = cube;
     this.deselectCell();
+  }
+
+  /**
+   * Set the ViewStateManager for coordinated view transitions
+   * This should be called after construction to enable proper face-on view handling
+   */
+  public setViewStateManager(viewStateManager: import('./ViewStateManager.js').ViewStateManager): void {
+    this.viewStateManager = viewStateManager;
   }
 
   /**

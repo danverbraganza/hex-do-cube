@@ -168,6 +168,9 @@ export function init(): void {
     gameState.cube
   );
 
+  // 9a. Wire up ViewStateManager to InputController for coordinated view transitions
+  inputController.setViewStateManager(viewStateManager);
+
   // 10. Initialize CellEditor
   const cellEditor = new CellEditor(
     gameState.cube,

@@ -65,23 +65,49 @@ export class ViewStateManager {
   }
 
   /**
+   * Determine the outermost layer for a face based on camera position
+   * @param face - The face to view ('i', 'j', or 'k')
+   * @returns The outermost layer (0 or 15)
+   */
+  private getOutermostLayer(face: Face): number {
+    const camera = this.sceneManager.getCamera();
+
+    switch (face) {
+      case 'i': // Y-axis face
+        // If camera Y position is positive, outermost is layer 15
+        // If camera Y position is negative, outermost is layer 0
+        return camera.position.y > 0 ? 15 : 0;
+      case 'j': // X-axis face
+        // If camera X position is positive, outermost is layer 15
+        // If camera X position is negative, outermost is layer 0
+        return camera.position.x > 0 ? 15 : 0;
+      case 'k': // Z-axis face
+        // If camera Z position is positive, outermost is layer 15
+        // If camera Z position is negative, outermost is layer 0
+        return camera.position.z > 0 ? 15 : 0;
+    }
+  }
+
+  /**
    * Enter face-on view for a specific face
    * Coordinates all components to transition smoothly
    *
    * @param face - The face to view ('i', 'j', or 'k')
-   * @param layer - The initial layer depth (0-15)
+   * @param layer - The initial layer depth (0-15). If undefined, defaults to outermost layer.
    */
-  public enterFaceOnView(face: Face, layer: number): void {
+  public enterFaceOnView(face: Face, layer?: number): void {
+    // If layer not specified, use outermost layer based on camera position
+    const targetLayer = layer !== undefined ? layer : this.getOutermostLayer(face);
     // Don't re-enter if already in face-on view for the same face
     if (this.currentMode === 'face-on' && this.faceRenderer.getCurrentFace() === face) {
       // Just update the layer if different
-      if (this.faceRenderer.getCurrentLayer() !== layer) {
-        this.faceRenderer.setLayer(layer);
-        this.minimapRenderer.setHighlightedLayer(face, layer);
+      if (this.faceRenderer.getCurrentLayer() !== targetLayer) {
+        this.faceRenderer.setLayer(targetLayer);
+        this.minimapRenderer.setHighlightedLayer(face, targetLayer);
         // Update layer visibility for CubeRenderer
-        this.cubeRenderer.setVisibleLayer(face, layer);
+        this.cubeRenderer.setVisibleLayer(face, targetLayer);
         // Notify listeners of layer change
-        this.notifyViewModeChange('face-on', face, layer);
+        this.notifyViewModeChange('face-on', face, targetLayer);
       }
       return;
     }
@@ -90,17 +116,17 @@ export class ViewStateManager {
     this.currentMode = 'face-on';
 
     // Coordinate all components
-    this.faceRenderer.enterFaceOnView(face, layer);
-    this.sceneManager.setFaceOnView(face, layer);
+    this.faceRenderer.enterFaceOnView(face, targetLayer);
+    this.sceneManager.setFaceOnView(face, targetLayer);
     this.minimapRenderer.setHighlightedFace(face);
-    this.minimapRenderer.setHighlightedLayer(face, layer);
+    this.minimapRenderer.setHighlightedLayer(face, targetLayer);
     this.cubeRenderer.setMode('face-on');
     // Set visible layer to show only the active layer
-    this.cubeRenderer.setVisibleLayer(face, layer);
-    this.subsquareSeparatorRenderer?.setMode('face-on', face, layer);
+    this.cubeRenderer.setVisibleLayer(face, targetLayer);
+    this.subsquareSeparatorRenderer?.setMode('face-on', face, targetLayer);
 
     // Notify listeners
-    this.notifyViewModeChange('face-on', face, layer);
+    this.notifyViewModeChange('face-on', face, targetLayer);
   }
 
   /**
