@@ -20,7 +20,7 @@
 
 import * as THREE from 'three';
 import type { Cube } from '../models/Cube.js';
-import type { Cell, HexValue, Position } from '../models/Cell.js';
+import type { HexValue, Position } from '../models/Cell.js';
 import type { Face } from '../models/Cube.js';
 import { COLORS, LIGHTING } from '../config/RenderConfig.js';
 
