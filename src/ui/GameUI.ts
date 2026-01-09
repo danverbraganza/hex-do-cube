@@ -63,6 +63,7 @@ export class GameUI {
   private winNotification!: HTMLDivElement;
   private wrongCompletionNotification!: HTMLDivElement;
   private layerIndicator!: HTMLDivElement;
+  private versionDisplay!: HTMLDivElement;
 
   // Face view control buttons
   private xyViewButton!: HTMLButtonElement;
@@ -330,6 +331,21 @@ export class GameUI {
     `;
     this.layerIndicator.textContent = 'Layer: 0 / 16';
 
+    // Version display (bottom-right corner)
+    this.versionDisplay = document.createElement('div');
+    this.versionDisplay.id = 'version-display';
+    this.versionDisplay.style.cssText = `
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 11px;
+      font-family: monospace;
+      pointer-events: none;
+      user-select: none;
+    `;
+    this.versionDisplay.textContent = `v${__GIT_SHA__}`;
+
     // Assemble HUD
     this.hudOverlay.appendChild(topLeftControls);
     this.hudOverlay.appendChild(topRightControls);
@@ -337,6 +353,7 @@ export class GameUI {
     this.hudOverlay.appendChild(this.winNotification);
     this.hudOverlay.appendChild(this.wrongCompletionNotification);
     this.hudOverlay.appendChild(this.layerIndicator);
+    this.hudOverlay.appendChild(this.versionDisplay);
 
     // Add to container
     this.container.appendChild(this.hudOverlay);
@@ -464,29 +481,34 @@ export class GameUI {
   /**
    * Handle XY face view button click
    * Snaps camera to view looking down the Z axis (viewing XY plane)
+   * Automatically defaults to the outermost layer based on camera position
    */
   private handleXYViewButton(): void {
     // XY face corresponds to 'k' face (Z axis)
-    // Use layer 7 as a default (middle of the cube)
-    this.viewStateManager.enterFaceOnView('k', 7);
+    // No layer specified - defaults to outermost layer
+    this.viewStateManager.enterFaceOnView('k');
   }
 
   /**
    * Handle XZ face view button click
    * Snaps camera to view looking down the Y axis (viewing XZ plane)
+   * Automatically defaults to the outermost layer based on camera position
    */
   private handleXZViewButton(): void {
     // XZ face corresponds to 'i' face (Y axis)
-    this.viewStateManager.enterFaceOnView('i', 7);
+    // No layer specified - defaults to outermost layer
+    this.viewStateManager.enterFaceOnView('i');
   }
 
   /**
    * Handle YZ face view button click
    * Snaps camera to view looking down the X axis (viewing YZ plane)
+   * Automatically defaults to the outermost layer based on camera position
    */
   private handleYZViewButton(): void {
     // YZ face corresponds to 'j' face (X axis)
-    this.viewStateManager.enterFaceOnView('j', 7);
+    // No layer specified - defaults to outermost layer
+    this.viewStateManager.enterFaceOnView('j');
   }
 
   /**
