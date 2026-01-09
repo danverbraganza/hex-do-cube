@@ -583,4 +583,155 @@ describe('Cube Model', () => {
       expect(result.isValid).toBe(true);
     });
   });
+
+  describe('forEachCell', () => {
+    it('should iterate over all 4096 cells', () => {
+      const cube = createCube();
+      let count = 0;
+      cube.forEachCell(() => {
+        count++;
+      });
+      expect(count).toBe(4096); // 16 * 16 * 16
+    });
+
+    it('should provide correct cell and position to callback', () => {
+      const cube = createCube();
+      const positions: Position[] = [];
+
+      cube.forEachCell((cell, position) => {
+        positions.push(position);
+        // Verify the cell matches the position
+        expect(cell).toBe(cube.cells[position[0]][position[1]][position[2]]);
+        expect(cell.position).toEqual(position);
+      });
+
+      // Verify all positions were visited
+      expect(positions.length).toBe(4096);
+    });
+
+    it('should iterate in i-j-k order', () => {
+      const cube = createCube();
+      const positions: Position[] = [];
+
+      cube.forEachCell((cell, position) => {
+        positions.push(position);
+      });
+
+      // Check first few positions
+      expect(positions[0]).toEqual([0, 0, 0]);
+      expect(positions[1]).toEqual([0, 0, 1]);
+      expect(positions[15]).toEqual([0, 0, 15]);
+      expect(positions[16]).toEqual([0, 1, 0]);
+      expect(positions[256]).toEqual([1, 0, 0]);
+
+      // Check last position
+      expect(positions[4095]).toEqual([15, 15, 15]);
+    });
+
+    it('should allow modification of cells during iteration', () => {
+      const cube = createCube();
+
+      cube.forEachCell((cell, position) => {
+        // Set all cells to their i coordinate as a hex value
+        const [i] = position;
+        cube.cells[position[0]][position[1]][position[2]].value = i.toString(16) as HexValue;
+      });
+
+      // Verify all cells were modified
+      for (let i = 0; i < 16; i++) {
+        for (let j = 0; j < 16; j++) {
+          for (let k = 0; k < 16; k++) {
+            expect(cube.cells[i][j][k].value).toBe(i.toString(16));
+          }
+        }
+      }
+    });
+  });
+
+  describe('filterCells', () => {
+    it('should return empty array when no cells match', () => {
+      const cube = createCube();
+      const results = cube.filterCells((cell) => cell.value === '5');
+      expect(results).toEqual([]);
+    });
+
+    it('should return all filled cells', () => {
+      const cube = createCube();
+      // Fill some cells
+      cube.cells[0][0][0].value = '1';
+      cube.cells[5][10][15].value = 'a';
+      cube.cells[15][15][15].value = 'f';
+
+      const results = cube.filterCells((cell) => cell.value !== null);
+
+      expect(results.length).toBe(3);
+      expect(results[0].cell.value).toBe('1');
+      expect(results[0].position).toEqual([0, 0, 0]);
+      expect(results[1].cell.value).toBe('a');
+      expect(results[1].position).toEqual([5, 10, 15]);
+      expect(results[2].cell.value).toBe('f');
+      expect(results[2].position).toEqual([15, 15, 15]);
+    });
+
+    it('should filter cells by type', () => {
+      const cube = createCube();
+      // Set some cells as given
+      cube.cells[0][0][0].type = 'given';
+      cube.cells[0][0][0].value = '1';
+      cube.cells[1][1][1].type = 'given';
+      cube.cells[1][1][1].value = '2';
+      cube.cells[2][2][2].value = '3'; // editable
+
+      const givenCells = cube.filterCells((cell) => cell.type === 'given');
+
+      expect(givenCells.length).toBe(2);
+      expect(givenCells[0].position).toEqual([0, 0, 0]);
+      expect(givenCells[1].position).toEqual([1, 1, 1]);
+    });
+
+    it('should filter cells by position predicate', () => {
+      const cube = createCube();
+      // Filter cells where i === j === k (diagonal)
+      const diagonalCells = cube.filterCells((cell, position) => {
+        const [i, j, k] = position;
+        return i === j && j === k;
+      });
+
+      expect(diagonalCells.length).toBe(16);
+      for (let i = 0; i < 16; i++) {
+        expect(diagonalCells[i].position).toEqual([i, i, i]);
+      }
+    });
+
+    it('should filter cells by specific value', () => {
+      const cube = createCube();
+      // Set some cells to value 'a'
+      cube.cells[0][0][0].value = 'a';
+      cube.cells[1][2][3].value = 'a';
+      cube.cells[5][5][5].value = 'b';
+      cube.cells[10][10][10].value = 'a';
+
+      const cellsWithA = cube.filterCells((cell) => cell.value === 'a');
+
+      expect(cellsWithA.length).toBe(3);
+      expect(cellsWithA[0].position).toEqual([0, 0, 0]);
+      expect(cellsWithA[1].position).toEqual([1, 2, 3]);
+      expect(cellsWithA[2].position).toEqual([10, 10, 10]);
+    });
+
+    it('should return cells in iteration order', () => {
+      const cube = createCube();
+      // Fill a few cells
+      cube.cells[0][0][5].value = '1';
+      cube.cells[0][1][0].value = '2';
+      cube.cells[1][0][0].value = '3';
+
+      const results = cube.filterCells((cell) => cell.value !== null);
+
+      // Should be in i-j-k order
+      expect(results[0].position).toEqual([0, 0, 5]);
+      expect(results[1].position).toEqual([0, 1, 0]);
+      expect(results[2].position).toEqual([1, 0, 0]);
+    });
+  });
 });

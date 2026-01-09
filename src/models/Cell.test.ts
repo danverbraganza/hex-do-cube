@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'bun:test';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   type CellType,
   type HexValue,
