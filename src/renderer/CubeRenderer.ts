@@ -22,8 +22,10 @@
 import * as THREE from 'three';
 import type { Cube } from '../models/Cube.js';
 import type { Cell, Position } from '../models/Cell.js';
+import { positionKey } from '../models/Cell.js';
 import { ValueSpriteRenderer } from './ValueSpriteRenderer.js';
 import { COLORS, OPACITY } from '../config/RenderConfig.js';
+import { calculateSpacing, calculateCenterOffset, cellPositionToWorld } from './geometry.js';
 
 /**
  * Visual state for a cell (hover, selected, error, conflict-given, wrong)
@@ -210,26 +212,11 @@ export class CubeRenderer {
    * Initialize meshes for all 4096 cells
    *
    * CENTERING STRATEGY:
-   * - Cube has 16 cells per dimension (indices 0-15)
-   * - Cell centers are positioned at i * spacing where i = 0..15
-   * - With spacing = cellSize + cellGap (default 1.1), cells span from 0 to 16.5
-   * - The geometric center is halfway: (0 + 15 * spacing) / 2 = 7.5 * spacing
-   * - We apply this offset so the cube's geometric center aligns with world origin (0,0,0)
-   * - Camera lookAt(0,0,0) targets this center, centering the cube in the viewport
-   *
-   * VERIFICATION:
-   * - Cell 0 position: 0 - 8.25 = -8.25
-   * - Cell 15 position: 16.5 - 8.25 = 8.25
-   * - Center: (-8.25 + 8.25) / 2 = 0 ✓
+   * Uses shared geometry utilities to ensure consistent positioning with all renderers.
+   * See geometry.ts for details on centering calculations.
    */
   private initializeCellMeshes(): void {
-    const spacing = this.config.cellSize + this.config.cellGap;
-
-    // Calculate offset to center the cube at world origin (0, 0, 0)
-    // For 16 cells indexed 0-15, the center is at (0 + 15*spacing)/2 = 7.5 * spacing
     const numCells = 16;
-    const maxIndex = numCells - 1; // 15
-    const offset = (maxIndex * spacing) / 2;
 
     for (let i = 0; i < numCells; i++) {
       for (let j = 0; j < numCells; j++) {
@@ -237,16 +224,16 @@ export class CubeRenderer {
           const cell = this.cube.cells[i][j][k];
           const mesh = this.createCellMesh(cell);
 
-          // Position mesh with offset so cube center is at world origin
-          // Mapping: i=y(vertical), j=x(horizontal-right), k=z(depth)
-          mesh.position.set(
-            j * spacing - offset,  // x: left(-) to right(+)
-            i * spacing - offset,  // y: bottom(-) to top(+)
-            k * spacing - offset   // z: back(-) to front(+)
+          // Position mesh using shared geometry utilities
+          const worldPos = cellPositionToWorld(
+            i, j, k,
+            this.config.cellSize,
+            this.config.cellGap
           );
+          mesh.position.set(worldPos.x, worldPos.y, worldPos.z);
 
           // Store mesh reference
-          const key = this.positionKey([i, j, k]);
+          const key = positionKey([i, j, k]);
           this.cellMeshes.set(key, mesh);
           this.cellStates.set(key, 'normal');
 
@@ -296,7 +283,7 @@ export class CubeRenderer {
    * Update a specific cell's appearance
    */
   public updateCell(position: Position): void {
-    const key = this.positionKey(position);
+    const key = positionKey(position);
     const mesh = this.cellMeshes.get(key);
     if (!mesh) return;
 
@@ -556,23 +543,16 @@ export class CubeRenderer {
   }
 
   /**
-   * Generate a unique string key for a cell position
-   */
-  private positionKey(position: Position): string {
-    return `${position[0]},${position[1]},${position[2]}`;
-  }
-
-  /**
    * Get the bounding box of the entire cube in world space
    * This is useful for verification that the cube is centered at origin
    *
    * @returns The min and max corners of the cube's bounding box
    */
   public getCubeBounds(): { min: THREE.Vector3; max: THREE.Vector3; center: THREE.Vector3 } {
-    const spacing = this.config.cellSize + this.config.cellGap;
+    const spacing = calculateSpacing(this.config.cellSize, this.config.cellGap);
+    const offset = calculateCenterOffset(this.config.cellSize, this.config.cellGap);
     const numCells = 16;
     const maxIndex = numCells - 1;
-    const offset = (maxIndex * spacing) / 2;
 
     // Calculate bounds after offset is applied
     const cellHalfSize = this.config.cellSize / 2;

@@ -21,6 +21,7 @@
 import * as THREE from 'three';
 import type { Cube } from '../models/Cube.js';
 import type { Cell, HexValue, Position } from '../models/Cell.js';
+import { positionKey } from '../models/Cell.js';
 import { cellPositionToWorld } from './geometry.js';
 
 /**
@@ -386,10 +387,4 @@ export class ValueSpriteRenderer {
     this.sprites.clear();
   }
 
-  /**
-   * Generate a unique string key for a cell position
-   */
-  private positionKey(position: Position): string {
-    return `${position[0]},${position[1]},${position[2]}`;
-  }
 }
