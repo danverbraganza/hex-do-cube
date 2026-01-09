@@ -33,7 +33,7 @@ class MockSceneManager implements Partial<SceneManager> {
   }
 
   getCamera(): THREE.PerspectiveCamera {
-    return this.camera;
+    return this.camera as unknown as THREE.PerspectiveCamera;
   }
 
   reset(): void {
