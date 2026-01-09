@@ -6,11 +6,23 @@ import type { MinimapRenderer } from '../renderer/MinimapRenderer.js';
 import type { CubeRenderer } from '../renderer/CubeRenderer.js';
 
 /**
+ * Mock Camera for testing
+ */
+class MockCamera {
+  public position = {
+    x: 0,
+    y: 0,
+    z: 0,
+  };
+}
+
+/**
  * Mock SceneManager for testing
  */
 class MockSceneManager implements Partial<SceneManager> {
   public setFaceOnViewCalls: Array<{ face: Face; layer: number }> = [];
   public resetCameraCalls: number = 0;
+  public camera = new MockCamera();
 
   setFaceOnView(face: Face, layer: number): void {
     this.setFaceOnViewCalls.push({ face, layer });
@@ -18,6 +30,10 @@ class MockSceneManager implements Partial<SceneManager> {
 
   resetCamera(): void {
     this.resetCameraCalls++;
+  }
+
+  getCamera(): THREE.PerspectiveCamera {
+    return this.camera;
   }
 
   reset(): void {
@@ -630,6 +646,125 @@ describe('ViewStateManager', () => {
       // Verify camera is always set to match the active face
       expect(mockSceneManager.setFaceOnViewCalls).toHaveLength(3);
       expect(viewStateManager.getCurrentFace()).toBe('j');
+    });
+  });
+
+  describe('outermost layer default behavior (code-46)', () => {
+    it('should default to layer 15 for i-face when camera Y is positive', () => {
+      mockSceneManager.camera.position.y = 10;
+
+      viewStateManager.enterFaceOnView('i');
+
+      expect(viewStateManager.getCurrentLayer()).toBe(15);
+      expect(mockFaceRenderer.enterFaceOnViewCalls[0]).toEqual({ face: 'i', layer: 15 });
+    });
+
+    it('should default to layer 0 for i-face when camera Y is negative', () => {
+      mockSceneManager.camera.position.y = -10;
+
+      viewStateManager.enterFaceOnView('i');
+
+      expect(viewStateManager.getCurrentLayer()).toBe(0);
+      expect(mockFaceRenderer.enterFaceOnViewCalls[0]).toEqual({ face: 'i', layer: 0 });
+    });
+
+    it('should default to layer 15 for j-face when camera X is positive', () => {
+      mockSceneManager.camera.position.x = 10;
+
+      viewStateManager.enterFaceOnView('j');
+
+      expect(viewStateManager.getCurrentLayer()).toBe(15);
+      expect(mockFaceRenderer.enterFaceOnViewCalls[0]).toEqual({ face: 'j', layer: 15 });
+    });
+
+    it('should default to layer 0 for j-face when camera X is negative', () => {
+      mockSceneManager.camera.position.x = -10;
+
+      viewStateManager.enterFaceOnView('j');
+
+      expect(viewStateManager.getCurrentLayer()).toBe(0);
+      expect(mockFaceRenderer.enterFaceOnViewCalls[0]).toEqual({ face: 'j', layer: 0 });
+    });
+
+    it('should default to layer 15 for k-face when camera Z is positive', () => {
+      mockSceneManager.camera.position.z = 10;
+
+      viewStateManager.enterFaceOnView('k');
+
+      expect(viewStateManager.getCurrentLayer()).toBe(15);
+      expect(mockFaceRenderer.enterFaceOnViewCalls[0]).toEqual({ face: 'k', layer: 15 });
+    });
+
+    it('should default to layer 0 for k-face when camera Z is negative', () => {
+      mockSceneManager.camera.position.z = -10;
+
+      viewStateManager.enterFaceOnView('k');
+
+      expect(viewStateManager.getCurrentLayer()).toBe(0);
+      expect(mockFaceRenderer.enterFaceOnViewCalls[0]).toEqual({ face: 'k', layer: 0 });
+    });
+
+    it('should use outermost layer when entering from 3D view', () => {
+      mockSceneManager.camera.position.z = 10;
+
+      viewStateManager.enterFaceOnView('k');
+
+      expect(viewStateManager.getViewMode()).toBe('face-on');
+      expect(viewStateManager.getCurrentLayer()).toBe(15);
+    });
+
+    it('should reset to outermost layer when switching between faces', () => {
+      mockSceneManager.camera.position.z = 10;
+      viewStateManager.enterFaceOnView('k');
+      expect(viewStateManager.getCurrentLayer()).toBe(15);
+
+      mockFaceRenderer.reset();
+      mockSceneManager.camera.position.y = -10;
+      viewStateManager.enterFaceOnView('i');
+
+      expect(viewStateManager.getCurrentLayer()).toBe(0);
+      expect(mockFaceRenderer.enterFaceOnViewCalls[0]).toEqual({ face: 'i', layer: 0 });
+    });
+
+    it('should reset to outermost layer when re-entering same face from 3D view', () => {
+      mockSceneManager.camera.position.z = 10;
+      viewStateManager.enterFaceOnView('k');
+      expect(viewStateManager.getCurrentLayer()).toBe(15);
+
+      // Exit to 3D view
+      viewStateManager.exitFaceOnView();
+      mockFaceRenderer.resetState();
+      mockSceneManager.reset();
+
+      // Re-enter same face - should reset to outermost
+      mockSceneManager.camera.position.z = 10;
+      viewStateManager.enterFaceOnView('k');
+
+      expect(viewStateManager.getCurrentLayer()).toBe(15);
+      expect(mockFaceRenderer.enterFaceOnViewCalls[0]).toEqual({ face: 'k', layer: 15 });
+    });
+
+    it('should respect explicit layer parameter over outermost default', () => {
+      mockSceneManager.camera.position.z = 10;
+
+      viewStateManager.enterFaceOnView('k', 7);
+
+      expect(viewStateManager.getCurrentLayer()).toBe(7);
+      expect(mockFaceRenderer.enterFaceOnViewCalls[0]).toEqual({ face: 'k', layer: 7 });
+    });
+
+    it('should use outermost layer when switching from face view to different face', () => {
+      mockSceneManager.camera.position.z = 10;
+      viewStateManager.enterFaceOnView('k', 7);
+      expect(viewStateManager.getCurrentLayer()).toBe(7);
+
+      mockFaceRenderer.reset();
+      mockSceneManager.camera.position.x = -10;
+      viewStateManager.enterFaceOnView('j');
+
+      // Should default to outermost layer (0) for j-face, not preserve layer 7
+      expect(viewStateManager.getCurrentLayer()).toBe(0);
+      expect(mockFaceRenderer.enterFaceOnViewCalls[0]).toEqual({ face: 'j', layer: 0 });
     });
   });
 });
