@@ -496,8 +496,10 @@ export class InputController {
   private enterFaceOnView(face: 'i' | 'j' | 'k', layer?: number): void {
     // If ViewStateManager is available, use it for coordinated transitions
     if (this.viewStateManager) {
+      this.viewMode = 'face-on'; // Keep local state synchronized
       this.viewStateManager.enterFaceOnView(face, layer);
       this.deselectCell(); // Clear selection when entering face-on view
+      this.notifyViewModeChange('face-on'); // Notify callbacks
       return;
     }
 
@@ -517,8 +519,10 @@ export class InputController {
   private exitFaceOnView(): void {
     // If ViewStateManager is available, use it for coordinated transitions
     if (this.viewStateManager) {
+      this.viewMode = '3d-rotational'; // Keep local state synchronized
       this.viewStateManager.exitFaceOnView();
       this.deselectCell(); // Clear selection when exiting face-on view
+      this.notifyViewModeChange('3d-rotational'); // Notify callbacks
       return;
     }
 
