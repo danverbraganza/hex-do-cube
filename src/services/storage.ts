@@ -64,21 +64,16 @@ function serializeGameState(state: GameState): SerializedGameState {
   const cells: SerializedCell[] = [];
 
   // Only store non-empty cells to save space
-  for (let i = 0; i < 16; i++) {
-    for (let j = 0; j < 16; j++) {
-      for (let k = 0; k < 16; k++) {
-        const cell = state.cube.cells[i][j][k];
-        // Skip empty editable cells (they'll be recreated as empty by default)
-        if (cell.value !== null || cell.type === 'given') {
-          cells.push({
-            position: [cell.position[0], cell.position[1], cell.position[2]],
-            value: cell.value,
-            type: cell.type
-          });
-        }
-      }
+  state.cube.forEachCell((cell) => {
+    // Skip empty editable cells (they'll be recreated as empty by default)
+    if (cell.value !== null || cell.type === 'given') {
+      cells.push({
+        position: [cell.position[0], cell.position[1], cell.position[2]],
+        value: cell.value,
+        type: cell.type
+      });
     }
-  }
+  });
 
   return {
     cells,
