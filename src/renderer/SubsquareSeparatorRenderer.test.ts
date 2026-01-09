@@ -69,98 +69,89 @@ describe('SubsquareSeparatorRenderer', () => {
 
     test('shows only X and Z planes (perpendicular) in face-on i view', () => {
       // i-face: looking down Y-axis, viewing XZ plane
-      // Should HIDE Y-axis planes (parallel) and SHOW X and Z planes (perpendicular)
+      // In face-on mode: all 3D planes are hidden and line segments are shown instead
       renderer.setMode('face-on', 'i', 0);
 
       const container = renderer.getContainer();
 
-      // X-axis planes should be visible (perpendicular to viewing plane)
-      const xPlanes = container.children.filter((child) => {
-        const plane = child as THREE.Mesh;
-        return plane.userData.axis === 'x';
+      // All 3D planes should be hidden in face-on mode
+      const allPlanes = container.children.filter((child): child is THREE.Mesh => {
+        return (
+          child instanceof THREE.Mesh &&
+          'userData' in child &&
+          typeof child.userData === 'object' &&
+          child.userData !== null &&
+          'axis' in child.userData
+        );
       });
-      expect(xPlanes.length).toBe(3);
-      expect(xPlanes.every((p) => p.visible)).toBe(true);
+      expect(allPlanes.every((p) => !p.visible)).toBe(true);
 
-      // Z-axis planes should be visible (perpendicular to viewing plane)
-      const zPlanes = container.children.filter((child) => {
-        const plane = child as THREE.Mesh;
-        return plane.userData.axis === 'z';
-      });
-      expect(zPlanes.length).toBe(3);
-      expect(zPlanes.every((p) => p.visible)).toBe(true);
+      // Should have a group with line segments
+      const lineGroup = container.children.find((child) => child.name === 'FaceOnSeparatorLines');
+      expect(lineGroup).toBeDefined();
 
-      // Y-axis planes should be hidden (parallel to viewing plane)
-      const yPlanes = container.children.filter((child) => {
-        const plane = child as THREE.Mesh;
-        return plane.userData.axis === 'y';
-      });
-      expect(yPlanes.length).toBe(3);
-      expect(yPlanes.every((p) => !p.visible)).toBe(true);
+      // Face-on i view should have 6 line segments (3 vertical + 3 horizontal)
+      if (lineGroup) {
+        expect(lineGroup.children.length).toBe(6);
+      }
     });
 
     test('shows only Y and Z planes (perpendicular) in face-on j view', () => {
       // j-face: looking down X-axis, viewing YZ plane
-      // Should HIDE X-axis planes (parallel) and SHOW Y and Z planes (perpendicular)
+      // In face-on mode: all 3D planes are hidden and line segments are shown instead
       renderer.setMode('face-on', 'j', 0);
 
       const container = renderer.getContainer();
 
-      // Y-axis planes should be visible (perpendicular to viewing plane)
-      const yPlanes = container.children.filter((child) => {
-        const plane = child as THREE.Mesh;
-        return plane.userData.axis === 'y';
+      // All 3D planes should be hidden in face-on mode
+      const allPlanes = container.children.filter((child): child is THREE.Mesh => {
+        return (
+          child instanceof THREE.Mesh &&
+          'userData' in child &&
+          typeof child.userData === 'object' &&
+          child.userData !== null &&
+          'axis' in child.userData
+        );
       });
-      expect(yPlanes.length).toBe(3);
-      expect(yPlanes.every((p) => p.visible)).toBe(true);
+      expect(allPlanes.every((p) => !p.visible)).toBe(true);
 
-      // Z-axis planes should be visible (perpendicular to viewing plane)
-      const zPlanes = container.children.filter((child) => {
-        const plane = child as THREE.Mesh;
-        return plane.userData.axis === 'z';
-      });
-      expect(zPlanes.length).toBe(3);
-      expect(zPlanes.every((p) => p.visible)).toBe(true);
+      // Should have a group with line segments
+      const lineGroup = container.children.find((child) => child.name === 'FaceOnSeparatorLines');
+      expect(lineGroup).toBeDefined();
 
-      // X-axis planes should be hidden (parallel to viewing plane)
-      const xPlanes = container.children.filter((child) => {
-        const plane = child as THREE.Mesh;
-        return plane.userData.axis === 'x';
-      });
-      expect(xPlanes.length).toBe(3);
-      expect(xPlanes.every((p) => !p.visible)).toBe(true);
+      // Face-on j view should have 6 line segments (3 vertical + 3 horizontal)
+      if (lineGroup) {
+        expect(lineGroup.children.length).toBe(6);
+      }
     });
 
     test('shows only X and Y planes (perpendicular) in face-on k view', () => {
       // k-face: looking down Z-axis, viewing XY plane
-      // Should HIDE Z-axis planes (parallel) and SHOW X and Y planes (perpendicular)
+      // In face-on mode: all 3D planes are hidden and line segments are shown instead
       renderer.setMode('face-on', 'k', 0);
 
       const container = renderer.getContainer();
 
-      // X-axis planes should be visible (perpendicular to viewing plane)
-      const xPlanes = container.children.filter((child) => {
-        const plane = child as THREE.Mesh;
-        return plane.userData.axis === 'x';
+      // All 3D planes should be hidden in face-on mode
+      const allPlanes = container.children.filter((child): child is THREE.Mesh => {
+        return (
+          child instanceof THREE.Mesh &&
+          'userData' in child &&
+          typeof child.userData === 'object' &&
+          child.userData !== null &&
+          'axis' in child.userData
+        );
       });
-      expect(xPlanes.length).toBe(3);
-      expect(xPlanes.every((p) => p.visible)).toBe(true);
+      expect(allPlanes.every((p) => !p.visible)).toBe(true);
 
-      // Y-axis planes should be visible (perpendicular to viewing plane)
-      const yPlanes = container.children.filter((child) => {
-        const plane = child as THREE.Mesh;
-        return plane.userData.axis === 'y';
-      });
-      expect(yPlanes.length).toBe(3);
-      expect(yPlanes.every((p) => p.visible)).toBe(true);
+      // Should have a group with line segments
+      const lineGroup = container.children.find((child) => child.name === 'FaceOnSeparatorLines');
+      expect(lineGroup).toBeDefined();
 
-      // Z-axis planes should be hidden (parallel to viewing plane)
-      const zPlanes = container.children.filter((child) => {
-        const plane = child as THREE.Mesh;
-        return plane.userData.axis === 'z';
-      });
-      expect(zPlanes.length).toBe(3);
-      expect(zPlanes.every((p) => !p.visible)).toBe(true);
+      // Face-on k view should have 6 line segments (3 vertical + 3 horizontal)
+      if (lineGroup) {
+        expect(lineGroup.children.length).toBe(6);
+      }
     });
 
     test('switches between 3D and face-on modes correctly', () => {
@@ -170,17 +161,22 @@ describe('SubsquareSeparatorRenderer', () => {
       let visibleCount = container.children.filter((child) => child.visible).length;
       expect(visibleCount).toBe(9);
 
-      // Switch to face-on mode (should show 6 perpendicular planes, hide 3 parallel)
+      // Switch to face-on mode (all 3D planes hidden, 1 line group with 6 line segments)
       renderer.setMode('face-on', 'i', 0);
       container = renderer.getContainer();
-      visibleCount = container.children.filter((child) => child.visible).length;
-      expect(visibleCount).toBe(6); // 3 X-axis + 3 Z-axis planes (Y-axis hidden)
+      const lineGroup = container.children.find((child) => child.name === 'FaceOnSeparatorLines');
+      expect(lineGroup).toBeDefined();
+      if (lineGroup) {
+        expect(lineGroup.children.length).toBe(6); // 3 vertical + 3 horizontal lines
+      }
 
-      // Switch back to 3D mode
+      // Switch back to 3D mode (line group should be removed, all 9 planes visible)
       renderer.setMode('3d');
       container = renderer.getContainer();
       visibleCount = container.children.filter((child) => child.visible).length;
       expect(visibleCount).toBe(9);
+      const lineGroupAfter = container.children.find((child) => child.name === 'FaceOnSeparatorLines');
+      expect(lineGroupAfter).toBeUndefined();
     });
   });
 
@@ -298,21 +294,25 @@ describe('SubsquareSeparatorRenderer', () => {
       expect(material.depthWrite).toBe(false);
     });
 
-    test('visible planes use opaque material in face-on mode', () => {
+    test('line segments use opaque material in face-on mode', () => {
       renderer.setMode('face-on', 'i', 0);
 
       const container = renderer.getContainer();
-      const visiblePlanes = container.children.filter((child) => {
-        return child.visible;
-      }) as THREE.Mesh[];
+      const lineGroup = container.children.find((child) => child.name === 'FaceOnSeparatorLines');
 
-      visiblePlanes.forEach((plane) => {
-        const material = plane.material as THREE.MeshBasicMaterial;
-        expect(material.transparent).toBe(true);
-        expect(material.opacity).toBe(1.0); // Default opacityFaceOn
-        expect(material.side).toBe(THREE.DoubleSide);
-        expect(material.depthWrite).toBe(false);
-      });
+      expect(lineGroup).toBeDefined();
+      if (lineGroup) {
+        // Check that line meshes use opaque material
+        lineGroup.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            const material = child.material as THREE.MeshBasicMaterial;
+            expect(material.transparent).toBe(false);
+            expect(material.opacity).toBe(1.0);
+            expect(material.side).toBe(THREE.DoubleSide);
+            expect(material.depthWrite).toBe(true);
+          }
+        });
+      }
     });
   });
 });
