@@ -490,6 +490,31 @@ export class MinimapRenderer {
         }
       }
     }
+
+    // Rebuild particles to reflect changes
+    this.rebuildParticles();
+  }
+
+  /**
+   * Rebuild the particle system based on current cube state
+   * This is called when cells are updated
+   */
+  private rebuildParticles(): void {
+    // Remove existing particles
+    if (this.particles) {
+      this.scene.remove(this.particles);
+      if (this.particleGeometry) {
+        this.particleGeometry.dispose();
+      }
+      if (this.particles.material instanceof THREE.Material) {
+        this.particles.material.dispose();
+      }
+      this.particles = null;
+      this.particleGeometry = null;
+    }
+
+    // Rebuild with current cell state
+    this.initializeParticles();
   }
 
   /**
