@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   type CellType,
   type HexValue,
@@ -317,6 +318,73 @@ describe('Cell Model', () => {
         const cell = createCell([0, 0, 0], null, type);
         expect(cell.type).toBe(type);
       }
+    });
+  });
+
+  describe('positionKey', () => {
+    it('should generate a unique key for a position', () => {
+      expect(positionKey([0, 0, 0])).toBe('0,0,0');
+      expect(positionKey([1, 2, 3])).toBe('1,2,3');
+      expect(positionKey([15, 15, 15])).toBe('15,15,15');
+    });
+
+    it('should generate different keys for different positions', () => {
+      const key1 = positionKey([0, 0, 0]);
+      const key2 = positionKey([0, 0, 1]);
+      const key3 = positionKey([1, 0, 0]);
+      expect(key1).not.toBe(key2);
+      expect(key1).not.toBe(key3);
+      expect(key2).not.toBe(key3);
+    });
+
+    it('should generate same key for same position', () => {
+      const pos: Position = [5, 10, 15];
+      expect(positionKey(pos)).toBe(positionKey(pos));
+      expect(positionKey([5, 10, 15])).toBe(positionKey([5, 10, 15]));
+    });
+  });
+
+  describe('parsePositionKey', () => {
+    it('should parse a position key back to Position', () => {
+      expect(parsePositionKey('0,0,0')).toEqual([0, 0, 0]);
+      expect(parsePositionKey('1,2,3')).toEqual([1, 2, 3]);
+      expect(parsePositionKey('15,15,15')).toEqual([15, 15, 15]);
+    });
+
+    it('should be inverse of positionKey', () => {
+      const positions: Position[] = [
+        [0, 0, 0],
+        [1, 2, 3],
+        [5, 10, 15],
+        [15, 15, 15],
+      ];
+
+      for (const pos of positions) {
+        const key = positionKey(pos);
+        const parsed = parsePositionKey(key);
+        expect(parsed).toEqual(pos);
+      }
+    });
+
+    it('should round-trip correctly', () => {
+      const keys = ['0,0,0', '1,2,3', '15,15,15'];
+      for (const key of keys) {
+        const parsed = parsePositionKey(key);
+        const regenerated = positionKey(parsed);
+        expect(regenerated).toBe(key);
+      }
+    });
+
+    it('should throw on invalid format', () => {
+      expect(() => parsePositionKey('1,2')).toThrow('Invalid position key format');
+      expect(() => parsePositionKey('a,b,c')).toThrow('Invalid position key format');
+      expect(() => parsePositionKey('1,2,3,4')).toThrow('Invalid position key format');
+    });
+
+    it('should throw on invalid coordinates', () => {
+      expect(() => parsePositionKey('-1,0,0')).toThrow('Invalid coordinates');
+      expect(() => parsePositionKey('0,16,0')).toThrow('Invalid coordinates');
+      expect(() => parsePositionKey('0,0,100')).toThrow('Invalid coordinates');
     });
   });
 });
