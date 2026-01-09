@@ -48,7 +48,6 @@ export class GameUI {
   private container: HTMLElement;
   private sceneManager: SceneManager;
   private viewStateManager: ViewStateManager;
-  private inputController: InputController;
   private cellEditor: CellEditor;
   private gameState: GameState;
 
@@ -78,7 +77,7 @@ export class GameUI {
     this.container = config.container;
     this.sceneManager = config.sceneManager;
     this.viewStateManager = config.viewStateManager;
-    this.inputController = config.inputController;
+    // inputController is in config but not used by GameUI - it's managed by main.ts
     this.cellEditor = config.cellEditor;
     this.gameState = config.gameState;
 
@@ -419,10 +418,8 @@ export class GameUI {
    * Returns to canonical 3D rotational view, properly exiting face-on mode if active
    */
   private handleHomeButton(): void {
-    // Use InputController to properly coordinate all view components
-    this.inputController.returnTo3DView();
-    // Also reset camera to canonical isometric position
-    this.sceneManager.resetCamera();
+    // Use ViewStateManager to properly coordinate all view components
+    this.viewStateManager.returnTo3DView();
   }
 
   /**
@@ -498,8 +495,7 @@ export class GameUI {
    */
   private handleHomeViewButton(): void {
     // Same as the home button - return to canonical isometric view
-    this.inputController.returnTo3DView();
-    this.sceneManager.resetCamera();
+    this.viewStateManager.returnTo3DView();
   }
 
   /**
@@ -516,9 +512,8 @@ export class GameUI {
     this.sceneManager.startAutoRotation();
 
     // Return to 3D view if in face-on mode
-    if (this.sceneManager.getCameraMode() !== 'isometric') {
-      this.inputController.returnTo3DView();
-      this.sceneManager.resetCamera(true);
+    if (this.viewStateManager.isInFaceOnView()) {
+      this.viewStateManager.returnTo3DView();
     }
   }
 

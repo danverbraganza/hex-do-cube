@@ -328,7 +328,8 @@ export class CubeRenderer {
 
   /**
    * Set rendering mode (3D or face-on)
-   * In face-on mode, empty cells are rendered opaque for single-layer clarity
+   * In face-on mode, all cells are rendered opaque for single-layer clarity
+   * In 3D mode, cells are rendered translucent for see-through effect
    * @param mode - '3d' for 3D rotational view, 'face-on' for face editing view
    */
   public setMode(mode: '3d' | 'face-on'): void {
@@ -338,13 +339,17 @@ export class CubeRenderer {
 
     this.renderMode = mode;
 
-    // Update empty cell material opacity based on mode
+    // Update cell material opacities based on mode
     if (mode === 'face-on') {
-      // In face-on mode, empty cells should be opaque to prevent seeing through layers
+      // In face-on mode, all cells should be opaque to prevent seeing through layers
       this.materials.empty.opacity = 1.0;
+      this.materials.givenFilled.opacity = 1.0;
+      this.materials.editableFilled.opacity = 1.0;
     } else {
-      // In 3D mode, empty cells are translucent/transparent
+      // In 3D mode, cells are translucent/transparent
       this.materials.empty.opacity = this.config.emptyOpacity;
+      this.materials.givenFilled.opacity = this.config.filledOpacity;
+      this.materials.editableFilled.opacity = this.config.filledOpacity;
     }
 
     // Update all cells to reflect the new material state
