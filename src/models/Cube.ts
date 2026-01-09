@@ -3,7 +3,8 @@
  * Represents the 16×16×16 game cube with validation and getter methods
  */
 
-import { Cell, createEmptyCell, type Position, type HexValue } from './Cell.js';
+import { Cell, createEmptyCell, type Position } from './Cell.js';
+import { validateCube } from '../services/validator.js';
 
 /**
  * Face type for sub-square identification
@@ -189,104 +190,12 @@ function getSubSquare(
 
 /**
  * Validates all constraints in the cube
+ * Delegates to the validator service to avoid duplication
  * Checks all rows, columns, beams, and sub-squares for duplicates
  * @returns ValidationResult with isValid flag and list of errors
  */
 function validate(this: Cube): ValidationResult {
-  const errors: ValidationError[] = [];
-
-  // Validate all rows (j and k fixed, i varies)
-  for (let j = 0; j < 16; j++) {
-    for (let k = 0; k < 16; k++) {
-      const row = this.getRow(j, k);
-      const error = validateGroup(row, 'row', `Row (j=${j}, k=${k})`);
-      if (error) errors.push(error);
-    }
-  }
-
-  // Validate all columns (i and k fixed, j varies)
-  for (let i = 0; i < 16; i++) {
-    for (let k = 0; k < 16; k++) {
-      const column = this.getColumn(i, k);
-      const error = validateGroup(column, 'column', `Column (i=${i}, k=${k})`);
-      if (error) errors.push(error);
-    }
-  }
-
-  // Validate all beams (i and j fixed, k varies)
-  for (let i = 0; i < 16; i++) {
-    for (let j = 0; j < 16; j++) {
-      const beam = this.getBeam(i, j);
-      const error = validateGroup(beam, 'beam', `Beam (i=${i}, j=${j})`);
-      if (error) errors.push(error);
-    }
-  }
-
-  // Validate all sub-squares on all faces
-  const faces: Face[] = ['i', 'j', 'k'];
-  for (const face of faces) {
-    for (let layer = 0; layer < 16; layer++) {
-      for (let subRow = 0; subRow < 4; subRow++) {
-        for (let subCol = 0; subCol < 4; subCol++) {
-          const subSquare = this.getSubSquare(face, layer, subRow, subCol);
-          const error = validateGroup(
-            subSquare,
-            'sub-square',
-            `Sub-square (face=${face}, layer=${layer}, subRow=${subRow}, subCol=${subCol})`
-          );
-          if (error) errors.push(error);
-        }
-      }
-    }
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
-}
-
-/**
- * Validates a group of cells (row/column/beam/sub-square) for duplicate values
- * @param cells - Array of 16 cells to validate
- * @param type - Type of group being validated
- * @param description - Human-readable description of the group
- * @returns ValidationError if duplicates found, null otherwise
- */
-function validateGroup(
-  cells: Cell[],
-  type: ValidationError['type'],
-  description: string
-): ValidationError | null {
-  const valueMap = new Map<HexValue, Position[]>();
-
-  // Track positions for each value
-  for (const cell of cells) {
-    if (cell.value !== null) {
-      if (!valueMap.has(cell.value)) {
-        valueMap.set(cell.value, []);
-      }
-      valueMap.get(cell.value)!.push(cell.position);
-    }
-  }
-
-  // Check for duplicates
-  const duplicates: Position[] = [];
-  for (const positions of valueMap.values()) {
-    if (positions.length > 1) {
-      duplicates.push(...positions);
-    }
-  }
-
-  if (duplicates.length > 0) {
-    return {
-      type,
-      description,
-      cells: duplicates
-    };
-  }
-
-  return null;
+  return validateCube(this);
 }
 
 /**
