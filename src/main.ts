@@ -284,9 +284,9 @@ export function init(): void {
     // Update win screen animations (fireworks)
     gameUI.update();
 
-    // Render minimap
+    // Render minimap using client dimensions (CSS pixels, not buffer pixels)
     const canvas = sceneManager.getRenderer().domElement;
-    minimapRenderer.render(canvas.width, canvas.height);
+    minimapRenderer.render(canvas.clientWidth, canvas.clientHeight);
   });
 
   // 18. Show ready message
