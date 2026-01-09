@@ -188,6 +188,9 @@ export function init(): void {
     visible: true,
   });
 
+  // 11a. Wire up MessagePanel to InputController for debugging
+  inputController.setMessagePanel(messagePanel);
+
   // 12. Initialize GameUI
   const gameUI = new GameUI({
     container,

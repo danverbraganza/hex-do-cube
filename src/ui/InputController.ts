@@ -65,6 +65,9 @@ export class InputController {
   // View state manager (optional, for coordinated view transitions)
   private viewStateManager: import('./ViewStateManager.js').ViewStateManager | null = null; // Used conditionally in enterFaceOnView and exitFaceOnView
 
+  // Message panel (optional, for logging and debugging)
+  private messagePanel: import('./MessagePanel.js').MessagePanel | null = null;
+
   // View state
   private viewMode: ViewMode = '3d-rotational';
 
@@ -365,6 +368,13 @@ export class InputController {
    * Handle mouse wheel events (layer navigation in face-on view)
    */
   private handleWheel(event: WheelEvent): void {
+    // Add logging for debugging
+    if (this.messagePanel) {
+      this.messagePanel.log(
+        `Wheel event: deltaY=${event.deltaY}, viewMode=${this.viewMode}, faceRendererActive=${this.faceRenderer.isActiveView()}`
+      );
+    }
+
     // Only handle wheel in face-on view
     if (this.viewMode === 'face-on') {
       event.preventDefault();
@@ -604,6 +614,14 @@ export class InputController {
    */
   public setViewStateManager(viewStateManager: import('./ViewStateManager.js').ViewStateManager): void {
     this.viewStateManager = viewStateManager;
+  }
+
+  /**
+   * Set the MessagePanel for logging and debugging
+   * This should be called after construction to enable event logging
+   */
+  public setMessagePanel(messagePanel: import('./MessagePanel.js').MessagePanel): void {
+    this.messagePanel = messagePanel;
   }
 
   /**
