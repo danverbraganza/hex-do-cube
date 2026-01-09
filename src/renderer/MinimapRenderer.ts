@@ -11,10 +11,10 @@
  * - Allow users to see fill level at a glance
  *
  * PERFORMANCE NOTES:
- * - Uses shared geometry (1 BoxGeometry for all 4096 minimap cells) ✓
- * - Now uses material cache (17 materials max: 16 hex values + 1 null) ✓
+ * - Uses particle system (THREE.Points) instead of individual meshes ✓
+ * - Single draw call for all filled cells (no z-fighting) ✓
  * - Renders to scissored viewport to avoid clearing main scene ✓
- * - Materials have depthWrite: false for proper translucency ✓
+ * - Particles use depthWrite: false for proper translucency ✓
  * - Separate scene/camera allows independent rendering without state pollution ✓
  */
 
@@ -76,11 +76,6 @@ const HEX_VALUE_COLORS: Record<Exclude<HexValue, null>, number> = {
 };
 
 /**
- * Maps a cell position to its mesh
- */
-type CellMeshMap = Map<string, THREE.Mesh>;
-
-/**
  * MinimapRenderer manages the miniature cube visualization
  */
 export class MinimapRenderer {
@@ -92,18 +87,11 @@ export class MinimapRenderer {
   private camera: THREE.PerspectiveCamera;
   private renderer: THREE.WebGLRenderer;
 
-  // Mesh management
-  private cellMeshes: CellMeshMap = new Map();
-  private cellGeometry: THREE.BoxGeometry;
-
-  // Shared materials for efficient reuse (reduces GC pressure)
-  private materialCache: Map<string, THREE.MeshStandardMaterial> = new Map();
-
   // Particle system for cell rendering (replaces meshes to avoid z-fighting)
   private particles: THREE.Points | null = null;
   private particleGeometry: THREE.BufferGeometry | null = null;
 
-  // Container for all cell meshes
+  // Container for minimap objects
   private container: THREE.Group;
 
   // Face highlighting
@@ -158,18 +146,8 @@ export class MinimapRenderer {
     this.container = new THREE.Group();
     this.container.name = 'MinimapRenderer';
 
-    // Create shared geometry
-    this.cellGeometry = new THREE.BoxGeometry(
-      this.config.cellSize,
-      this.config.cellSize,
-      this.config.cellSize
-    );
-
     // Set up lighting
     this.setupLighting();
-
-    // Initialize cell meshes
-    this.initializeCellMeshes();
 
     // Initialize particles for cell rendering
     this.initializeParticles();
@@ -213,54 +191,6 @@ export class MinimapRenderer {
     );
     this.directionalLight.position.set(10, 10, 10);
     this.scene.add(this.directionalLight);
-  }
-
-  /**
-   * Initialize meshes for all 4096 cells with color-coded visualization
-   */
-  private initializeCellMeshes(): void {
-    const spacing = this.config.cellSize + this.config.cellGap;
-    const offset = (15 * spacing) / 2; // Center the cube at origin
-
-    for (let i = 0; i < 16; i++) {
-      for (let j = 0; j < 16; j++) {
-        for (let k = 0; k < 16; k++) {
-          const cell = this.cube.cells[i][j][k];
-          const mesh = this.createCellMesh(cell);
-
-          // Position the mesh in 3D space
-          mesh.position.set(
-            j * spacing - offset,
-            i * spacing - offset,
-            k * spacing - offset
-          );
-
-          // Store mesh reference
-          const key = this.positionKey([i, j, k]);
-          this.cellMeshes.set(key, mesh);
-
-          // Hide mesh (particles are now used for rendering)
-          mesh.visible = false;
-
-          // Add to container
-          this.container.add(mesh);
-        }
-      }
-    }
-  }
-
-  /**
-   * Create a mesh for a single cell with color-coded material
-   */
-  private createCellMesh(cell: Cell): THREE.Mesh {
-    const material = this.getMaterialForCell(cell);
-    const mesh = new THREE.Mesh(this.cellGeometry, material);
-
-    // Store cell position in userData
-    mesh.userData.position = cell.position;
-    mesh.userData.cell = cell;
-
-    return mesh;
   }
 
   /**
@@ -332,46 +262,6 @@ export class MinimapRenderer {
     this.particles = new THREE.Points(this.particleGeometry, material);
     this.particles.visible = true; // Show particles
     this.scene.add(this.particles);
-  }
-
-  /**
-   * Get material for a cell based on its value (color-coded)
-   * Uses material cache to avoid creating duplicate materials
-   */
-  private getMaterialForCell(cell: Cell): THREE.MeshStandardMaterial {
-    // Create cache key based on cell value
-    const cacheKey = cell.value ?? 'null';
-
-    // Check if material already exists in cache
-    if (this.materialCache.has(cacheKey)) {
-      return this.materialCache.get(cacheKey)!;
-    }
-
-    // Create new material if not in cache
-    let material: THREE.MeshStandardMaterial;
-
-    if (cell.value === null) {
-      // Empty cell - very low opacity
-      material = new THREE.MeshStandardMaterial({
-        color: COLORS.WHITE,
-        transparent: true,
-        opacity: this.config.emptyOpacity,
-        depthWrite: false,
-      });
-    } else {
-      // Filled cell - color-coded by hex value
-      const color = HEX_VALUE_COLORS[cell.value];
-      material = new THREE.MeshStandardMaterial({
-        color,
-        transparent: true,
-        opacity: this.config.filledOpacity,
-        depthWrite: false,
-      });
-    }
-
-    // Store in cache for reuse
-    this.materialCache.set(cacheKey, material);
-    return material;
   }
 
   /**
@@ -466,34 +356,18 @@ export class MinimapRenderer {
 
   /**
    * Update a specific cell's appearance
-   * Uses shared materials from cache - no disposal needed
+   * Rebuilds particle system to reflect changes
    */
-  public updateCell(position: Position): void {
-    const key = this.positionKey(position);
-    const mesh = this.cellMeshes.get(key);
-    if (!mesh) return;
-
-    const [i, j, k] = position;
-    const cell = this.cube.cells[i][j][k];
-
-    // Get material from cache (reuses existing materials)
-    // No disposal needed as materials are shared
-    mesh.material = this.getMaterialForCell(cell);
-    mesh.userData.cell = cell;
+  public updateCell(_position: Position): void {
+    // Rebuild particles to reflect the change
+    this.rebuildParticles();
   }
 
   /**
    * Update all cells' appearances (useful after bulk changes)
+   * Rebuilds particle system to reflect changes
    */
   public updateAllCells(): void {
-    for (let i = 0; i < 16; i++) {
-      for (let j = 0; j < 16; j++) {
-        for (let k = 0; k < 16; k++) {
-          this.updateCell([i, j, k]);
-        }
-      }
-    }
-
     // Rebuild particles to reflect changes
     this.rebuildParticles();
   }
@@ -674,9 +548,6 @@ export class MinimapRenderer {
    * Dispose of all resources
    */
   public dispose(): void {
-    // Dispose of cell geometry
-    this.cellGeometry.dispose();
-
     // Dispose of particle system
     if (this.particleGeometry) {
       this.particleGeometry.dispose();
@@ -684,12 +555,6 @@ export class MinimapRenderer {
     if (this.particles && this.particles.material instanceof THREE.Material) {
       this.particles.material.dispose();
     }
-
-    // Dispose of cached materials (now shared)
-    for (const material of this.materialCache.values()) {
-      material.dispose();
-    }
-    this.materialCache.clear();
 
     // Dispose of face highlight materials
     for (const mesh of this.faceHighlightMeshes.values()) {
@@ -709,15 +574,7 @@ export class MinimapRenderer {
 
     // Clear scene
     this.scene.clear();
-    this.cellMeshes.clear();
     this.faceHighlightMeshes.clear();
     this.layerHighlightMeshes.clear();
-  }
-
-  /**
-   * Generate a unique string key for a cell position
-   */
-  private positionKey(position: Position): string {
-    return `${position[0]},${position[1]},${position[2]}`;
   }
 }
