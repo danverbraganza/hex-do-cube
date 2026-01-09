@@ -22,6 +22,8 @@ describe('MessagePanel', () => {
     (global as any).document = window.document;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (global as any).window = window;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global as any).localStorage = window.localStorage;
 
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -37,6 +39,8 @@ describe('MessagePanel', () => {
     delete (global as any).document;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     delete (global as any).window;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    delete (global as any).localStorage;
   });
 
   describe('Constructor and Initialization', () => {
@@ -134,24 +138,22 @@ describe('MessagePanel', () => {
       const messageList = container.querySelector('#message-list');
       const messageElement = messageList?.children[0];
       const text = messageElement?.textContent || '';
-      // Should contain timestamp pattern [HH:MM:SS]
-      expect(text).toMatch(/\[\d{2}:\d{2}:\d{2}\]/);
+      // Should contain timestamp pattern HH:MM:SS (no brackets in new design)
+      expect(text).toMatch(/\d{2}:\d{2}:\d{2}/);
     });
 
-    test('should display [INFO] prefix for USER messages', () => {
+    test('should apply message-user class for USER messages', () => {
       messagePanel.addMessage('User message', 'USER');
       const messageList = container.querySelector('#message-list');
-      const messageElement = messageList?.children[0];
-      const text = messageElement?.textContent || '';
-      expect(text).toContain('[INFO]');
+      const messageElement = messageList?.children[0] as HTMLElement;
+      expect(messageElement.className).toContain('message-user');
     });
 
-    test('should display [LOG] prefix for LOG messages', () => {
+    test('should apply message-log class for LOG messages', () => {
       messagePanel.addMessage('Log message', 'LOG');
       const messageList = container.querySelector('#message-list');
-      const messageElement = messageList?.children[0];
-      const text = messageElement?.textContent || '';
-      expect(text).toContain('[LOG]');
+      const messageElement = messageList?.children[0] as HTMLElement;
+      expect(messageElement.className).toContain('message-log');
     });
 
     test('should display message text', () => {
@@ -227,8 +229,8 @@ describe('MessagePanel', () => {
       const messageElement = messageList?.children[0];
       const text = messageElement?.textContent || '';
 
-      // Should have format [HH:MM:SS] with leading zeros
-      expect(text).toMatch(/\[\d{2}:\d{2}:\d{2}\]/);
+      // Should have format HH:MM:SS with leading zeros (no brackets in new design)
+      expect(text).toMatch(/\d{2}:\d{2}:\d{2}/);
     });
   });
 
@@ -342,19 +344,97 @@ describe('MessagePanel', () => {
       messagePanel = new MessagePanel({ container });
     });
 
-    test('should have positioned panel', () => {
+    test('should have fixed positioning for full-height sidebar', () => {
       const panel = container.querySelector('#message-panel') as HTMLElement;
-      expect(panel.style.position).toBe('absolute');
+      expect(panel.style.position).toBe('fixed');
     });
 
-    test('should have scrollable message list', () => {
-      const messageList = container.querySelector('#message-list') as HTMLElement;
-      expect(messageList.style.overflowY).toBe('auto');
+    test('should have scrollable message content', () => {
+      const messageContent = container.querySelector('.message-panel-content') as HTMLElement;
+      expect(messageContent.style.overflowY).toBe('auto');
     });
 
-    test('should have monospace font family', () => {
+    test('should have modern font family', () => {
       const panel = container.querySelector('#message-panel') as HTMLElement;
-      expect(panel.style.fontFamily).toContain('Courier New');
+      expect(panel.style.fontFamily).toContain('Segoe UI');
+    });
+
+    test('should have header element', () => {
+      const header = container.querySelector('.message-panel-header');
+      expect(header).not.toBeNull();
+    });
+
+    test('should have collapse button', () => {
+      const header = container.querySelector('.message-panel-header');
+      const button = header?.querySelector('button');
+      expect(button).not.toBeNull();
+    });
+  });
+
+  describe('Collapse/Expand Functionality', () => {
+    beforeEach(() => {
+      messagePanel = new MessagePanel({ container });
+      // Clear localStorage before each test
+      localStorage.removeItem('messagePanel.collapsed');
+    });
+
+    test('should start in expanded state by default', () => {
+      expect(messagePanel.isCollapsedState()).toBe(false);
+      const panel = container.querySelector('#message-panel') as HTMLElement;
+      expect(panel.className).not.toContain('collapsed');
+    });
+
+    test('should collapse when collapse() is called', () => {
+      messagePanel.collapse();
+      expect(messagePanel.isCollapsedState()).toBe(true);
+      const panel = container.querySelector('#message-panel') as HTMLElement;
+      expect(panel.className).toContain('collapsed');
+    });
+
+    test('should expand when expand() is called', () => {
+      messagePanel.collapse();
+      messagePanel.expand();
+      expect(messagePanel.isCollapsedState()).toBe(false);
+      const panel = container.querySelector('#message-panel') as HTMLElement;
+      expect(panel.className).not.toContain('collapsed');
+    });
+
+    test('should toggle collapse state', () => {
+      expect(messagePanel.isCollapsedState()).toBe(false);
+      messagePanel.toggleCollapse();
+      expect(messagePanel.isCollapsedState()).toBe(true);
+      messagePanel.toggleCollapse();
+      expect(messagePanel.isCollapsedState()).toBe(false);
+    });
+
+    test('should save collapsed state to localStorage', () => {
+      messagePanel.collapse();
+      expect(localStorage.getItem('messagePanel.collapsed')).toBe('true');
+      messagePanel.expand();
+      expect(localStorage.getItem('messagePanel.collapsed')).toBe('false');
+    });
+
+    test('should restore collapsed state from localStorage', () => {
+      localStorage.setItem('messagePanel.collapsed', 'true');
+      const newPanel = new MessagePanel({ container });
+      expect(newPanel.isCollapsedState()).toBe(true);
+      newPanel.dispose();
+    });
+
+    test('should prefer config.collapsed over localStorage when provided', () => {
+      localStorage.setItem('messagePanel.collapsed', 'true');
+      const newPanel = new MessagePanel({ container, collapsed: false });
+      expect(newPanel.isCollapsedState()).toBe(false);
+      newPanel.dispose();
+    });
+
+    test('should update collapse button icon when collapsing', () => {
+      const button = container.querySelector('.message-panel-header button') as HTMLButtonElement;
+      const initialText = button.innerHTML;
+      messagePanel.collapse();
+      expect(button.innerHTML).not.toBe(initialText);
+      messagePanel.expand();
+      expect(button.innerHTML).toBe(initialText);
     });
   });
 });
