@@ -250,12 +250,13 @@ export class MinimapRenderer {
 
     // Create material for particles
     const material = new THREE.PointsMaterial({
-      size: this.config.cellSize * 0.8,
+      size: this.config.cellSize * 0.3,
       vertexColors: true,
       transparent: true,
       opacity: this.config.filledOpacity,
       sizeAttenuation: true,
-      depthWrite: false,
+      depthWrite: true,
+      depthTest: true,
     });
 
     // Create points object

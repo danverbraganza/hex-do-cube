@@ -17,6 +17,11 @@
 export type MessageType = 'LOG' | 'USER';
 
 /**
+ * Message levels
+ */
+export type MessageLevel = 'info' | 'warning' | 'error' | 'user';
+
+/**
  * Message data structure
  */
 export interface Message {
@@ -24,6 +29,8 @@ export interface Message {
   text: string;
   /** The message type */
   type: MessageType;
+  /** Message level (for log messages) */
+  level?: MessageLevel;
   /** Timestamp when message was created */
   timestamp: Date;
 }
@@ -52,7 +59,9 @@ export class MessagePanel {
   private messageListElement!: HTMLDivElement;
   private messages: Message[] = [];
   private isCollapsed: boolean = false;
+  private showLogs: boolean = true;
   private readonly STORAGE_KEY = 'messagePanel.collapsed';
+  private readonly SHOW_LOGS_KEY = 'messagePanel-showLogs';
 
   constructor(config: MessagePanelConfig) {
     this.container = config.container;

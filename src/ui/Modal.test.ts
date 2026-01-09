@@ -195,7 +195,7 @@ describe('Modal', () => {
 
     // Simulate ESC key press using happy-dom's KeyboardEvent
     const escEvent = new window.KeyboardEvent('keydown', { key: 'Escape' });
-    document.dispatchEvent(escEvent);
+    document.dispatchEvent(escEvent as unknown as Event);
 
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(onConfirm).not.toHaveBeenCalled();
@@ -252,7 +252,7 @@ describe('Modal', () => {
 
     // Simulate ESC key press after hiding using happy-dom's KeyboardEvent
     const escEvent = new window.KeyboardEvent('keydown', { key: 'Escape' });
-    document.dispatchEvent(escEvent);
+    document.dispatchEvent(escEvent as unknown as Event);
 
     // onCancel should not be called again
     expect(onCancel).not.toHaveBeenCalled();
