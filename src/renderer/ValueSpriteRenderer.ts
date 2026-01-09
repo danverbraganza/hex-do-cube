@@ -21,6 +21,7 @@
 import * as THREE from 'three';
 import type { Cube } from '../models/Cube.js';
 import type { Cell, HexValue, Position } from '../models/Cell.js';
+import { cellPositionToWorld } from './geometry.js';
 
 /**
  * Configuration for ValueSpriteRenderer
@@ -143,18 +144,11 @@ export class ValueSpriteRenderer {
   /**
    * Initialize sprites for all cells that have values
    *
-   * CENTERING: Sprites use the same offset as CubeRenderer to ensure
-   * they appear at the center of their respective cells, with the
-   * entire cube centered at world origin (0,0,0).
+   * CENTERING: Sprites use shared geometry utilities to ensure consistent
+   * positioning with CubeRenderer.
    */
   private initializeSprites(): void {
-    const spacing = this.config.cellSize + this.config.cellGap;
-
-    // Calculate offset to center the cube at world origin (0, 0, 0)
-    // Must match CubeRenderer.ts offset calculation
     const numCells = 16;
-    const maxIndex = numCells - 1; // 15
-    const offset = (maxIndex * spacing) / 2;
 
     for (let i = 0; i < numCells; i++) {
       for (let j = 0; j < numCells; j++) {
@@ -164,12 +158,13 @@ export class ValueSpriteRenderer {
           if (cell.value !== null) {
             const sprite = this.createSprite(cell);
 
-            // Position sprite at cell center with offset so cube center is at world origin
-            sprite.position.set(
-              j * spacing - offset,  // x: matches CubeRenderer
-              i * spacing - offset,  // y: matches CubeRenderer
-              k * spacing - offset   // z: matches CubeRenderer
+            // Position sprite using shared geometry utilities
+            const worldPos = cellPositionToWorld(
+              i, j, k,
+              this.config.cellSize,
+              this.config.cellGap
             );
+            sprite.position.set(worldPos.x, worldPos.y, worldPos.z);
 
             // Store sprite reference
             const key = this.positionKey([i, j, k]);
@@ -240,16 +235,13 @@ export class ValueSpriteRenderer {
         // Create new sprite
         const sprite = this.createSprite(cell);
 
-        // Position the sprite with offset to center cube at world origin
-        const spacing = this.config.cellSize + this.config.cellGap;
-        const numCells = 16;
-        const maxIndex = numCells - 1; // 15
-        const offset = (maxIndex * spacing) / 2;
-        sprite.position.set(
-          j * spacing - offset,
-          i * spacing - offset,
-          k * spacing - offset
+        // Position the sprite using shared geometry utilities
+        const worldPos = cellPositionToWorld(
+          i, j, k,
+          this.config.cellSize,
+          this.config.cellGap
         );
+        sprite.position.set(worldPos.x, worldPos.y, worldPos.z);
 
         this.sprites.set(key, sprite);
         this.container.add(sprite);
