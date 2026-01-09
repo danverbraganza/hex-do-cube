@@ -55,9 +55,13 @@ export class SubsquareSeparatorRenderer {
   private planesY: THREE.Mesh[] = []; // Perpendicular to Y-axis
   private planesZ: THREE.Mesh[] = []; // Perpendicular to Z-axis
 
+  // Face-on mode line segments (created on-demand)
+  private faceOnLines: THREE.Group | null = null;
+
   // Materials for different modes
   private material3D: THREE.MeshBasicMaterial;
   private materialFaceOn: THREE.MeshBasicMaterial;
+  private lineMaterial: THREE.MeshBasicMaterial;
 
   // Current mode state (tracked but not currently used in implementation)
   // Future use: optimize updates by avoiding redundant mode changes
@@ -95,6 +99,14 @@ export class SubsquareSeparatorRenderer {
       opacity: this.config.opacityFaceOn,
       side: THREE.DoubleSide,
       depthWrite: false,
+    });
+
+    this.lineMaterial = new THREE.MeshBasicMaterial({
+      color: this.config.separatorColor,
+      transparent: false,
+      opacity: 1.0,
+      side: THREE.DoubleSide,
+      depthWrite: true,
     });
 
     // Initialize all separator planes
@@ -189,6 +201,101 @@ export class SubsquareSeparatorRenderer {
   }
 
   /**
+   * Create 2D line segments for face-on view
+   *
+   * In face-on view, we render 2D lines at the subsquare boundaries instead of 3D planes.
+   * For a 16x16 grid, there are 3 separator positions on each axis (at 4, 8, 12),
+   * resulting in 6 total lines (3 horizontal, 3 vertical).
+   *
+   * @param face - The face being viewed ('i', 'j', or 'k')
+   * @param layer - The current layer depth (0-15)
+   * @returns A group containing all line segments
+   */
+  private createFaceOnLines(face: Face, layer: number): THREE.Group {
+    const group = new THREE.Group();
+    group.name = 'FaceOnSeparatorLines';
+
+    const spacing = calculateSpacing(this.config.cellSize, this.config.cellGap);
+    const offset = calculateCenterOffset(this.config.cellSize, this.config.cellGap);
+    const numCells = 16;
+
+    // Full span of the grid (16 cells)
+    const fullSpan = numCells * spacing;
+
+    // Subsquare boundary indices
+    const boundaries = [4, 8, 12];
+
+    // Line width is half the cell gap
+    const lineWidth = this.config.cellGap / 2;
+
+    // Calculate the layer position in world coordinates
+    const layerPos = layer * spacing - offset;
+
+    // Create lines based on which face is being viewed
+    // For each face, we create lines perpendicular to the two axes that form the face
+    switch (face) {
+      case 'i': // Looking down Y-axis, viewing XZ plane
+        // Create vertical lines (parallel to Z-axis) at X positions 4, 8, 12
+        for (const boundary of boundaries) {
+          const x = boundary * spacing - offset;
+          const geometry = new THREE.BoxGeometry(lineWidth, 0.001, fullSpan);
+          const mesh = new THREE.Mesh(geometry, this.lineMaterial);
+          mesh.position.set(x, layerPos, 0);
+          group.add(mesh);
+        }
+        // Create horizontal lines (parallel to X-axis) at Z positions 4, 8, 12
+        for (const boundary of boundaries) {
+          const z = boundary * spacing - offset;
+          const geometry = new THREE.BoxGeometry(fullSpan, 0.001, lineWidth);
+          const mesh = new THREE.Mesh(geometry, this.lineMaterial);
+          mesh.position.set(0, layerPos, z);
+          group.add(mesh);
+        }
+        break;
+
+      case 'j': // Looking down X-axis, viewing YZ plane
+        // Create vertical lines (parallel to Z-axis) at Y positions 4, 8, 12
+        for (const boundary of boundaries) {
+          const y = boundary * spacing - offset;
+          const geometry = new THREE.BoxGeometry(0.001, lineWidth, fullSpan);
+          const mesh = new THREE.Mesh(geometry, this.lineMaterial);
+          mesh.position.set(layerPos, y, 0);
+          group.add(mesh);
+        }
+        // Create horizontal lines (parallel to Y-axis) at Z positions 4, 8, 12
+        for (const boundary of boundaries) {
+          const z = boundary * spacing - offset;
+          const geometry = new THREE.BoxGeometry(0.001, fullSpan, lineWidth);
+          const mesh = new THREE.Mesh(geometry, this.lineMaterial);
+          mesh.position.set(layerPos, 0, z);
+          group.add(mesh);
+        }
+        break;
+
+      case 'k': // Looking down Z-axis, viewing XY plane
+        // Create vertical lines (parallel to Y-axis) at X positions 4, 8, 12
+        for (const boundary of boundaries) {
+          const x = boundary * spacing - offset;
+          const geometry = new THREE.BoxGeometry(lineWidth, fullSpan, 0.001);
+          const mesh = new THREE.Mesh(geometry, this.lineMaterial);
+          mesh.position.set(x, 0, layerPos);
+          group.add(mesh);
+        }
+        // Create horizontal lines (parallel to X-axis) at Y positions 4, 8, 12
+        for (const boundary of boundaries) {
+          const y = boundary * spacing - offset;
+          const geometry = new THREE.BoxGeometry(fullSpan, lineWidth, 0.001);
+          const mesh = new THREE.Mesh(geometry, this.lineMaterial);
+          mesh.position.set(0, y, layerPos);
+          group.add(mesh);
+        }
+        break;
+    }
+
+    return group;
+  }
+
+  /**
    * Get the Three.js container group for this renderer
    */
   public getContainer(): THREE.Group {
@@ -218,6 +325,13 @@ export class SubsquareSeparatorRenderer {
    * Show all planes in 3D mode with translucent material
    */
   private show3DMode(): void {
+    // Hide face-on lines if they exist
+    if (this.faceOnLines) {
+      this.container.remove(this.faceOnLines);
+      this.disposeFaceOnLines();
+      this.faceOnLines = null;
+    }
+
     // Update all planes to use 3D material and be visible
     for (const plane of [...this.planesX, ...this.planesY, ...this.planesZ]) {
       plane.material = this.material3D;
@@ -226,55 +340,30 @@ export class SubsquareSeparatorRenderer {
   }
 
   /**
-   * Show only perpendicular separators in face-on mode with opaque material
+   * Show line segments in face-on mode
    *
-   * In face-on view, we hide planes parallel to the viewing plane (they block cells)
-   * and show planes perpendicular to the viewing plane (they appear as grid lines).
+   * In face-on view, we replace 3D planes with 2D line segments at the active layer.
+   * This creates a clear grid pattern showing the 4x4 subsquare divisions.
    *
    * @param face - The face being viewed ('i', 'j', or 'k')
    * @param layer - The current layer depth (0-15)
    */
   private showFaceOnMode(face: Face, layer: number): void {
-    // Note: layer parameter preserved for potential future use (e.g., highlighting current layer's separators)
-    void layer; // Explicitly mark as intentionally unused for now
+    // Hide all 3D planes
+    this.setPlaneVisibility(this.planesX, false);
+    this.setPlaneVisibility(this.planesY, false);
+    this.setPlaneVisibility(this.planesZ, false);
 
-    // Determine which planes to show based on face
-    // We HIDE planes parallel to the viewing plane and SHOW planes perpendicular to it
-    //
-    // - 'i' face (looking down Y-axis, viewing XZ plane):
-    //   HIDE: Y-axis planes (parallel to XZ)
-    //   SHOW: X-axis and Z-axis planes (perpendicular to XZ, appear as grid lines)
-    //
-    // - 'j' face (looking down X-axis, viewing YZ plane):
-    //   HIDE: X-axis planes (parallel to YZ)
-    //   SHOW: Y-axis and Z-axis planes (perpendicular to YZ, appear as grid lines)
-    //
-    // - 'k' face (looking down Z-axis, viewing XY plane):
-    //   HIDE: Z-axis planes (parallel to XY)
-    //   SHOW: X-axis and Y-axis planes (perpendicular to XY, appear as grid lines)
-
-    switch (face) {
-      case 'i': // Looking down Y-axis, viewing XZ plane
-        // Hide Y-axis planes (parallel), show X and Z planes (perpendicular)
-        this.setPlaneVisibility(this.planesY, false);
-        this.setPlaneVisibility(this.planesX, true, this.materialFaceOn);
-        this.setPlaneVisibility(this.planesZ, true, this.materialFaceOn);
-        break;
-
-      case 'j': // Looking down X-axis, viewing YZ plane
-        // Hide X-axis planes (parallel), show Y and Z planes (perpendicular)
-        this.setPlaneVisibility(this.planesX, false);
-        this.setPlaneVisibility(this.planesY, true, this.materialFaceOn);
-        this.setPlaneVisibility(this.planesZ, true, this.materialFaceOn);
-        break;
-
-      case 'k': // Looking down Z-axis, viewing XY plane
-        // Hide Z-axis planes (parallel), show X and Y planes (perpendicular)
-        this.setPlaneVisibility(this.planesZ, false);
-        this.setPlaneVisibility(this.planesX, true, this.materialFaceOn);
-        this.setPlaneVisibility(this.planesY, true, this.materialFaceOn);
-        break;
+    // Remove old face-on lines if they exist
+    if (this.faceOnLines) {
+      this.container.remove(this.faceOnLines);
+      this.disposeFaceOnLines();
+      this.faceOnLines = null;
     }
+
+    // Create and add new face-on lines for the current face and layer
+    this.faceOnLines = this.createFaceOnLines(face, layer);
+    this.container.add(this.faceOnLines);
   }
 
   /**
@@ -298,6 +387,21 @@ export class SubsquareSeparatorRenderer {
   }
 
   /**
+   * Dispose of face-on lines and their resources
+   */
+  private disposeFaceOnLines(): void {
+    if (!this.faceOnLines) return;
+
+    this.faceOnLines.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        if (child.geometry) {
+          child.geometry.dispose();
+        }
+      }
+    });
+  }
+
+  /**
    * Dispose of all resources
    */
   public dispose(): void {
@@ -308,9 +412,17 @@ export class SubsquareSeparatorRenderer {
       }
     }
 
+    // Dispose of face-on lines
+    if (this.faceOnLines) {
+      this.container.remove(this.faceOnLines);
+      this.disposeFaceOnLines();
+      this.faceOnLines = null;
+    }
+
     // Dispose of materials
     this.material3D.dispose();
     this.materialFaceOn.dispose();
+    this.lineMaterial.dispose();
 
     // Clear container
     this.container.clear();
