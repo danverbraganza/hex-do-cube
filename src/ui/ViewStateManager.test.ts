@@ -120,13 +120,19 @@ class MockMinimapRenderer implements Partial<MinimapRenderer> {
  */
 class MockCubeRenderer implements Partial<CubeRenderer> {
   public setModeCalls: Array<'3d' | 'face-on'> = [];
+  public setVisibleLayerCalls: Array<{ face: Face | null; layer: number | null }> = [];
 
   setMode(mode: '3d' | 'face-on'): void {
     this.setModeCalls.push(mode);
   }
 
+  setVisibleLayer(face: Face | null, layer: number | null): void {
+    this.setVisibleLayerCalls.push({ face, layer });
+  }
+
   reset(): void {
     this.setModeCalls = [];
+    this.setVisibleLayerCalls = [];
   }
 }
 

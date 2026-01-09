@@ -78,6 +78,8 @@ export class ViewStateManager {
       if (this.faceRenderer.getCurrentLayer() !== layer) {
         this.faceRenderer.setLayer(layer);
         this.minimapRenderer.setHighlightedLayer(face, layer);
+        // Update layer visibility for CubeRenderer
+        this.cubeRenderer.setVisibleLayer(face, layer);
         // Notify listeners of layer change
         this.notifyViewModeChange('face-on', face, layer);
       }
@@ -93,6 +95,8 @@ export class ViewStateManager {
     this.minimapRenderer.setHighlightedFace(face);
     this.minimapRenderer.setHighlightedLayer(face, layer);
     this.cubeRenderer.setMode('face-on');
+    // Set visible layer to show only the active layer
+    this.cubeRenderer.setVisibleLayer(face, layer);
     this.subsquareSeparatorRenderer?.setMode('face-on', face, layer);
 
     // Notify listeners
@@ -118,6 +122,8 @@ export class ViewStateManager {
     this.minimapRenderer.setHighlightedFace(null);
     this.minimapRenderer.setHighlightedLayer(null, null);
     this.cubeRenderer.setMode('3d');
+    // Show all layers when returning to 3D view
+    this.cubeRenderer.setVisibleLayer(null, null);
     this.subsquareSeparatorRenderer?.setMode('3d');
 
     // Notify listeners

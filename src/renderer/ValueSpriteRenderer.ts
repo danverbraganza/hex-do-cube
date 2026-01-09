@@ -293,6 +293,50 @@ export class ValueSpriteRenderer {
   }
 
   /**
+   * Set visible layer for face-on view
+   * @param face - The face being viewed ('i', 'j', or 'k')
+   * @param layer - The layer index to show (0-15), or null to show all layers
+   *
+   * Face meanings:
+   * - 'i': XY plane at different Z depths, hide sprites where i !== layer
+   * - 'j': XZ plane at different Y depths, hide sprites where j !== layer
+   * - 'k': YZ plane at different X depths, hide sprites where k !== layer
+   *
+   * When layer is null, all layers are visible (3D view mode)
+   */
+  public setVisibleLayer(face: 'i' | 'j' | 'k' | null, layer: number | null): void {
+    if (face === null || layer === null) {
+      // Show all layers (3D view mode)
+      this.setAllSpritesVisibility(true);
+      return;
+    }
+
+    // Show only the specified layer
+    for (let i = 0; i < 16; i++) {
+      for (let j = 0; j < 16; j++) {
+        for (let k = 0; k < 16; k++) {
+          const position: Position = [i, j, k];
+          let visible = false;
+
+          switch (face) {
+            case 'i': // XY plane, layer is i index
+              visible = (i === layer);
+              break;
+            case 'j': // XZ plane, layer is j index
+              visible = (j === layer);
+              break;
+            case 'k': // YZ plane, layer is k index
+              visible = (k === layer);
+              break;
+          }
+
+          this.setSpriteVisibility(position, visible);
+        }
+      }
+    }
+  }
+
+  /**
    * Show or hide sprites based on a predicate function
    */
   public filterSprites(predicate: (cell: Cell) => boolean): void {
