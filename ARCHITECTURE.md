@@ -317,6 +317,118 @@ interface CachedPuzzle {
 - Mobile/touch support
 - Deployment strategy (currently local-only)
 
+## UI Components
+
+### MessagePanel
+
+The MessagePanel is a full-height sidebar on the right side of the screen that displays game messages and system logs. It provides real-time feedback to the player about their actions and game state.
+
+#### Purpose
+
+The MessagePanel serves as the communication hub between the game and player:
+- **Player Feedback**: Display validation results, win notifications, and game status
+- **System Logging**: Track internal events like view changes, generation, and auto-saves
+- **User Experience**: Keep players informed without cluttering the main 3D view
+
+#### Message Types
+
+MessagePanel supports two distinct message types:
+
+**LOG Messages** (System/Debug)
+- Internal, programmatic messages
+- Dimmer text (50% opacity) for subtle visibility
+- Used for: view mode changes, camera resets, generation events, auto-saves
+- Example: "Generated EASY puzzle with 50 given cells"
+
+**USER Messages** (Player-Facing)
+- Clear, actionable messages for the player
+- Brighter text (90% opacity) with light background
+- Used for: validation results, win notification, error messages
+- Example: "Found 3 wrong cells. Cell (5,7,3) conflicts with cell (5,7,9)"
+
+#### How to Add Messages
+
+Use the MessagePanel API to add messages programmatically:
+
+```typescript
+// Add a user-facing message
+messagePanel.addMessage('Game complete!', 'USER');
+
+// Add a system log message
+messagePanel.log('Switched to XY face view');
+
+// Convenience methods
+messagePanel.info('Player validation successful');  // USER message
+messagePanel.log('Loading saved game...');           // LOG message
+```
+
+#### UI Features
+
+**Collapse/Expand**
+- Click the `«` button in the header to collapse the panel to a thin strip
+- Click `»` to expand it back to full width
+- Collapse state persists in localStorage across sessions
+- Collapsed state: only shows header with expand button
+
+**Auto-Scroll**
+- Automatically scrolls to newest messages when panel is at bottom
+- Preserves scroll position when user scrolls up to read older messages
+- Useful for tracking multiple messages during gameplay
+
+**Timestamps**
+- Each message includes creation time in HH:MM:SS format
+- Timestamps in dimmer gray text
+- Helps players correlate messages with their actions
+
+**Scrolling**
+- Scrollable message area for history
+- Custom styled scrollbar matching dark theme
+- Width: 280px (expanded), collapses to 40px
+
+#### Configuration
+
+MessagePanel accepts a `MessagePanelConfig` object:
+
+```typescript
+interface MessagePanelConfig {
+  container: HTMLElement;      // DOM element to attach panel to
+  visible?: boolean;            // Initial visibility (default: true)
+  collapsed?: boolean;          // Initial collapsed state (default: false)
+}
+
+// Example usage
+const messagePanel = new MessagePanel({
+  container: document.body,
+  visible: true,
+  collapsed: false,
+});
+```
+
+#### Storage and State
+
+- **Collapse State**: Persisted in localStorage under key `messagePanel.collapsed`
+- **Message History**: Kept in memory (cleared when page unloads)
+- **No Message Limit**: Accumulates all messages during session
+
+#### Styling
+
+- **Background**: Dark semi-transparent (`rgba(20, 20, 30, 0.95)`)
+- **Text Colors**:
+  - LOG messages: 50% opacity white
+  - USER messages: 90% opacity white with subtle background highlight
+  - Timestamps: 30% opacity gray
+- **Font**: 12px for messages, 10px for timestamps
+- **Spacing**: 4px gap between messages, 8px padding
+- **Borders**: Subtle 1px light borders for definition
+
+#### Integration Points
+
+The MessagePanel is integrated with:
+- **GameUI**: Sends messages for validation results, win notification
+- **ViewStateManager**: Receives messages for view transitions (optional LOG)
+- **CellEditor**: Could send messages for cell value validation
+- **Generator**: Sends LOG messages when generating new puzzles
+
 ## Definition of Done
 
 Each commit must pass:
