@@ -67,82 +67,100 @@ describe('SubsquareSeparatorRenderer', () => {
       expect(visiblePlanes.length).toBe(9);
     });
 
-    test('shows only Y-axis planes in face-on i view', () => {
+    test('shows only X and Z planes (perpendicular) in face-on i view', () => {
+      // i-face: looking down Y-axis, viewing XZ plane
+      // Should HIDE Y-axis planes (parallel) and SHOW X and Z planes (perpendicular)
       renderer.setMode('face-on', 'i', 0);
 
       const container = renderer.getContainer();
-      const visiblePlanes = container.children.filter((child) => {
-        const plane = child as THREE.Mesh;
-        return plane.visible && plane.userData.axis === 'y';
-      });
 
-      // Should show 3 Y-axis planes when viewing i face
-      expect(visiblePlanes.length).toBe(3);
-
-      // X and Z planes should be hidden
+      // X-axis planes should be visible (perpendicular to viewing plane)
       const xPlanes = container.children.filter((child) => {
         const plane = child as THREE.Mesh;
         return plane.userData.axis === 'x';
       });
+      expect(xPlanes.length).toBe(3);
+      expect(xPlanes.every((p) => p.visible)).toBe(true);
+
+      // Z-axis planes should be visible (perpendicular to viewing plane)
       const zPlanes = container.children.filter((child) => {
         const plane = child as THREE.Mesh;
         return plane.userData.axis === 'z';
       });
+      expect(zPlanes.length).toBe(3);
+      expect(zPlanes.every((p) => p.visible)).toBe(true);
 
-      expect(xPlanes.every((p) => !p.visible)).toBe(true);
-      expect(zPlanes.every((p) => !p.visible)).toBe(true);
+      // Y-axis planes should be hidden (parallel to viewing plane)
+      const yPlanes = container.children.filter((child) => {
+        const plane = child as THREE.Mesh;
+        return plane.userData.axis === 'y';
+      });
+      expect(yPlanes.length).toBe(3);
+      expect(yPlanes.every((p) => !p.visible)).toBe(true);
     });
 
-    test('shows only X-axis planes in face-on j view', () => {
+    test('shows only Y and Z planes (perpendicular) in face-on j view', () => {
+      // j-face: looking down X-axis, viewing YZ plane
+      // Should HIDE X-axis planes (parallel) and SHOW Y and Z planes (perpendicular)
       renderer.setMode('face-on', 'j', 0);
 
       const container = renderer.getContainer();
-      const visiblePlanes = container.children.filter((child) => {
-        const plane = child as THREE.Mesh;
-        return plane.visible && plane.userData.axis === 'x';
-      });
 
-      // Should show 3 X-axis planes when viewing j face
-      expect(visiblePlanes.length).toBe(3);
-
-      // Y and Z planes should be hidden
+      // Y-axis planes should be visible (perpendicular to viewing plane)
       const yPlanes = container.children.filter((child) => {
         const plane = child as THREE.Mesh;
         return plane.userData.axis === 'y';
       });
+      expect(yPlanes.length).toBe(3);
+      expect(yPlanes.every((p) => p.visible)).toBe(true);
+
+      // Z-axis planes should be visible (perpendicular to viewing plane)
       const zPlanes = container.children.filter((child) => {
         const plane = child as THREE.Mesh;
         return plane.userData.axis === 'z';
       });
+      expect(zPlanes.length).toBe(3);
+      expect(zPlanes.every((p) => p.visible)).toBe(true);
 
-      expect(yPlanes.every((p) => !p.visible)).toBe(true);
-      expect(zPlanes.every((p) => !p.visible)).toBe(true);
-    });
-
-    test('shows only Z-axis planes in face-on k view', () => {
-      renderer.setMode('face-on', 'k', 0);
-
-      const container = renderer.getContainer();
-      const visiblePlanes = container.children.filter((child) => {
-        const plane = child as THREE.Mesh;
-        return plane.visible && plane.userData.axis === 'z';
-      });
-
-      // Should show 3 Z-axis planes when viewing k face
-      expect(visiblePlanes.length).toBe(3);
-
-      // X and Y planes should be hidden
+      // X-axis planes should be hidden (parallel to viewing plane)
       const xPlanes = container.children.filter((child) => {
         const plane = child as THREE.Mesh;
         return plane.userData.axis === 'x';
       });
+      expect(xPlanes.length).toBe(3);
+      expect(xPlanes.every((p) => !p.visible)).toBe(true);
+    });
+
+    test('shows only X and Y planes (perpendicular) in face-on k view', () => {
+      // k-face: looking down Z-axis, viewing XY plane
+      // Should HIDE Z-axis planes (parallel) and SHOW X and Y planes (perpendicular)
+      renderer.setMode('face-on', 'k', 0);
+
+      const container = renderer.getContainer();
+
+      // X-axis planes should be visible (perpendicular to viewing plane)
+      const xPlanes = container.children.filter((child) => {
+        const plane = child as THREE.Mesh;
+        return plane.userData.axis === 'x';
+      });
+      expect(xPlanes.length).toBe(3);
+      expect(xPlanes.every((p) => p.visible)).toBe(true);
+
+      // Y-axis planes should be visible (perpendicular to viewing plane)
       const yPlanes = container.children.filter((child) => {
         const plane = child as THREE.Mesh;
         return plane.userData.axis === 'y';
       });
+      expect(yPlanes.length).toBe(3);
+      expect(yPlanes.every((p) => p.visible)).toBe(true);
 
-      expect(xPlanes.every((p) => !p.visible)).toBe(true);
-      expect(yPlanes.every((p) => !p.visible)).toBe(true);
+      // Z-axis planes should be hidden (parallel to viewing plane)
+      const zPlanes = container.children.filter((child) => {
+        const plane = child as THREE.Mesh;
+        return plane.userData.axis === 'z';
+      });
+      expect(zPlanes.length).toBe(3);
+      expect(zPlanes.every((p) => !p.visible)).toBe(true);
     });
 
     test('switches between 3D and face-on modes correctly', () => {
@@ -152,11 +170,11 @@ describe('SubsquareSeparatorRenderer', () => {
       let visibleCount = container.children.filter((child) => child.visible).length;
       expect(visibleCount).toBe(9);
 
-      // Switch to face-on mode
+      // Switch to face-on mode (should show 6 perpendicular planes, hide 3 parallel)
       renderer.setMode('face-on', 'i', 0);
       container = renderer.getContainer();
       visibleCount = container.children.filter((child) => child.visible).length;
-      expect(visibleCount).toBe(3);
+      expect(visibleCount).toBe(6); // 3 X-axis + 3 Z-axis planes (Y-axis hidden)
 
       // Switch back to 3D mode
       renderer.setMode('3d');
