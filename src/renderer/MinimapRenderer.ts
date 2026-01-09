@@ -99,6 +99,10 @@ export class MinimapRenderer {
   // Shared materials for efficient reuse (reduces GC pressure)
   private materialCache: Map<string, THREE.MeshStandardMaterial> = new Map();
 
+  // Particle system for cell rendering (replaces meshes to avoid z-fighting)
+  private particles: THREE.Points | null = null;
+  private particleGeometry: THREE.BufferGeometry | null = null;
+
   // Container for all cell meshes
   private container: THREE.Group;
 
@@ -166,6 +170,9 @@ export class MinimapRenderer {
 
     // Initialize cell meshes
     this.initializeCellMeshes();
+
+    // Initialize particles for cell rendering
+    this.initializeParticles();
 
     // Initialize face highlight meshes
     this.initializeFaceHighlights();
@@ -251,6 +258,77 @@ export class MinimapRenderer {
     mesh.userData.cell = cell;
 
     return mesh;
+  }
+
+  /**
+   * Initialize particles for all filled cells
+   * Creates a single THREE.Points object with positions and colors for each filled cell
+   */
+  private initializeParticles(): void {
+    const filledCells: { position: number[]; color: THREE.Color }[] = [];
+    const spacing = this.config.cellSize + this.config.cellGap;
+    const offset = (15 * spacing) / 2; // Center the cube at origin
+
+    // Collect all filled cells
+    for (let i = 0; i < 16; i++) {
+      for (let j = 0; j < 16; j++) {
+        for (let k = 0; k < 16; k++) {
+          const cell = this.cube.cells[i][j][k];
+          if (cell.value !== null) {
+            filledCells.push({
+              position: [
+                j * spacing - offset,
+                i * spacing - offset,
+                k * spacing - offset,
+              ],
+              color: new THREE.Color(HEX_VALUE_COLORS[cell.value]),
+            });
+          }
+        }
+      }
+    }
+
+    // If no filled cells, don't create particles
+    if (filledCells.length === 0) return;
+
+    // Create position and color buffers
+    const positions = new Float32Array(filledCells.length * 3);
+    const colors = new Float32Array(filledCells.length * 3);
+
+    filledCells.forEach((cell, idx) => {
+      positions[idx * 3] = cell.position[0];
+      positions[idx * 3 + 1] = cell.position[1];
+      positions[idx * 3 + 2] = cell.position[2];
+      colors[idx * 3] = cell.color.r;
+      colors[idx * 3 + 1] = cell.color.g;
+      colors[idx * 3 + 2] = cell.color.b;
+    });
+
+    // Create geometry with attributes
+    this.particleGeometry = new THREE.BufferGeometry();
+    this.particleGeometry.setAttribute(
+      'position',
+      new THREE.BufferAttribute(positions, 3)
+    );
+    this.particleGeometry.setAttribute(
+      'color',
+      new THREE.BufferAttribute(colors, 3)
+    );
+
+    // Create material for particles
+    const material = new THREE.PointsMaterial({
+      size: this.config.cellSize * 0.8,
+      vertexColors: true,
+      transparent: true,
+      opacity: this.config.filledOpacity,
+      sizeAttenuation: true,
+      depthWrite: false,
+    });
+
+    // Create points object
+    this.particles = new THREE.Points(this.particleGeometry, material);
+    this.particles.visible = false; // Hidden initially (meshes still showing)
+    this.scene.add(this.particles);
   }
 
   /**
@@ -570,6 +648,14 @@ export class MinimapRenderer {
   public dispose(): void {
     // Dispose of cell geometry
     this.cellGeometry.dispose();
+
+    // Dispose of particle system
+    if (this.particleGeometry) {
+      this.particleGeometry.dispose();
+    }
+    if (this.particles && this.particles.material instanceof THREE.Material) {
+      this.particles.material.dispose();
+    }
 
     // Dispose of cached materials (now shared)
     for (const material of this.materialCache.values()) {
