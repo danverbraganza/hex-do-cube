@@ -613,7 +613,7 @@ describe('Cube Model', () => {
       const cube = createCube();
       const positions: Position[] = [];
 
-      cube.forEachCell((cell, position) => {
+      cube.forEachCell((_cell, position) => {
         positions.push(position);
       });
 
@@ -631,7 +631,7 @@ describe('Cube Model', () => {
     it('should allow modification of cells during iteration', () => {
       const cube = createCube();
 
-      cube.forEachCell((cell, position) => {
+      cube.forEachCell((_cell, position) => {
         // Set all cells to their i coordinate as a hex value
         const [i] = position;
         cube.cells[position[0]][position[1]][position[2]].value = i.toString(16) as HexValue;
@@ -641,7 +641,7 @@ describe('Cube Model', () => {
       for (let i = 0; i < 16; i++) {
         for (let j = 0; j < 16; j++) {
           for (let k = 0; k < 16; k++) {
-            expect(cube.cells[i][j][k].value).toBe(i.toString(16));
+            expect(cube.cells[i][j][k].value).toBe(i.toString(16) as HexValue);
           }
         }
       }
@@ -675,12 +675,16 @@ describe('Cube Model', () => {
 
     it('should filter cells by type', () => {
       const cube = createCube();
-      // Set some cells as given
-      cube.cells[0][0][0].type = 'given';
+      // Mark some cells as given by setting their values and using setCell
       cube.cells[0][0][0].value = '1';
-      cube.cells[1][1][1].type = 'given';
       cube.cells[1][1][1].value = '2';
       cube.cells[2][2][2].value = '3'; // editable
+
+      // Create given cells
+      const givenCell1 = createCell([0, 0, 0], '1', 'given');
+      const givenCell2 = createCell([1, 1, 1], '2', 'given');
+      setCell(cube, [0, 0, 0], givenCell1);
+      setCell(cube, [1, 1, 1], givenCell2);
 
       const givenCells = cube.filterCells((cell) => cell.type === 'given');
 
@@ -692,7 +696,7 @@ describe('Cube Model', () => {
     it('should filter cells by position predicate', () => {
       const cube = createCube();
       // Filter cells where i === j === k (diagonal)
-      const diagonalCells = cube.filterCells((cell, position) => {
+      const diagonalCells = cube.filterCells((_cell, position) => {
         const [i, j, k] = position;
         return i === j && j === k;
       });

@@ -41,6 +41,8 @@ export interface Cube {
   getColumn(i: number, k: number): Cell[];
   getBeam(j: number, k: number): Cell[];
   getSubSquare(face: Face, layer: number, subRow: number, subCol: number): Cell[];
+  forEachCell(callback: (cell: Cell, position: Position) => void): void;
+  filterCells(predicate: (cell: Cell, position: Position) => boolean): Array<{ cell: Cell; position: Position }>;
 }
 
 /**
@@ -66,7 +68,9 @@ export function createCube(): Cube {
     getRow,
     getColumn,
     getBeam,
-    getSubSquare
+    getSubSquare,
+    forEachCell,
+    filterCells
   };
 }
 
@@ -186,6 +190,38 @@ function getSubSquare(
   }
 
   return subSquare;
+}
+
+/**
+ * Iterate over all cells in the cube
+ * @param callback - Function to call for each cell with the cell and its position
+ */
+function forEachCell(this: Cube, callback: (cell: Cell, position: Position) => void): void {
+  for (let i = 0; i < 16; i++) {
+    for (let j = 0; j < 16; j++) {
+      for (let k = 0; k < 16; k++) {
+        callback(this.cells[i][j][k], [i, j, k]);
+      }
+    }
+  }
+}
+
+/**
+ * Filter cells matching a predicate
+ * @param predicate - Function to test each cell, returns true to include in results
+ * @returns Array of objects containing cell and position for cells that match the predicate
+ */
+function filterCells(
+  this: Cube,
+  predicate: (cell: Cell, position: Position) => boolean
+): Array<{ cell: Cell; position: Position }> {
+  const results: Array<{ cell: Cell; position: Position }> = [];
+  this.forEachCell((cell, position) => {
+    if (predicate(cell, position)) {
+      results.push({ cell, position });
+    }
+  });
+  return results;
 }
 
 /**
