@@ -323,8 +323,11 @@ export class InputController {
       const deltaY = event.clientY - this.lastMouseY;
 
       // Convert pixel deltas to rotation angles
-      const deltaAzimuth = deltaX * this.config.rotationSensitivity;
-      const deltaPolar = deltaY * this.config.rotationSensitivity;
+      // Note: Negate deltaX and deltaY to correct inverted rotation
+      // Dragging left should rotate left (negative), not right
+      // Dragging up should rotate up (negative), not down
+      const deltaAzimuth = -deltaX * this.config.rotationSensitivity;
+      const deltaPolar = -deltaY * this.config.rotationSensitivity;
 
       // Apply rotation
       this.sceneManager.rotateCamera(deltaAzimuth, deltaPolar);
