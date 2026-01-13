@@ -505,45 +505,40 @@ export class InputController {
   }
 
   /**
+   * Ensures ViewStateManager is set, throws descriptive error if not.
+   * Call this before using viewStateManager to get clear error messages.
+   */
+  private requireViewStateManager(): import('./ViewStateManager.js').ViewStateManager {
+    if (!this.viewStateManager) {
+      throw new Error('InputController: ViewStateManager required but not set. Call setViewStateManager() before entering face-on view.');
+    }
+    return this.viewStateManager;
+  }
+
+  /**
    * Enter face-on view for a specific face
-   * If ViewStateManager is available, delegates to it for coordinated transitions
-   * Otherwise, uses legacy direct approach
+   * Requires ViewStateManager to be set for proper coordination of all components
    */
   private enterFaceOnView(face: 'i' | 'j' | 'k', layer?: number): void {
-    // If ViewStateManager is available, use it for coordinated transitions
-    if (this.viewStateManager) {
-      this.viewStateManager.enterFaceOnView(face, layer);
-      this.deselectCell(); // Clear selection when entering face-on view
-      this.notifyViewModeChange('face-on'); // Notify callbacks
-      return;
-    }
+    // Verify ViewStateManager is available - required for correct coordinated transitions
+    const manager = this.requireViewStateManager();
 
-    // Legacy fallback: direct control (if ViewStateManager not set)
-    this.faceRenderer.enterFaceOnView(face, layer ?? 0);
-    this.minimapRenderer.setHighlightedFace(face);
+    manager.enterFaceOnView(face, layer);
     this.deselectCell(); // Clear selection when entering face-on view
-    this.notifyViewModeChange('face-on');
+    this.notifyViewModeChange('face-on'); // Notify callbacks
   }
 
   /**
    * Exit face-on view and return to 3D rotational view
-   * If ViewStateManager is available, delegates to it for coordinated transitions
-   * Otherwise, uses legacy direct approach
+   * Requires ViewStateManager to be set for proper coordination of all components
    */
   private exitFaceOnView(): void {
-    // If ViewStateManager is available, use it for coordinated transitions
-    if (this.viewStateManager) {
-      this.viewStateManager.exitFaceOnView();
-      this.deselectCell(); // Clear selection when exiting face-on view
-      this.notifyViewModeChange('3d-rotational'); // Notify callbacks
-      return;
-    }
+    // Verify ViewStateManager is available - required for correct coordinated transitions
+    const manager = this.requireViewStateManager();
 
-    // Legacy fallback: direct control (if ViewStateManager not set)
-    this.faceRenderer.exitFaceOnView();
-    this.minimapRenderer.setHighlightedFace(null);
+    manager.exitFaceOnView();
     this.deselectCell(); // Clear selection when exiting face-on view
-    this.notifyViewModeChange('3d-rotational');
+    this.notifyViewModeChange('3d-rotational'); // Notify callbacks
   }
 
   /**
