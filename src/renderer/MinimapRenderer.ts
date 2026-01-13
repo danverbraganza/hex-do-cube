@@ -23,6 +23,7 @@ import type { Cube } from '../models/Cube.js';
 import type { HexValue, Position } from '../models/Cell.js';
 import type { Face } from '../models/Cube.js';
 import { COLORS, LIGHTING } from '../config/RenderConfig.js';
+import { cellPositionToWorld } from './geometry.js';
 
 /**
  * Configuration for MinimapRenderer
@@ -199,8 +200,6 @@ export class MinimapRenderer {
    */
   private initializeParticles(): void {
     const filledCells: { position: number[]; color: THREE.Color }[] = [];
-    const spacing = this.config.cellSize + this.config.cellGap;
-    const offset = (15 * spacing) / 2; // Center the cube at origin
 
     // Collect all filled cells
     for (let i = 0; i < 16; i++) {
@@ -208,12 +207,15 @@ export class MinimapRenderer {
         for (let k = 0; k < 16; k++) {
           const cell = this.cube.cells[i][j][k];
           if (cell.value !== null) {
+            const worldPos = cellPositionToWorld(
+              i,
+              j,
+              k,
+              this.config.cellSize,
+              this.config.cellGap
+            );
             filledCells.push({
-              position: [
-                j * spacing - offset,
-                i * spacing - offset,
-                k * spacing - offset,
-              ],
+              position: [worldPos.x, worldPos.y, worldPos.z],
               color: new THREE.Color(HEX_VALUE_COLORS[cell.value]),
             });
           }
