@@ -617,6 +617,12 @@ export class InputController {
    */
   public setViewStateManager(viewStateManager: import('./ViewStateManager.js').ViewStateManager): void {
     this.viewStateManager = viewStateManager;
+
+    // Listen to view mode changes from ViewStateManager to keep our local state synchronized
+    // This ensures mouse rotation works correctly after all view transitions
+    this.viewStateManager.onViewModeChange((mode) => {
+      this.viewMode = mode;
+    });
   }
 
   /**
