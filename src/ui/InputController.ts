@@ -68,9 +68,6 @@ export class InputController {
   // Message panel (optional, for logging and debugging)
   private messagePanel: import('./MessagePanel.js').MessagePanel | null = null;
 
-  // View state
-  private viewMode: ViewMode = '3d-rotational';
-
   // Cell selection state
   private selectedCell: Position | null = null;
 
@@ -253,14 +250,16 @@ export class InputController {
     // Check if double-click is in minimap
     if (this.minimapRenderer.isPointInMinimap(x, y, rect.width, rect.height)) {
       // Return to 3D rotational view
-      if (this.viewMode === 'face-on') {
+      const currentMode = this.viewStateManager?.getViewMode() ?? '3d-rotational';
+      if (currentMode === 'face-on') {
         this.exitFaceOnView();
       }
       return;
     }
 
     // Double-click on face in 3D view - enter face-on view
-    if (this.viewMode === '3d-rotational') {
+    const currentMode = this.viewStateManager?.getViewMode() ?? '3d-rotational';
+    if (currentMode === '3d-rotational') {
       const mouseX = (x / rect.width) * 2 - 1;
       const mouseY = -(y / rect.height) * 2 + 1;
 
@@ -301,8 +300,10 @@ export class InputController {
    * Handle mouse move events
    */
   private handleMouseMove(event: MouseEvent): void {
+    const currentMode = this.viewStateManager?.getViewMode() ?? '3d-rotational';
+
     // Check if left mouse is down and might be dragging
-    if (this.isLeftMouseDown && !this.isDragging && this.viewMode === '3d-rotational') {
+    if (this.isLeftMouseDown && !this.isDragging && currentMode === '3d-rotational') {
       const deltaX = Math.abs(event.clientX - this.lastMouseX);
       const deltaY = Math.abs(event.clientY - this.lastMouseY);
 
@@ -314,7 +315,7 @@ export class InputController {
 
     // Left or middle mouse drag - rotate camera in 3D view
     const isRotating = (this.isMiddleMouseDown || (this.isLeftMouseDown && this.isDragging))
-                       && this.viewMode === '3d-rotational';
+                       && currentMode === '3d-rotational';
 
     if (isRotating) {
       event.preventDefault();
@@ -371,15 +372,17 @@ export class InputController {
    * Handle mouse wheel events (layer navigation in face-on view)
    */
   private handleWheel(event: WheelEvent): void {
+    const currentMode = this.viewStateManager?.getViewMode() ?? '3d-rotational';
+
     // Add logging for debugging
     if (this.messagePanel) {
       this.messagePanel.log(
-        `Wheel event: deltaY=${event.deltaY}, viewMode=${this.viewMode}, faceRendererActive=${this.faceRenderer.isActiveView()}`
+        `Wheel event: deltaY=${event.deltaY}, viewMode=${currentMode}, faceRendererActive=${this.faceRenderer.isActiveView()}`
       );
     }
 
     // Only handle wheel in face-on view
-    if (this.viewMode === 'face-on') {
+    if (currentMode === 'face-on') {
       event.preventDefault();
       this.faceRenderer.handleWheelScroll(event.deltaY);
     }
@@ -509,7 +512,6 @@ export class InputController {
   private enterFaceOnView(face: 'i' | 'j' | 'k', layer?: number): void {
     // If ViewStateManager is available, use it for coordinated transitions
     if (this.viewStateManager) {
-      this.viewMode = 'face-on'; // Keep local state synchronized
       this.viewStateManager.enterFaceOnView(face, layer);
       this.deselectCell(); // Clear selection when entering face-on view
       this.notifyViewModeChange('face-on'); // Notify callbacks
@@ -517,7 +519,6 @@ export class InputController {
     }
 
     // Legacy fallback: direct control (if ViewStateManager not set)
-    this.viewMode = 'face-on';
     this.faceRenderer.enterFaceOnView(face, layer ?? 0);
     this.minimapRenderer.setHighlightedFace(face);
     this.deselectCell(); // Clear selection when entering face-on view
@@ -532,7 +533,6 @@ export class InputController {
   private exitFaceOnView(): void {
     // If ViewStateManager is available, use it for coordinated transitions
     if (this.viewStateManager) {
-      this.viewMode = '3d-rotational'; // Keep local state synchronized
       this.viewStateManager.exitFaceOnView();
       this.deselectCell(); // Clear selection when exiting face-on view
       this.notifyViewModeChange('3d-rotational'); // Notify callbacks
@@ -540,7 +540,6 @@ export class InputController {
     }
 
     // Legacy fallback: direct control (if ViewStateManager not set)
-    this.viewMode = '3d-rotational';
     this.faceRenderer.exitFaceOnView();
     this.minimapRenderer.setHighlightedFace(null);
     this.deselectCell(); // Clear selection when exiting face-on view
@@ -552,7 +551,8 @@ export class InputController {
    * This is the same as double-clicking the minimap or pressing the Home button
    */
   public returnTo3DView(): void {
-    if (this.viewMode === 'face-on') {
+    const currentMode = this.viewStateManager?.getViewMode() ?? '3d-rotational';
+    if (currentMode === 'face-on') {
       this.exitFaceOnView();
     }
   }
@@ -561,7 +561,7 @@ export class InputController {
    * Get the current view mode
    */
   public getViewMode(): ViewMode {
-    return this.viewMode;
+    return this.viewStateManager?.getViewMode() ?? '3d-rotational';
   }
 
   /**
@@ -617,12 +617,6 @@ export class InputController {
    */
   public setViewStateManager(viewStateManager: import('./ViewStateManager.js').ViewStateManager): void {
     this.viewStateManager = viewStateManager;
-
-    // Listen to view mode changes from ViewStateManager to keep our local state synchronized
-    // This ensures mouse rotation works correctly after all view transitions
-    this.viewStateManager.onViewModeChange((mode) => {
-      this.viewMode = mode;
-    });
   }
 
   /**
