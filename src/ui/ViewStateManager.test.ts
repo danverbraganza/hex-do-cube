@@ -55,6 +55,9 @@ class MockFaceRenderer implements Partial<FaceRenderer> {
   public setLayerCalls: Array<number> = [];
   public updateCalls: number = 0;
 
+  // Layer change callback support
+  private layerChangeCallbacks: Array<(face: Face, layer: number) => void> = [];
+
   enterFaceOnView(face: Face, layer: number): void {
     this.enterFaceOnViewCalls.push({ face, layer });
     this.currentFace = face;
@@ -88,6 +91,10 @@ class MockFaceRenderer implements Partial<FaceRenderer> {
 
   update(): void {
     this.updateCalls++;
+  }
+
+  onLayerChange(callback: (face: Face, layer: number) => void): void {
+    this.layerChangeCallbacks.push(callback);
   }
 
   reset(): void {
@@ -765,6 +772,43 @@ describe('ViewStateManager', () => {
       // Should default to outermost layer (0) for j-face, not preserve layer 7
       expect(viewStateManager.getCurrentLayer()).toBe(0);
       expect(mockFaceRenderer.enterFaceOnViewCalls[0]).toEqual({ face: 'j', layer: 0 });
+    });
+  });
+
+  describe('minimap layer highlight on scroll (code-67)', () => {
+    it('should update minimap layer highlight when FaceRenderer layer changes', () => {
+      // Enter face-on view
+      viewStateManager.enterFaceOnView('k', 5);
+      mockMinimapRenderer.reset();
+
+      // Simulate FaceRenderer layer change (e.g., from mouse wheel scroll)
+      // Get the callback that was registered
+      const layerChangeCallback = (mockFaceRenderer as MockFaceRenderer)['layerChangeCallbacks'][0];
+
+      // Call the callback as if FaceRenderer changed the layer
+      layerChangeCallback('k', 8);
+
+      // Verify minimap was updated with new layer
+      expect(mockMinimapRenderer.setHighlightedLayerCalls).toHaveLength(1);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls[0]).toEqual({ face: 'k', layer: 8 });
+    });
+
+    it('should handle multiple layer changes', () => {
+      viewStateManager.enterFaceOnView('i', 0);
+      mockMinimapRenderer.reset();
+
+      const layerChangeCallback = (mockFaceRenderer as MockFaceRenderer)['layerChangeCallbacks'][0];
+
+      // Simulate scrolling through several layers
+      layerChangeCallback('i', 1);
+      layerChangeCallback('i', 2);
+      layerChangeCallback('i', 3);
+
+      // Verify minimap was updated for each change
+      expect(mockMinimapRenderer.setHighlightedLayerCalls).toHaveLength(3);
+      expect(mockMinimapRenderer.setHighlightedLayerCalls[0]).toEqual({ face: 'i', layer: 1 });
+      expect(mockMinimapRenderer.setHighlightedLayerCalls[1]).toEqual({ face: 'i', layer: 2 });
+      expect(mockMinimapRenderer.setHighlightedLayerCalls[2]).toEqual({ face: 'i', layer: 3 });
     });
   });
 });

@@ -62,6 +62,11 @@ export class ViewStateManager {
     this.minimapRenderer = config.minimapRenderer;
     this.cubeRenderer = config.cubeRenderer;
     this.subsquareSeparatorRenderer = config.subsquareSeparatorRenderer;
+
+    // Listen to layer changes from FaceRenderer to update minimap
+    this.faceRenderer.onLayerChange((face, layer) => {
+      this.minimapRenderer.setHighlightedLayer(face, layer);
+    });
   }
 
   /**
