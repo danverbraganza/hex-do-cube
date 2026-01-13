@@ -71,6 +71,9 @@ export class InputController {
   // Cell selection state
   private selectedCell: Position | null = null;
 
+  // Disposal flag to prevent operations after dispose()
+  private isDisposed: boolean = false;
+
   // Mouse state for drag rotation (left or middle button)
   private isMiddleMouseDown: boolean = false;
   private isLeftMouseDown: boolean = false;
@@ -212,6 +215,31 @@ export class InputController {
   }
 
   /**
+   * Safely pick a cell at the given coordinates with error handling
+   * Returns null if controller is disposed, if picking fails, or if no cell is picked
+   */
+  private safePick(x: number, y: number): Position | null {
+    // Prevent operations after disposal
+    if (this.isDisposed) {
+      return null;
+    }
+
+    try {
+      // Convert to normalized device coordinates
+      const rect = this.canvas.getBoundingClientRect();
+      const mouseX = (x / rect.width) * 2 - 1;
+      const mouseY = -(y / rect.height) * 2 + 1;
+
+      // Pick cell at mouse position
+      const camera = this.sceneManager.getCamera();
+      return this.cubeRenderer.pickCell(camera, mouseX, mouseY);
+    } catch (error) {
+      console.warn('Cell picking failed:', error);
+      return null;
+    }
+  }
+
+  /**
    * Handle single click (cell selection)
    */
   private handleSingleClick(event: MouseEvent): void {
@@ -224,13 +252,8 @@ export class InputController {
       return;
     }
 
-    // Convert to normalized device coordinates
-    const mouseX = (x / rect.width) * 2 - 1;
-    const mouseY = -(y / rect.height) * 2 + 1;
-
-    // Pick cell at mouse position
-    const camera = this.sceneManager.getCamera();
-    const pickedPosition = this.cubeRenderer.pickCell(camera, mouseX, mouseY);
+    // Pick cell at mouse position with error handling
+    const pickedPosition = this.safePick(x, y);
 
     if (pickedPosition) {
       this.selectCell(pickedPosition);
@@ -260,11 +283,8 @@ export class InputController {
     // Double-click on face in 3D view - enter face-on view
     const currentMode = this.viewStateManager?.getViewMode() ?? '3d-rotational';
     if (currentMode === '3d-rotational') {
-      const mouseX = (x / rect.width) * 2 - 1;
-      const mouseY = -(y / rect.height) * 2 + 1;
-
-      const camera = this.sceneManager.getCamera();
-      const pickedPosition = this.cubeRenderer.pickCell(camera, mouseX, mouseY);
+      // Pick cell with error handling
+      const pickedPosition = this.safePick(x, y);
 
       if (pickedPosition) {
         // Determine which face to enter based on picked cell
@@ -626,6 +646,7 @@ export class InputController {
    * Clean up resources and remove event listeners
    */
   public dispose(): void {
+    this.isDisposed = true;
     this.unregisterEventListeners();
     this.deselectCell();
     this.cellValueChangeCallbacks = [];
