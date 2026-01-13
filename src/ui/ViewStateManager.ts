@@ -222,7 +222,7 @@ export class ViewStateManager {
    * Notify all listeners of a view mode change
    */
   private notifyViewModeChange(mode: ViewMode, face?: Face, layer?: number): void {
-    for (const callback of this.viewModeChangeCallbacks) {
+    for (const callback of [...this.viewModeChangeCallbacks]) {
       callback(mode, face, layer);
     }
   }

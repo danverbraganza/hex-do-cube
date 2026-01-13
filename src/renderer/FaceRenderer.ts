@@ -396,7 +396,7 @@ export class FaceRenderer {
     if (this.currentFace === null) {
       return;
     }
-    for (const callback of this.layerChangeCallbacks) {
+    for (const callback of [...this.layerChangeCallbacks]) {
       callback(this.currentFace, this.currentLayer);
     }
   }

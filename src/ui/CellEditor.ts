@@ -266,7 +266,7 @@ export class CellEditor {
    * Notify all validation callbacks
    */
   private notifyValidation(result: CubeValidationResult): void {
-    for (const callback of this.validationCallbacks) {
+    for (const callback of [...this.validationCallbacks]) {
       callback(result);
     }
   }
@@ -275,7 +275,7 @@ export class CellEditor {
    * Notify all edit callbacks
    */
   private notifyEdit(position: Position, value: HexValue): void {
-    for (const callback of this.editCallbacks) {
+    for (const callback of [...this.editCallbacks]) {
       callback(position, value);
     }
   }

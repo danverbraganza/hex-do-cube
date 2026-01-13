@@ -640,7 +640,7 @@ export class GameUI {
    * Notify all new game callbacks
    */
   private notifyNewGame(difficulty: Difficulty): void {
-    for (const callback of this.newGameCallbacks) {
+    for (const callback of [...this.newGameCallbacks]) {
       callback(difficulty);
     }
   }

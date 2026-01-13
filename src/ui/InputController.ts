@@ -589,7 +589,7 @@ export class InputController {
    * Notify all listeners of a cell value change
    */
   private notifyCellValueChange(position: Position, value: HexValue): void {
-    for (const callback of this.cellValueChangeCallbacks) {
+    for (const callback of [...this.cellValueChangeCallbacks]) {
       callback(position, value);
     }
   }
@@ -598,7 +598,7 @@ export class InputController {
    * Notify all listeners of a view mode change
    */
   private notifyViewModeChange(mode: ViewMode): void {
-    for (const callback of this.viewModeChangeCallbacks) {
+    for (const callback of [...this.viewModeChangeCallbacks]) {
       callback(mode);
     }
   }
