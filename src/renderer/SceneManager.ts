@@ -33,6 +33,8 @@ export interface SceneManagerConfig {
 }
 
 export class SceneManager {
+  private static instance: SceneManager | null = null;
+
   private scene: THREE.Scene;
   private perspectiveCamera: THREE.PerspectiveCamera;
   private orthographicCamera: THREE.OrthographicCamera;
@@ -46,6 +48,7 @@ export class SceneManager {
 
   private cameraDistance: number;
   private animationFrameId: number | null = null;
+  private isDisposed = false;
 
   // Camera animation state
   private cameraAnimation: {
@@ -74,6 +77,13 @@ export class SceneManager {
   private lastAutoRotationTime: number = 0;
 
   constructor(config: SceneManagerConfig) {
+    // Ensure only one instance exists
+    if (SceneManager.instance) {
+      console.warn('SceneManager: Previous instance exists, disposing it');
+      SceneManager.instance.dispose();
+    }
+    SceneManager.instance = this;
+
     this.container = config.container;
     this.cameraDistance = config.cameraDistance ?? 37.5;
 
@@ -639,6 +649,11 @@ export class SceneManager {
    * Clean up resources and remove event listeners
    */
   public dispose(): void {
+    if (this.isDisposed) {
+      return;
+    }
+    this.isDisposed = true;
+
     this.stopRenderLoop();
     window.removeEventListener('resize', this.handleResize);
 
@@ -652,5 +667,10 @@ export class SceneManager {
 
     // Clear scene
     this.scene.clear();
+
+    // Clear static instance
+    if (SceneManager.instance === this) {
+      SceneManager.instance = null;
+    }
   }
 }
