@@ -237,8 +237,6 @@ describe('ViewStateManager', () => {
     it('should coordinate MinimapRenderer when entering face view', () => {
       viewStateManager.enterFaceOnView('j', 3);
 
-      expect(mockMinimapRenderer.setHighlightedFaceCalls).toHaveLength(1);
-      expect(mockMinimapRenderer.setHighlightedFaceCalls[0]).toBe('j');
       expect(mockMinimapRenderer.setHighlightedLayerCalls).toHaveLength(1);
       expect(mockMinimapRenderer.setHighlightedLayerCalls[0]).toEqual({ face: 'j', layer: 3 });
     });
@@ -617,7 +615,6 @@ describe('ViewStateManager', () => {
       expect(mockFaceRenderer.getCurrentFace()).toBe('k');
       expect(mockFaceRenderer.getCurrentLayer()).toBe(7);
       expect(mockSceneManager.setFaceOnViewCalls).toHaveLength(1);
-      expect(mockMinimapRenderer.setHighlightedFaceCalls).toHaveLength(1);
       expect(mockMinimapRenderer.setHighlightedLayerCalls).toHaveLength(1);
       expect(mockMinimapRenderer.setHighlightedLayerCalls[0]).toEqual({ face: 'k', layer: 7 });
 
@@ -631,8 +628,8 @@ describe('ViewStateManager', () => {
       expect(mockFaceRenderer.getCurrentFace()).toBe(null);
       expect(mockFaceRenderer.isActiveView()).toBe(false);
       expect(mockSceneManager.resetCameraCalls).toBe(1);
-      expect(mockMinimapRenderer.setHighlightedFaceCalls).toHaveLength(2);
-      expect(mockMinimapRenderer.setHighlightedFaceCalls[1]).toBe(null);
+      expect(mockMinimapRenderer.setHighlightedFaceCalls).toHaveLength(1);
+      expect(mockMinimapRenderer.setHighlightedFaceCalls[0]).toBe(null);
       expect(mockMinimapRenderer.setHighlightedLayerCalls).toHaveLength(2);
       expect(mockMinimapRenderer.setHighlightedLayerCalls[1]).toEqual({ face: null, layer: null });
     });
