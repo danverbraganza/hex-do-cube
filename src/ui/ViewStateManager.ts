@@ -123,7 +123,8 @@ export class ViewStateManager {
     // Coordinate all components
     this.faceRenderer.enterFaceOnView(face, targetLayer);
     this.sceneManager.setFaceOnView(face, targetLayer);
-    this.minimapRenderer.setHighlightedFace(face);
+    // Only highlight the layer slice, not the face surface
+    // (layer highlight already shows which face we're viewing at which depth)
     this.minimapRenderer.setHighlightedLayer(face, targetLayer);
     this.cubeRenderer.setMode('face-on');
     // Set visible layer to show only the active layer
