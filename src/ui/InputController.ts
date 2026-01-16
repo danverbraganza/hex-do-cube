@@ -447,6 +447,15 @@ export class InputController {
   }
 
   /**
+   * Update cell appearance in all renderers
+   * Ensures consistent cell updates across CubeRenderer and MinimapRenderer
+   */
+  private updateCellRenderers(position: Position): void {
+    this.cubeRenderer.updateCell(position);
+    this.minimapRenderer.updateCell(position);
+  }
+
+  /**
    * Input a hex value into the selected cell
    */
   private inputHexValue(value: Exclude<HexValue, null>): void {
@@ -466,8 +475,7 @@ export class InputController {
     setCellValue(cell, value);
 
     // Update renderer
-    this.cubeRenderer.updateCell(this.selectedCell);
-    this.minimapRenderer.updateCell(this.selectedCell);
+    this.updateCellRenderers(this.selectedCell);
 
     // Notify listeners
     this.notifyCellValueChange(this.selectedCell, value);
@@ -493,8 +501,7 @@ export class InputController {
     setCellValue(cell, null);
 
     // Update renderer
-    this.cubeRenderer.updateCell(this.selectedCell);
-    this.minimapRenderer.updateCell(this.selectedCell);
+    this.updateCellRenderers(this.selectedCell);
 
     // Notify listeners
     this.notifyCellValueChange(this.selectedCell, null);
