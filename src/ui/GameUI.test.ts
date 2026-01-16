@@ -10,7 +10,7 @@ import { createCube } from '../models/Cube.js';
 import type { SceneManager } from '../renderer/SceneManager.js';
 import type { ViewStateManager } from './ViewStateManager.js';
 import type { InputController } from './InputController.js';
-import type { CellEditor } from './CellEditor.js';
+import type { GameValidator } from '../services/GameValidator.js';
 import { Window } from 'happy-dom';
 
 /**
@@ -56,9 +56,9 @@ describe('GameUI - Version Display', () => {
       enterFaceOnView: mock(() => {}),
     } as unknown as ViewStateManager;
 
-    const mockCellEditor = {
-      validate: mock(() => ({ isValid: true, errors: [] })),
-    } as unknown as CellEditor;
+    const mockGameValidator = {
+      check: mock(() => ({ isComplete: false, isValid: true, isWon: false, errors: [] })),
+    } as unknown as GameValidator;
 
     const mockInputController = {} as unknown as InputController;
 
@@ -68,7 +68,7 @@ describe('GameUI - Version Display', () => {
       sceneManager: mockSceneManager,
       viewStateManager: mockViewStateManager,
       inputController: mockInputController,
-      cellEditor: mockCellEditor,
+      gameValidator: mockGameValidator,
       gameState,
     };
     gameUI = new GameUI(config);

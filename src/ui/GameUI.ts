@@ -12,10 +12,10 @@
 
 import type { GameState } from '../models/GameState.js';
 import type { SceneManager } from '../renderer/SceneManager.js';
-import type { CellEditor } from './CellEditor.js';
 import type { InputController } from './InputController.js';
 import type { ViewStateManager } from './ViewStateManager.js';
-import { isGameWon, validateGameState, checkCompletion, type Difficulty } from '../models/GameState.js';
+import type { Difficulty } from '../models/GameState.js';
+import { GameValidator } from '../services/GameValidator.js';
 import { WinScreenRenderer } from '../renderer/WinScreenRenderer.js';
 import { Modal } from './Modal.js';
 
@@ -31,8 +31,8 @@ export interface GameUIConfig {
   viewStateManager: ViewStateManager;
   /** Reference to the input controller for view transitions */
   inputController: InputController;
-  /** Reference to the cell editor for validation */
-  cellEditor: CellEditor;
+  /** Reference to the game validator for unified validation */
+  gameValidator: GameValidator;
   /** Current game state */
   gameState: GameState;
 }
@@ -49,7 +49,7 @@ export class GameUI {
   private container: HTMLElement;
   private sceneManager: SceneManager;
   private viewStateManager: ViewStateManager;
-  private cellEditor: CellEditor;
+  private gameValidator: GameValidator;
   private gameState: GameState;
 
   // Win screen renderer for fireworks
@@ -83,7 +83,7 @@ export class GameUI {
     this.sceneManager = config.sceneManager;
     this.viewStateManager = config.viewStateManager;
     // inputController is in config but not used by GameUI - it's managed by main.ts
-    this.cellEditor = config.cellEditor;
+    this.gameValidator = config.gameValidator;
     this.gameState = config.gameState;
 
     // Initialize win screen renderer
@@ -470,21 +470,17 @@ export class GameUI {
    * - Error highlights only if incomplete or incorrect
    */
   private handleCheckButton(): void {
-    // Trigger validation through cell editor (handles visual feedback)
-    const result = this.cellEditor.validate();
-
-    // Update game state with validation results
-    validateGameState(this.gameState);
+    // Use unified GameValidator to check game status
+    const status = this.gameValidator.check(this.gameState);
 
     // Check for win condition (complete AND correct)
-    if (isGameWon(this.gameState)) {
+    if (status.isWon) {
       this.showWinNotification();
       return;
     }
 
     // Check for wrong completion (complete BUT incorrect)
-    const isComplete = checkCompletion(this.gameState);
-    if (isComplete && !result.isValid) {
+    if (status.isComplete && !status.isValid) {
       this.showWrongCompletionNotification();
     }
     // If incomplete or has errors, the CellEditor already highlighted errors

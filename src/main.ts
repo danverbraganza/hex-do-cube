@@ -12,6 +12,7 @@ import type { HexValue, CellType } from './models/Cell.js';
 // Services
 import { loadGameState, saveGameState, hasGameState } from './services/storage.js';
 import { generatePuzzle } from './services/generator.js';
+import { GameValidator } from './services/GameValidator.js';
 
 // Data
 import cachedPuzzleData from './data/cached-puzzle.json';
@@ -189,6 +190,9 @@ export function init(): void {
     }
   );
 
+  // 10a. Initialize GameValidator for unified validation API
+  const gameValidator = new GameValidator(cellEditor);
+
   // 11. Initialize MessagePanel
   const messagePanel = new MessagePanel({
     container,
@@ -204,7 +208,7 @@ export function init(): void {
     sceneManager,
     viewStateManager,
     inputController,
-    cellEditor,
+    gameValidator,
     gameState,
   });
 
