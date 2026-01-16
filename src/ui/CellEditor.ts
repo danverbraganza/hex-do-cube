@@ -1,15 +1,16 @@
 /**
  * CellEditor for Hex-Do-Cube
- * Orchestrates cell value editing with validation feedback and visual state management.
+ * Orchestrates cell value validation feedback and visual state management.
  *
  * Responsibilities:
- * - Accept hex value input (0-9, a-f) for selected cells
- * - Validate that only editable cells can be modified (not given cells)
- * - Provide visual feedback for validation conflicts
- * - Distinguish given vs editable cells visually
- * - Integrate with InputController for cell selection
- * - Integrate with validator for conflict detection
- * - Update CubeRenderer with error states for conflicting cells
+ * - Validate the cube state and detect conflicts
+ * - Provide visual feedback for validation conflicts (error highlighting)
+ * - Distinguish given vs editable cells visually during validation
+ * - Update renderers with error states for conflicting cells
+ *
+ * Note: Direct cell editing from user input is handled by InputController,
+ * which updates both CubeRenderer and MinimapRenderer. CellEditor focuses
+ * on validation and error state management.
  */
 
 import type { Cube } from '../models/Cube.js';
@@ -78,6 +79,12 @@ export class CellEditor {
 
   /**
    * Attempt to edit a cell with a new value
+   *
+   * Note: This method is provided for programmatic cell editing (e.g., undo/redo,
+   * loading saved games). Direct user input is handled by InputController, which
+   * updates both CubeRenderer and MinimapRenderer. This method only updates the
+   * model and triggers validation - the caller is responsible for updating renderers.
+   *
    * @param position - The position of the cell to edit
    * @param value - The new hex value (or null to clear)
    * @returns true if edit was successful, false if cell is not editable
@@ -94,8 +101,9 @@ export class CellEditor {
     // Set the cell value
     setCellValue(cell, value);
 
-    // Update renderer
-    this.renderer.updateCell(position);
+    // Note: Renderer updates are NOT done here. The caller (typically InputController
+    // for user input, or other controllers for programmatic edits) is responsible
+    // for calling updateCellRenderers() to update both CubeRenderer and MinimapRenderer.
 
     // Notify edit callbacks
     this.notifyEdit(position, value);

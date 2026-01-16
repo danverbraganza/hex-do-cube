@@ -11,6 +11,10 @@
  * - Keyboard input: Handle hex value input (0-9, a-f) for cell editing
  * - Track view mode (3D vs face-on)
  * - Manage cell selection state
+ * - Update ALL renderers after cell edits (CubeRenderer and MinimapRenderer)
+ *
+ * Note: InputController owns the rendering updates for user-initiated cell edits.
+ * CellEditor handles validation and error states but does NOT update renderers.
  */
 
 import type { SceneManager } from '../renderer/SceneManager.js';
@@ -451,7 +455,12 @@ export class InputController {
 
   /**
    * Update cell appearance in all renderers
-   * Ensures consistent cell updates across CubeRenderer and MinimapRenderer
+   *
+   * This is the single source of truth for renderer updates after user cell edits.
+   * Ensures consistent cell updates across both CubeRenderer and MinimapRenderer.
+   *
+   * Responsibility: InputController owns all renderer updates for user-initiated edits.
+   * CellEditor focuses on validation and does NOT update renderers directly.
    */
   private updateCellRenderers(position: Position): void {
     this.cubeRenderer.updateCell(position);
