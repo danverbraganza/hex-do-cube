@@ -54,6 +54,10 @@ describe('GameUI - Version Display', () => {
       isInFaceOnView: mock(() => false),
       returnTo3DView: mock(() => {}),
       enterFaceOnView: mock(() => {}),
+      onViewModeChange: mock(() => {}),
+      getViewMode: mock(() => '3d-rotational'),
+      getCurrentFace: mock(() => null),
+      getCurrentLayer: mock(() => null),
     } as unknown as ViewStateManager;
 
     const mockGameValidator = {

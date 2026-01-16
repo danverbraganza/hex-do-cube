@@ -76,6 +76,10 @@ export class GameUI {
   private yzViewButton!: HTMLButtonElement;
   private homeViewButton!: HTMLButtonElement;
 
+  // Layer navigation buttons
+  private layerMinusButton!: HTMLButtonElement;
+  private layerPlusButton!: HTMLButtonElement;
+
   // Callbacks
   private newGameCallbacks: NewGameCallback[] = [];
 
@@ -258,6 +262,44 @@ export class GameUI {
 
     bottomLeftControls.appendChild(faceViewLabel);
     bottomLeftControls.appendChild(faceViewButtons);
+
+    // Layer navigation controls
+    const layerNavLabel = document.createElement("div");
+    layerNavLabel.textContent = "Layer:";
+    layerNavLabel.style.cssText = `
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 12px;
+      margin-bottom: 4px;
+    `;
+
+    // Container for layer navigation buttons
+    const layerNavButtons = document.createElement("div");
+    layerNavButtons.style.cssText = `
+      display: flex;
+      gap: 4px;
+    `;
+
+    // Layer minus button [-]
+    this.layerMinusButton = document.createElement("button");
+    this.layerMinusButton.textContent = "[-]";
+    this.layerMinusButton.title = "Navigate to previous layer (shallower)";
+    this.layerMinusButton.disabled = true; // Initially disabled
+    this.applyButtonStyle(this.layerMinusButton);
+
+    // Layer plus button [+]
+    this.layerPlusButton = document.createElement("button");
+    this.layerPlusButton.textContent = "[+]";
+    this.layerPlusButton.title = "Navigate to next layer (deeper)";
+    this.layerPlusButton.disabled = true; // Initially disabled
+    this.applyButtonStyle(this.layerPlusButton);
+
+    layerNavButtons.appendChild(this.layerMinusButton);
+    layerNavButtons.appendChild(this.layerPlusButton);
+
+    bottomLeftControls.appendChild(layerNavLabel);
+    bottomLeftControls.appendChild(layerNavButtons);
 
     // Win notification (initially hidden)
     this.winNotification = document.createElement("div");
@@ -446,6 +488,20 @@ export class GameUI {
     this.homeViewButton.addEventListener("click", () => {
       this.handleHomeViewButton();
     });
+
+    // Layer navigation button handlers
+    this.layerMinusButton.addEventListener("click", () => {
+      this.handleLayerMinusButton();
+    });
+
+    this.layerPlusButton.addEventListener("click", () => {
+      this.handleLayerPlusButton();
+    });
+
+    // Listen to view mode changes to update button states
+    this.viewStateManager.onViewModeChange(() => {
+      this.updateLayerButtonStates();
+    });
   }
 
   /**
@@ -561,6 +617,53 @@ export class GameUI {
   private handleHomeViewButton(): void {
     // Same as the home button - return to canonical isometric view
     this.viewStateManager.returnTo3DView();
+  }
+
+  /**
+   * Handle layer minus button click
+   * Decreases the current layer (e.g., layer 2/16 -> layer 1/16)
+   */
+  private handleLayerMinusButton(): void {
+    const currentLayer = this.viewStateManager.getCurrentLayer();
+    if (currentLayer !== null && currentLayer > 0) {
+      const currentFace = this.viewStateManager.getCurrentFace();
+      if (currentFace) {
+        this.viewStateManager.enterFaceOnView(currentFace, currentLayer - 1);
+      }
+    }
+  }
+
+  /**
+   * Handle layer plus button click
+   * Increases the current layer (e.g., layer 1/16 -> layer 2/16)
+   */
+  private handleLayerPlusButton(): void {
+    const currentLayer = this.viewStateManager.getCurrentLayer();
+    if (currentLayer !== null && currentLayer < 15) {
+      const currentFace = this.viewStateManager.getCurrentFace();
+      if (currentFace) {
+        this.viewStateManager.enterFaceOnView(currentFace, currentLayer + 1);
+      }
+    }
+  }
+
+  /**
+   * Update the disabled state of layer navigation buttons
+   * Buttons are disabled when not in face-on view, or when at layer boundaries
+   */
+  private updateLayerButtonStates(): void {
+    const isInFaceOnView = this.viewStateManager.getViewMode() === 'face-on';
+    const currentLayer = this.viewStateManager.getCurrentLayer();
+
+    if (!isInFaceOnView || currentLayer === null) {
+      // Not in face-on view - disable both buttons
+      this.layerMinusButton.disabled = true;
+      this.layerPlusButton.disabled = true;
+    } else {
+      // In face-on view - enable based on layer position
+      this.layerMinusButton.disabled = (currentLayer === 0);
+      this.layerPlusButton.disabled = (currentLayer === 15);
+    }
   }
 
   /**
