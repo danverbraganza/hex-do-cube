@@ -10,14 +10,14 @@
  * - New game functionality: Generates a new puzzle
  */
 
-import type { GameState } from '../models/GameState.js';
-import type { SceneManager } from '../renderer/SceneManager.js';
-import type { InputController } from './InputController.js';
-import type { ViewStateManager } from './ViewStateManager.js';
-import type { Difficulty } from '../models/GameState.js';
-import { GameValidator } from '../services/GameValidator.js';
-import { WinScreenRenderer } from '../renderer/WinScreenRenderer.js';
-import { Modal } from './Modal.js';
+import type { GameState } from "../models/GameState.js";
+import type { SceneManager } from "../renderer/SceneManager.js";
+import type { InputController } from "./InputController.js";
+import type { ViewStateManager } from "./ViewStateManager.js";
+import type { Difficulty } from "../models/GameState.js";
+import { GameValidator } from "../services/GameValidator.js";
+import { WinScreenRenderer } from "../renderer/WinScreenRenderer.js";
+import { Modal } from "./Modal.js";
 
 /**
  * Configuration for GameUI
@@ -102,8 +102,8 @@ export class GameUI {
    */
   private initializeUI(): void {
     // Create HUD overlay container
-    this.hudOverlay = document.createElement('div');
-    this.hudOverlay.id = 'hud-overlay';
+    this.hudOverlay = document.createElement("div");
+    this.hudOverlay.id = "hud-overlay";
     this.hudOverlay.style.cssText = `
       position: absolute;
       top: 0;
@@ -116,7 +116,7 @@ export class GameUI {
     `;
 
     // Top-left controls
-    const topLeftControls = document.createElement('div');
+    const topLeftControls = document.createElement("div");
     topLeftControls.style.cssText = `
       position: absolute;
       top: 16px;
@@ -127,15 +127,15 @@ export class GameUI {
     `;
 
     // Home button
-    this.homeButton = document.createElement('button');
-    this.homeButton.textContent = 'Home';
-    this.homeButton.title = 'Return to canonical isometric view';
+    this.homeButton = document.createElement("button");
+    this.homeButton.textContent = "Home";
+    this.homeButton.title = "Return to canonical isometric view";
     this.applyButtonStyle(this.homeButton);
 
     // Check button
-    this.checkButton = document.createElement('button');
-    this.checkButton.textContent = 'Check';
-    this.checkButton.title = 'Validate current solution';
+    this.checkButton = document.createElement("button");
+    this.checkButton.textContent = "Check";
+    this.checkButton.title = "Validate current solution";
     this.applyButtonStyle(this.checkButton);
 
     topLeftControls.appendChild(this.homeButton);
@@ -144,7 +144,7 @@ export class GameUI {
     // Top-right controls (positioned to account for MessagePanel width)
     // MessagePanel is 280px wide when expanded, 40px when collapsed
     // Position at right: 300px to ensure clear separation
-    const topRightControls = document.createElement('div');
+    const topRightControls = document.createElement("div");
     topRightControls.style.cssText = `
       position: absolute;
       top: 16px;
@@ -156,15 +156,15 @@ export class GameUI {
     `;
 
     // Difficulty selector
-    const difficultyLabel = document.createElement('label');
-    difficultyLabel.textContent = 'Difficulty: ';
+    const difficultyLabel = document.createElement("label");
+    difficultyLabel.textContent = "Difficulty: ";
     difficultyLabel.style.cssText = `
       color: #ffffff;
       font-size: 14px;
       margin-right: 4px;
     `;
 
-    this.difficultySelect = document.createElement('select');
+    this.difficultySelect = document.createElement("select");
     this.difficultySelect.style.cssText = `
       background: rgba(255, 255, 255, 0.1);
       color: #ffffff;
@@ -177,26 +177,30 @@ export class GameUI {
 
     // Add all difficulty levels
     const difficulties: Array<{ value: Difficulty; label: string }> = [
-      { value: 'trivial', label: 'Trivial (1 empty)' },
-      { value: 'easy', label: 'Easy (70% given)' },
-      { value: 'medium', label: 'Medium (50% given)' },
-      { value: 'hard', label: 'Hard (30% given)' }
+      { value: "trivial", label: "Trivial (1 cell empty)" },
+      { value: "simple", label: "Simple (95% given)" },
+      { value: "challenging", label: "Challenging (80% given)" },
+      { value: "devious", label: "Devious (75% given)" },
+      { value: "egotistical", label: "Egotistical (70% given)" },
+      { value: "ludicrous", label: "Ludicrous (65% given)" },
+      { value: "herculean", label: "Herculean (60% given)" },
+      { value: "sisyphean", label: "Sisyphean (50% given)" },
     ];
 
     for (const diff of difficulties) {
-      const option = document.createElement('option');
+      const option = document.createElement("option");
       option.value = diff.value;
       option.textContent = diff.label;
       this.difficultySelect.appendChild(option);
     }
 
     // Set default to 'easy'
-    this.difficultySelect.value = 'easy';
+    this.difficultySelect.value = "easy";
 
     // New game button
-    this.newGameButton = document.createElement('button');
-    this.newGameButton.textContent = 'New Game';
-    this.newGameButton.title = 'Start a new puzzle';
+    this.newGameButton = document.createElement("button");
+    this.newGameButton.textContent = "New Game";
+    this.newGameButton.title = "Start a new puzzle";
     this.applyButtonStyle(this.newGameButton);
 
     topRightControls.appendChild(difficultyLabel);
@@ -204,7 +208,7 @@ export class GameUI {
     topRightControls.appendChild(this.newGameButton);
 
     // Bottom-left face view controls
-    const bottomLeftControls = document.createElement('div');
+    const bottomLeftControls = document.createElement("div");
     bottomLeftControls.style.cssText = `
       position: absolute;
       bottom: 16px;
@@ -216,8 +220,8 @@ export class GameUI {
     `;
 
     // Label for face view controls
-    const faceViewLabel = document.createElement('div');
-    faceViewLabel.textContent = 'Face Views:';
+    const faceViewLabel = document.createElement("div");
+    faceViewLabel.textContent = "Face Views:";
     faceViewLabel.style.cssText = `
       color: #ffffff;
       font-size: 12px;
@@ -226,7 +230,7 @@ export class GameUI {
     `;
 
     // Container for face view buttons
-    const faceViewButtons = document.createElement('div');
+    const faceViewButtons = document.createElement("div");
     faceViewButtons.style.cssText = `
       display: flex;
       flex-direction: column;
@@ -234,27 +238,27 @@ export class GameUI {
     `;
 
     // XY face view button (looking down Z axis)
-    this.xyViewButton = document.createElement('button');
-    this.xyViewButton.textContent = 'XY Face';
-    this.xyViewButton.title = 'View XY face (looking down Z axis)';
+    this.xyViewButton = document.createElement("button");
+    this.xyViewButton.textContent = "XY Face";
+    this.xyViewButton.title = "View XY face (looking down Z axis)";
     this.applyButtonStyle(this.xyViewButton);
 
     // XZ face view button (looking down Y axis)
-    this.xzViewButton = document.createElement('button');
-    this.xzViewButton.textContent = 'XZ Face';
-    this.xzViewButton.title = 'View XZ face (looking down Y axis)';
+    this.xzViewButton = document.createElement("button");
+    this.xzViewButton.textContent = "XZ Face";
+    this.xzViewButton.title = "View XZ face (looking down Y axis)";
     this.applyButtonStyle(this.xzViewButton);
 
     // YZ face view button (looking down X axis)
-    this.yzViewButton = document.createElement('button');
-    this.yzViewButton.textContent = 'YZ Face';
-    this.yzViewButton.title = 'View YZ face (looking down X axis)';
+    this.yzViewButton = document.createElement("button");
+    this.yzViewButton.textContent = "YZ Face";
+    this.yzViewButton.title = "View YZ face (looking down X axis)";
     this.applyButtonStyle(this.yzViewButton);
 
     // Home/isometric view button
-    this.homeViewButton = document.createElement('button');
-    this.homeViewButton.textContent = 'Isometric';
-    this.homeViewButton.title = 'Return to isometric 3D view';
+    this.homeViewButton = document.createElement("button");
+    this.homeViewButton.textContent = "Isometric";
+    this.homeViewButton.title = "Return to isometric 3D view";
     this.applyButtonStyle(this.homeViewButton);
 
     faceViewButtons.appendChild(this.xyViewButton);
@@ -266,8 +270,8 @@ export class GameUI {
     bottomLeftControls.appendChild(faceViewButtons);
 
     // Win notification (initially hidden)
-    this.winNotification = document.createElement('div');
-    this.winNotification.id = 'win-notification';
+    this.winNotification = document.createElement("div");
+    this.winNotification.id = "win-notification";
     this.winNotification.style.cssText = `
       position: absolute;
       top: 50%;
@@ -296,7 +300,7 @@ export class GameUI {
     `;
 
     // Add CSS animation for pulsing effect
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.textContent = `
       @keyframes winPulse {
         0%, 100% {
@@ -312,8 +316,8 @@ export class GameUI {
     document.head.appendChild(style);
 
     // Wrong completion notification (initially hidden)
-    this.wrongCompletionNotification = document.createElement('div');
-    this.wrongCompletionNotification.id = 'wrong-completion-notification';
+    this.wrongCompletionNotification = document.createElement("div");
+    this.wrongCompletionNotification.id = "wrong-completion-notification";
     this.wrongCompletionNotification.style.cssText = `
       position: absolute;
       top: 50%;
@@ -330,11 +334,12 @@ export class GameUI {
       display: none;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
     `;
-    this.wrongCompletionNotification.innerHTML = 'Cube Complete but Incorrect!<br/><span style="font-size: 16px; font-weight: normal;">Check the highlighted errors</span>';
+    this.wrongCompletionNotification.innerHTML =
+      'Cube Complete but Incorrect!<br/><span style="font-size: 16px; font-weight: normal;">Check the highlighted errors</span>';
 
     // Layer indicator (initially hidden, shown only in face-on view)
-    this.layerIndicator = document.createElement('div');
-    this.layerIndicator.id = 'layer-indicator';
+    this.layerIndicator = document.createElement("div");
+    this.layerIndicator.id = "layer-indicator";
     this.layerIndicator.style.cssText = `
       position: absolute;
       top: 16px;
@@ -350,11 +355,11 @@ export class GameUI {
       display: none;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     `;
-    this.layerIndicator.textContent = 'Layer: 0 / 16';
+    this.layerIndicator.textContent = "Layer: 0 / 16";
 
     // Version display (bottom-right corner)
-    this.versionDisplay = document.createElement('div');
-    this.versionDisplay.id = 'version-display';
+    this.versionDisplay = document.createElement("div");
+    this.versionDisplay.id = "version-display";
     this.versionDisplay.style.cssText = `
       position: absolute;
       bottom: 16px;
@@ -366,7 +371,7 @@ export class GameUI {
       user-select: none;
     `;
     // Handle both build-time and test environments
-    const gitSha = typeof __GIT_SHA__ !== 'undefined' ? __GIT_SHA__ : 'dev';
+    const gitSha = typeof __GIT_SHA__ !== "undefined" ? __GIT_SHA__ : "dev";
     this.versionDisplay.textContent = `v${gitSha}`;
 
     // Assemble HUD
@@ -398,11 +403,11 @@ export class GameUI {
     `;
 
     // Hover effect
-    button.addEventListener('mouseenter', () => {
-      button.style.background = 'rgba(255, 255, 255, 0.2)';
+    button.addEventListener("mouseenter", () => {
+      button.style.background = "rgba(255, 255, 255, 0.2)";
     });
-    button.addEventListener('mouseleave', () => {
-      button.style.background = 'rgba(255, 255, 255, 0.1)';
+    button.addEventListener("mouseleave", () => {
+      button.style.background = "rgba(255, 255, 255, 0.1)";
     });
   }
 
@@ -411,44 +416,44 @@ export class GameUI {
    */
   private attachEventHandlers(): void {
     // Home button: Reset camera to canonical view
-    this.homeButton.addEventListener('click', () => {
+    this.homeButton.addEventListener("click", () => {
       this.handleHomeButton();
     });
 
     // Check button: Validate current solution
-    this.checkButton.addEventListener('click', () => {
+    this.checkButton.addEventListener("click", () => {
       this.handleCheckButton();
     });
 
     // New game button: Generate new puzzle
-    this.newGameButton.addEventListener('click', () => {
+    this.newGameButton.addEventListener("click", () => {
       this.handleNewGameButton();
     });
 
     // Win notification click: Dismiss
-    this.winNotification.addEventListener('click', () => {
+    this.winNotification.addEventListener("click", () => {
       this.hideWinNotification();
     });
 
     // Wrong completion notification click: Dismiss
-    this.wrongCompletionNotification.addEventListener('click', () => {
+    this.wrongCompletionNotification.addEventListener("click", () => {
       this.hideWrongCompletionNotification();
     });
 
     // Face view button handlers
-    this.xyViewButton.addEventListener('click', () => {
+    this.xyViewButton.addEventListener("click", () => {
       this.handleXYViewButton();
     });
 
-    this.xzViewButton.addEventListener('click', () => {
+    this.xzViewButton.addEventListener("click", () => {
       this.handleXZViewButton();
     });
 
-    this.yzViewButton.addEventListener('click', () => {
+    this.yzViewButton.addEventListener("click", () => {
       this.handleYZViewButton();
     });
 
-    this.homeViewButton.addEventListener('click', () => {
+    this.homeViewButton.addEventListener("click", () => {
       this.handleHomeViewButton();
     });
   }
@@ -497,15 +502,16 @@ export class GameUI {
     if (this.hasUserProgress()) {
       // Show confirmation modal
       this.confirmModal.show({
-        message: 'You will lose your saved progress if you generate a new cube. Are you sure you want to do this?',
-        confirmText: 'Yes, start new',
-        cancelText: 'No, keep playing',
+        message:
+          "You will lose your saved progress if you generate a new cube. Are you sure you want to do this?",
+        confirmText: "Yes, start new",
+        cancelText: "No, keep playing",
         onConfirm: () => {
           this.notifyNewGame(difficulty);
         },
         onCancel: () => {
           // Do nothing, modal will close automatically
-        }
+        },
       });
     } else {
       // No progress, start new game immediately
@@ -520,7 +526,7 @@ export class GameUI {
   private hasUserProgress(): boolean {
     // Use filterCells to find any editable cells with values
     const editableCellsWithValues = this.gameState.cube.filterCells(
-      (cell) => cell.type === 'editable' && cell.value !== null
+      (cell) => cell.type === "editable" && cell.value !== null,
     );
     return editableCellsWithValues.length > 0;
   }
@@ -533,7 +539,7 @@ export class GameUI {
   private handleXYViewButton(): void {
     // XY face corresponds to 'k' face (Z axis)
     // No layer specified - defaults to outermost layer
-    this.viewStateManager.enterFaceOnView('k');
+    this.viewStateManager.enterFaceOnView("k");
   }
 
   /**
@@ -544,7 +550,7 @@ export class GameUI {
   private handleXZViewButton(): void {
     // XZ face corresponds to 'i' face (Y axis)
     // No layer specified - defaults to outermost layer
-    this.viewStateManager.enterFaceOnView('i');
+    this.viewStateManager.enterFaceOnView("i");
   }
 
   /**
@@ -555,7 +561,7 @@ export class GameUI {
   private handleYZViewButton(): void {
     // YZ face corresponds to 'j' face (X axis)
     // No layer specified - defaults to outermost layer
-    this.viewStateManager.enterFaceOnView('j');
+    this.viewStateManager.enterFaceOnView("j");
   }
 
   /**
@@ -572,7 +578,7 @@ export class GameUI {
    */
   private showWinNotification(): void {
     this.hideWrongCompletionNotification(); // Ensure only one notification shows
-    this.winNotification.style.display = 'block';
+    this.winNotification.style.display = "block";
 
     // Start fireworks effect
     this.winScreenRenderer.show();
@@ -590,7 +596,7 @@ export class GameUI {
    * Hide the win notification and stop effects
    */
   private hideWinNotification(): void {
-    this.winNotification.style.display = 'none';
+    this.winNotification.style.display = "none";
 
     // Stop fireworks effect
     this.winScreenRenderer.hide();
@@ -604,14 +610,14 @@ export class GameUI {
    */
   private showWrongCompletionNotification(): void {
     this.hideWinNotification(); // Ensure only one notification shows
-    this.wrongCompletionNotification.style.display = 'block';
+    this.wrongCompletionNotification.style.display = "block";
   }
 
   /**
    * Hide the wrong completion notification
    */
   private hideWrongCompletionNotification(): void {
-    this.wrongCompletionNotification.style.display = 'none';
+    this.wrongCompletionNotification.style.display = "none";
   }
 
   /**
@@ -661,14 +667,14 @@ export class GameUI {
    */
   public showLayerIndicator(layer: number): void {
     this.layerIndicator.textContent = `Layer: ${layer + 1} / 16`;
-    this.layerIndicator.style.display = 'block';
+    this.layerIndicator.style.display = "block";
   }
 
   /**
    * Hide the layer indicator
    */
   public hideLayerIndicator(): void {
-    this.layerIndicator.style.display = 'none';
+    this.layerIndicator.style.display = "none";
   }
 
   /**

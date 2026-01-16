@@ -8,16 +8,36 @@
  * This replaces the slow backtracking algorithm with instant generation.
  */
 
-import type { Cube } from '../models/Cube.js';
-import { createCube } from '../models/Cube.js';
-import { createGivenCell, createEmptyCell, type HexValue, type Position } from '../models/Cell.js';
+import type { Cube } from "../models/Cube.js";
+import type { Difficulty } from "../models/GameState.js";
+import { createCube } from "../models/Cube.js";
+import {
+  createGivenCell,
+  createEmptyCell,
+  type HexValue,
+  type Position,
+} from "../models/Cell.js";
 
 /**
  * All possible hex values
  */
 const HEX_VALUES: Exclude<HexValue, null>[] = [
-  '0', '1', '2', '3', '4', '5', '6', '7',
-  '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
+  "0",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "a",
+  "b",
+  "c",
+  "d",
+  "e",
+  "f",
 ];
 
 /**
@@ -52,8 +72,8 @@ function cellValue(r: number, c: number, z: number): number {
   const vz = z % 4;
 
   // XOR operations (GF(4) arithmetic)
-  const us = vr ^ uc ^ uz ^ vz;  // high base-4 digit of symbol
-  const vs = ur ^ vc ^ vz;        // low base-4 digit of symbol
+  const us = vr ^ uc ^ uz ^ vz; // high base-4 digit of symbol
+  const vs = ur ^ vc ^ vz; // low base-4 digit of symbol
 
   // Pack into 0..15
   return (us << 2) | vs;
@@ -67,11 +87,6 @@ function cellValue(r: number, c: number, z: number): number {
 function valueToHex(value: number): Exclude<HexValue, null> {
   return HEX_VALUES[value];
 }
-
-/**
- * Difficulty level configuration
- */
-export type Difficulty = 'trivial' | 'easy' | 'medium' | 'hard';
 
 /**
  * Configuration for puzzle difficulty
@@ -89,9 +104,13 @@ interface DifficultyConfig {
  */
 const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
   trivial: { cellsToRemove: 1 }, // Only 1 cell empty for testing/demo
-  easy: { givenCellsRatio: 0.70 }, // ~70% given cells (~2867 given, ~1229 empty)
-  medium: { givenCellsRatio: 0.50 }, // ~50% given cells (~2048 given, ~2048 empty)
-  hard: { givenCellsRatio: 0.30 } // ~30% given cells (~1229 given, ~2867 empty)
+  simple: { givenCellsRatio: 0.95 }, // 95% cells given
+  challenging: { givenCellsRatio: 0.8 }, // 95% cells given
+  devious: { givenCellsRatio: 0.75 },
+  egotistical: { givenCellsRatio: 0.7 },
+  ludicrous: { givenCellsRatio: 0.65 },
+  herculean: { givenCellsRatio: 0.6 },
+  sisyphean: { givenCellsRatio: 0.5 },
 };
 
 /**
@@ -220,7 +239,10 @@ function removeCells(solvedCube: Cube, difficulty: Difficulty): Cube {
  * @param difficulty - The difficulty level (default: 'easy')
  * @returns An object containing the puzzle cube and the complete solution
  */
-export function generatePuzzle(difficulty: Difficulty = 'easy'): { cube: Cube; solution: HexValue[][][] } {
+export function generatePuzzle(difficulty: Difficulty = "simple"): {
+  cube: Cube;
+  solution: HexValue[][][];
+} {
   // Phase 1: Generate a fully solved cube
   const solvedCube = generateSolvedCube();
 

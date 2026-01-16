@@ -11,7 +11,7 @@ exactly one of each value, within each:
 
 The user is presented with a partially-filled cube of "Given" cells. The configuration of Given cells alway uniquely
 identifies a correct solution. The difficulty mode determines how much additional redundant information is encoded in
-the Given Cells. At Easy mode, approximately 70% of the cells are Given.
+the Given Cells. Simple cubes are quite filled in for the sake of difficulty.
 
 ### Gameplay
 

@@ -184,7 +184,7 @@ interface Cube {
 interface GameState {
   cube: Cube;                           // Current puzzle state with user edits
   solution: HexValue[][][];             // Complete correct solution
-  difficulty: 'easy';                   // Start with easy (70% given cells)
+  difficulty: 'simple';                   // Start with easy (95%% given cells)
   isComplete: boolean;
   isCorrect: boolean | null;            // null = not yet checked
 }
