@@ -29,6 +29,7 @@ import { CellEditor } from './ui/CellEditor.js';
 import { GameUI } from './ui/GameUI.js';
 import { ViewStateManager } from './ui/ViewStateManager.js';
 import { MessagePanel } from './ui/MessagePanel.js';
+import { GameStateCoordinator } from './ui/GameStateCoordinator.js';
 
 console.log('Hex-Do-Cube initialized');
 
@@ -201,6 +202,15 @@ export function init(): void {
     gameState,
   });
 
+  // 12a. Initialize GameStateCoordinator to centralize game reset logic
+  const gameStateCoordinator = new GameStateCoordinator({
+    cubeRenderer,
+    minimapRenderer,
+    inputController,
+    cellEditor,
+    gameUI,
+  });
+
   // 13. Connect CellEditor validation to MessagePanel
   cellEditor.onValidation((result) => {
     if (!result.isValid && result.errors.length > 0) {
@@ -266,11 +276,8 @@ export function init(): void {
         // Update all components with new game state
         Object.assign(gameState, newGameState);
 
-        cubeRenderer.setCube(gameState.cube);
-        minimapRenderer.setCube(gameState.cube);
-        inputController.setCube(gameState.cube);
-        cellEditor.setCube(gameState.cube);
-        gameUI.setGameState(gameState);
+        // Use coordinator to update all components atomically
+        gameStateCoordinator.resetGame(gameState);
 
         // Save new game
         saveGameState(gameState);
