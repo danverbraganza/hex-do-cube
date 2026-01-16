@@ -582,7 +582,7 @@ export class GameUI {
     this.winScreenRenderer.show();
 
     // Start auto-rotation of the cube
-    this.sceneManager.startAutoRotation();
+    this.viewStateManager.startAutoRotation();
 
     // Return to 3D view if in face-on mode
     if (this.viewStateManager.isInFaceOnView()) {
@@ -600,7 +600,7 @@ export class GameUI {
     this.winScreenRenderer.hide();
 
     // Stop auto-rotation
-    this.sceneManager.stopAutoRotation();
+    this.viewStateManager.stopAutoRotation();
   }
 
   /**

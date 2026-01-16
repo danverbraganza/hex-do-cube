@@ -13,6 +13,7 @@
  * ensuring all transitions are properly coordinated.
  */
 
+import * as THREE from 'three';
 import type { SceneManager } from '../renderer/SceneManager.js';
 import type { FaceRenderer, Face } from '../renderer/FaceRenderer.js';
 import type { MinimapRenderer } from '../renderer/MinimapRenderer.js';
@@ -210,6 +211,29 @@ export class ViewStateManager {
     if (this.currentMode === 'face-on') {
       this.faceRenderer.update();
     }
+  }
+
+  /**
+   * Start auto-rotation of the camera around the cube
+   * @param speed - Rotation speed in radians per second (default: Math.PI / 6)
+   * @param axis - Rotation axis (default: Y axis for horizontal rotation)
+   */
+  public startAutoRotation(speed?: number, axis?: THREE.Vector3): void {
+    this.sceneManager.startAutoRotation(speed, axis);
+  }
+
+  /**
+   * Stop auto-rotation of the camera
+   */
+  public stopAutoRotation(): void {
+    this.sceneManager.stopAutoRotation();
+  }
+
+  /**
+   * Check if auto-rotation is currently active
+   */
+  public isAutoRotating(): boolean {
+    return this.sceneManager.isAutoRotating();
   }
 
   /**

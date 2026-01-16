@@ -141,7 +141,7 @@ export function init(): void {
   sceneManager.add(subsquareSeparatorRenderer.getContainer());
 
   // 6. Initialize FaceRenderer
-  const faceRenderer = new FaceRenderer(cubeRenderer, sceneManager);
+  const faceRenderer = new FaceRenderer(cubeRenderer);
 
   // 7. Initialize MinimapRenderer
   const minimapRenderer = new MinimapRenderer(

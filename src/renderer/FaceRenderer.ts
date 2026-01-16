@@ -5,16 +5,16 @@
  * Responsibilities:
  * - Enter face-on mode for a specific face (i, j, or k)
  * - Manage layer navigation (0-15) via mouse wheel scrolling
- * - Adjust camera to orthographic-style viewing (via SceneManager)
  * - Control cell visibility/opacity for face-on rendering
  * - Coordinate with CubeRenderer to show/hide appropriate cells
  * - Provide smooth opacity animation during layer transitions
  * - Ensure discrete layers (no "frozen between layers" state)
  * - Current layer at 100% opacity, blank cells rendered as solid
+ *
+ * Note: Camera positioning is handled by ViewStateManager for consistency.
  */
 
 import type { CubeRenderer } from './CubeRenderer.js';
-import type { SceneManager } from './SceneManager.js';
 import type { Position } from '../models/Cell.js';
 
 /**
@@ -40,7 +40,6 @@ export interface FaceRendererConfig {
  */
 export class FaceRenderer {
   private cubeRenderer: CubeRenderer;
-  private sceneManager: SceneManager;
   private config: Required<FaceRendererConfig>;
 
   // Current face-on view state
@@ -59,11 +58,9 @@ export class FaceRenderer {
 
   constructor(
     cubeRenderer: CubeRenderer,
-    sceneManager: SceneManager,
     config: FaceRendererConfig = {}
   ) {
     this.cubeRenderer = cubeRenderer;
-    this.sceneManager = sceneManager;
 
     // Apply default configuration
     this.config = {
@@ -87,9 +84,6 @@ export class FaceRenderer {
     this.currentLayer = layer;
     this.isTransitioning = false;
 
-    // Position camera for face-on view
-    this.sceneManager.setFaceOnView(face, layer);
-
     // Update cell visibility for the current layer
     this.updateCellVisibility();
   }
@@ -101,9 +95,6 @@ export class FaceRenderer {
     this.isActive = false;
     this.currentFace = null;
     this.isTransitioning = false;
-
-    // Reset camera to canonical isometric view
-    this.sceneManager.resetCamera();
 
     // Show all cells with translucent rendering
     this.cubeRenderer.setAllCellsVisibility(true);
