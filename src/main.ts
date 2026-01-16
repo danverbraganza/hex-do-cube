@@ -150,6 +150,9 @@ export function init(): void {
     sceneManager.getRenderer()
   );
 
+  // 8a. Initialize CellStateManager for centralized cell state management
+  const cellStateManager = new CellStateManager(cubeRenderer);
+
   // 8. Initialize ViewStateManager to coordinate view transitions
   const viewStateManager = new ViewStateManager({
     sceneManager,
@@ -157,10 +160,8 @@ export function init(): void {
     minimapRenderer,
     cubeRenderer,
     subsquareSeparatorRenderer,
+    cellStateManager,
   });
-
-  // 8a. Initialize CellStateManager for centralized cell state management
-  const cellStateManager = new CellStateManager(cubeRenderer);
 
   // 9. Initialize InputController
   const inputController = new InputController(

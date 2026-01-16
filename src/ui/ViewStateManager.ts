@@ -19,6 +19,8 @@ import type { FaceRenderer, Face } from '../renderer/FaceRenderer.js';
 import type { MinimapRenderer } from '../renderer/MinimapRenderer.js';
 import type { SubsquareSeparatorRenderer } from '../renderer/SubsquareSeparatorRenderer.js';
 import type { CubeRenderer } from '../renderer/CubeRenderer.js';
+import type { CellStateManager } from './CellStateManager.js';
+import type { Position } from '../models/Cell.js';
 
 /**
  * View mode types
@@ -34,6 +36,7 @@ export interface ViewStateManagerConfig {
   minimapRenderer: MinimapRenderer;
   cubeRenderer: CubeRenderer;
   subsquareSeparatorRenderer?: SubsquareSeparatorRenderer;
+  cellStateManager?: CellStateManager;
 }
 
 /**
@@ -50,6 +53,7 @@ export class ViewStateManager {
   private minimapRenderer: MinimapRenderer;
   private cubeRenderer: CubeRenderer;
   private subsquareSeparatorRenderer?: SubsquareSeparatorRenderer;
+  private cellStateManager?: CellStateManager;
 
   // Current view state
   private currentMode: ViewMode = '3d-rotational';
@@ -63,6 +67,7 @@ export class ViewStateManager {
     this.minimapRenderer = config.minimapRenderer;
     this.cubeRenderer = config.cubeRenderer;
     this.subsquareSeparatorRenderer = config.subsquareSeparatorRenderer;
+    this.cellStateManager = config.cellStateManager;
 
     // Listen to layer changes from FaceRenderer to update minimap
     this.faceRenderer.onLayerChange((face, layer) => {
@@ -95,15 +100,49 @@ export class ViewStateManager {
   }
 
   /**
+   * Calculate the appropriate layer for a selected cell based on the target face
+   * @param face - The face to view ('i', 'j', or 'k')
+   * @param position - The position of the selected cell [i, j, k]
+   * @returns The layer depth that contains the selected cell for the given face
+   */
+  private getLayerForSelectedCell(face: Face, position: Position): number {
+    const [i, j, k] = position;
+    switch (face) {
+      case 'i': // i-face views XY planes at different i depths
+        return i;
+      case 'j': // j-face views XZ planes at different j depths
+        return j;
+      case 'k': // k-face views YZ planes at different k depths
+        return k;
+    }
+  }
+
+  /**
    * Enter face-on view for a specific face
    * Coordinates all components to transition smoothly
    *
    * @param face - The face to view ('i', 'j', or 'k')
-   * @param layer - The initial layer depth (0-15). If undefined, defaults to outermost layer.
+   * @param layer - The initial layer depth (0-15). If undefined, defaults to:
+   *                - Layer containing the selected cell (if a cell is selected)
+   *                - Outermost layer based on camera position (if no cell is selected)
    */
   public enterFaceOnView(face: Face, layer?: number): void {
-    // If layer not specified, use outermost layer based on camera position
-    const targetLayer = layer !== undefined ? layer : this.getOutermostLayer(face);
+    // Determine target layer if not explicitly specified
+    let targetLayer: number;
+    if (layer !== undefined) {
+      // Layer explicitly provided - use it
+      targetLayer = layer;
+    } else {
+      // Layer not specified - check for selected cell
+      const selectedCell = this.cellStateManager?.getSelectedCell();
+      if (selectedCell) {
+        // Navigate to the layer containing the selected cell
+        targetLayer = this.getLayerForSelectedCell(face, selectedCell);
+      } else {
+        // No selection - use outermost layer based on camera position
+        targetLayer = this.getOutermostLayer(face);
+      }
+    }
     // Don't re-enter if already in face-on view for the same face
     if (this.currentMode === 'face-on' && this.faceRenderer.getCurrentFace() === face) {
       // Just update the layer if different
