@@ -4,7 +4,7 @@
  */
 
 // Models
-import { createGameStateFromCube } from './models/GameState.js';
+import { createGameStateFromCube, type GameState } from './models/GameState.js';
 import { createCube } from './models/Cube.js';
 import { createCell } from './models/Cell.js';
 import type { HexValue, CellType } from './models/Cell.js';
@@ -108,7 +108,7 @@ export function init(): void {
   });
 
   // 3. Check storage for saved game, or load cached puzzle
-  let gameState;
+  let gameState: GameState;
   if (hasGameState()) {
     try {
       const loaded = loadGameState();
@@ -279,13 +279,15 @@ export function init(): void {
         const { cube: newCube, solution: newSolution } = generatePuzzle(difficulty);
         const newGameState = createGameStateFromCube(newCube, difficulty, newSolution);
 
-        // Update all components with new game state
-        Object.assign(gameState, newGameState);
+        // Replace gameState reference with the new game state
+        // This is cleaner than Object.assign mutation which can cause issues
+        // when components hold references to the old gameState.cube
+        gameState = newGameState;
 
-        // Use coordinator to update all components atomically
+        // Use coordinator to update all components atomically with new game state
         gameStateCoordinator.resetGame(gameState);
 
-        // Save new game
+        // Save new game state
         saveGameState(gameState);
 
         messagePanel.log('New puzzle generated successfully');
