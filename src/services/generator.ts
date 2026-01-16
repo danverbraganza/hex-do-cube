@@ -9,7 +9,6 @@
  */
 
 import type { Cube } from "../models/Cube.js";
-import type { Difficulty } from "../models/GameState.js";
 import { createCube } from "../models/Cube.js";
 import {
   createGivenCell,
@@ -17,6 +16,8 @@ import {
   type HexValue,
   type Position,
 } from "../models/Cell.js";
+import type { Difficulty } from "../models/Difficulty.js";
+import { DIFFICULTIES, DEFAULT_DIFFICULTY } from "../models/Difficulty.js";
 
 /**
  * All possible hex values
@@ -88,30 +89,6 @@ function valueToHex(value: number): Exclude<HexValue, null> {
   return HEX_VALUES[value];
 }
 
-/**
- * Configuration for puzzle difficulty
- */
-interface DifficultyConfig {
-  /** Target percentage of cells to keep as given (0-1), or exact count for trivial */
-  givenCellsRatio?: number;
-  /** Exact number of cells to remove (used for trivial difficulty) */
-  cellsToRemove?: number;
-}
-
-/**
- * Difficulty configurations
- * Total cells: 4096 (16^3)
- */
-const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
-  trivial: { cellsToRemove: 1 }, // Only 1 cell empty for testing/demo
-  simple: { givenCellsRatio: 0.95 }, // 95% cells given
-  challenging: { givenCellsRatio: 0.8 }, // 95% cells given
-  devious: { givenCellsRatio: 0.75 },
-  egotistical: { givenCellsRatio: 0.7 },
-  ludicrous: { givenCellsRatio: 0.65 },
-  herculean: { givenCellsRatio: 0.6 },
-  sisyphean: { givenCellsRatio: 0.5 },
-};
 
 /**
  * Shuffles an array in place using Fisher-Yates algorithm
@@ -181,7 +158,7 @@ function copyCube(cube: Cube): Cube {
  * @returns A cube with cells removed according to difficulty
  */
 function removeCells(solvedCube: Cube, difficulty: Difficulty): Cube {
-  const config = DIFFICULTY_CONFIG[difficulty];
+  const config = DIFFICULTIES[difficulty];
   const totalCells = 16 * 16 * 16; // 4096
 
   // Calculate cells to remove based on difficulty
@@ -236,10 +213,10 @@ function removeCells(solvedCube: Cube, difficulty: Difficulty): Cube {
 
 /**
  * Generates a new puzzle cube at the specified difficulty
- * @param difficulty - The difficulty level (default: 'easy')
+ * @param difficulty - The difficulty level (default: 'simple')
  * @returns An object containing the puzzle cube and the complete solution
  */
-export function generatePuzzle(difficulty: Difficulty = "simple"): {
+export function generatePuzzle(difficulty: Difficulty = DEFAULT_DIFFICULTY): {
   cube: Cube;
   solution: HexValue[][][];
 } {

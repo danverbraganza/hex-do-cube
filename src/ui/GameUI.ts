@@ -14,7 +14,8 @@ import type { GameState } from "../models/GameState.js";
 import type { SceneManager } from "../renderer/SceneManager.js";
 import type { InputController } from "./InputController.js";
 import type { ViewStateManager } from "./ViewStateManager.js";
-import type { Difficulty } from "../models/GameState.js";
+import type { Difficulty } from "../models/Difficulty.js";
+import { DIFFICULTIES, DIFFICULTY_ORDER } from "../models/Difficulty.js";
 import { GameValidator } from "../services/GameValidator.js";
 import { WinScreenRenderer } from "../renderer/WinScreenRenderer.js";
 import { Modal } from "./Modal.js";
@@ -175,27 +176,16 @@ export class GameUI {
       cursor: pointer;
     `;
 
-    // Add all difficulty levels
-    const difficulties: Array<{ value: Difficulty; label: string }> = [
-      { value: "trivial", label: "Trivial (1 cell empty)" },
-      { value: "simple", label: "Simple (95% given)" },
-      { value: "challenging", label: "Challenging (80% given)" },
-      { value: "devious", label: "Devious (75% given)" },
-      { value: "egotistical", label: "Egotistical (70% given)" },
-      { value: "ludicrous", label: "Ludicrous (65% given)" },
-      { value: "herculean", label: "Herculean (60% given)" },
-      { value: "sisyphean", label: "Sisyphean (50% given)" },
-    ];
-
-    for (const diff of difficulties) {
+    // Add all difficulty levels from centralized configuration
+    for (const diff of DIFFICULTY_ORDER) {
       const option = document.createElement("option");
-      option.value = diff.value;
-      option.textContent = diff.label;
+      option.value = diff;
+      option.textContent = DIFFICULTIES[diff].label;
       this.difficultySelect.appendChild(option);
     }
 
-    // Set default to 'easy'
-    this.difficultySelect.value = "easy";
+    // Set default to 'simple'
+    this.difficultySelect.value = "simple";
 
     // New game button
     this.newGameButton = document.createElement("button");

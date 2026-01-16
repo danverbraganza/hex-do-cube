@@ -40,7 +40,7 @@ describe('GameUI - Version Display', () => {
         row.map(cell => cell.value)
       )
     );
-    const gameState = createGameStateFromCube(cube, 'easy', solution);
+    const gameState = createGameStateFromCube(cube, 'simple', solution);
 
     // Create minimal mocks - just enough to instantiate GameUI
     const mockSceneManager = {

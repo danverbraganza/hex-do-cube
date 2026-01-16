@@ -10,19 +10,8 @@ import {
   type ValidationResult,
 } from "./Cube.js";
 import type { HexValue } from "./Cell.js";
-
-/**
- * Difficulty level configuration
- */
-export type Difficulty =
-  | "trivial"
-  | "simple"
-  | "challenging"
-  | "devious"
-  | "egotistical"
-  | "ludicrous"
-  | "herculean"
-  | "sisyphean";
+import type { Difficulty } from "./Difficulty.js";
+import { DEFAULT_DIFFICULTY } from "./Difficulty.js";
 
 /**
  * GameState interface representing a complete game session
@@ -37,12 +26,12 @@ export interface GameState {
 
 /**
  * Creates a new game state with an empty cube
- * @param difficulty - The difficulty level (default: 'easy')
+ * @param difficulty - The difficulty level (default: 'simple')
  * @param solution - The complete solution for the puzzle (16x16x16 array)
  * @returns A new GameState instance
  */
 export function createGameState(
-  difficulty: Difficulty = "simple",
+  difficulty: Difficulty = DEFAULT_DIFFICULTY,
   solution: HexValue[][][],
 ): GameState {
   return {
@@ -58,13 +47,13 @@ export function createGameState(
  * Creates a game state from an existing cube
  * Useful for loading saved games or testing
  * @param cube - The cube to use
- * @param difficulty - The difficulty level (default: 'easy')
+ * @param difficulty - The difficulty level (default: 'simple')
  * @param solution - The complete solution for the puzzle (16x16x16 array)
  * @returns A new GameState instance
  */
 export function createGameStateFromCube(
   cube: Cube,
-  difficulty: Difficulty = "simple",
+  difficulty: Difficulty = DEFAULT_DIFFICULTY,
   solution: HexValue[][][],
 ): GameState {
   return {

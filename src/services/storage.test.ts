@@ -94,13 +94,13 @@ describe('storage service', () => {
     });
 
     test('returns true when saved state exists', () => {
-      const state = createGameState('easy', createDummySolution());
+      const state = createGameState('simple', createDummySolution());
       saveGameState(state);
       expect(hasGameState()).toBe(true);
     });
 
     test('returns false after clearing state', () => {
-      const state = createGameState('easy', createDummySolution());
+      const state = createGameState('simple', createDummySolution());
       saveGameState(state);
       clearGameState();
       expect(hasGameState()).toBe(false);
@@ -109,18 +109,18 @@ describe('storage service', () => {
 
   describe('saveGameState and loadGameState', () => {
     test('saves and loads empty game state', () => {
-      const original = createGameState('easy', createDummySolution());
+      const original = createGameState('simple', createDummySolution());
       saveGameState(original);
 
       const loaded = loadGameState();
       expect(loaded).not.toBeNull();
-      expect(loaded!.difficulty).toBe('easy');
+      expect(loaded!.difficulty).toBe('simple');
       expect(loaded!.isComplete).toBe(false);
       expect(loaded!.isCorrect).toBe(null);
     });
 
     test('preserves all cell values and types', () => {
-      const state = createGameState('easy', createDummySolution());
+      const state = createGameState('simple', createDummySolution());
 
       // Set some given cells
       state.cube.cells[0][0][0] = createCell([0, 0, 0] as const, '5', 'given');
@@ -159,7 +159,7 @@ describe('storage service', () => {
     });
 
     test('preserves cell positions correctly', () => {
-      const state = createGameState('easy', createDummySolution());
+      const state = createGameState('simple', createDummySolution());
       state.cube.cells[3][7][11] = createCell([3, 7, 11] as const, 'd', 'given');
 
       saveGameState(state);
@@ -173,7 +173,7 @@ describe('storage service', () => {
     });
 
     test('preserves isComplete and isCorrect status', () => {
-      const state = createGameState('easy', createDummySolution());
+      const state = createGameState('simple', createDummySolution());
       state.isComplete = true;
       state.isCorrect = true;
 
@@ -186,7 +186,7 @@ describe('storage service', () => {
     });
 
     test('handles isCorrect as false', () => {
-      const state = createGameState('easy', createDummySolution());
+      const state = createGameState('simple', createDummySolution());
       state.isComplete = true;
       state.isCorrect = false;
 
@@ -203,11 +203,11 @@ describe('storage service', () => {
     });
 
     test('overwrites previous saved state', () => {
-      const state1 = createGameState('easy', createDummySolution());
+      const state1 = createGameState('simple', createDummySolution());
       state1.cube.cells[0][0][0] = createCell([0, 0, 0] as const, '1', 'given');
       saveGameState(state1);
 
-      const state2 = createGameState('easy', createDummySolution());
+      const state2 = createGameState('simple', createDummySolution());
       state2.cube.cells[0][0][0] = createCell([0, 0, 0] as const, '9', 'given');
       saveGameState(state2);
 
@@ -217,7 +217,7 @@ describe('storage service', () => {
     });
 
     test('handles all hex values correctly', () => {
-      const state = createGameState('easy', createDummySolution());
+      const state = createGameState('simple', createDummySolution());
       const hexValues: HexValue[] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'];
 
       for (let i = 0; i < hexValues.length; i++) {
@@ -234,7 +234,7 @@ describe('storage service', () => {
     });
 
     test('round-trip preserves complete game state', () => {
-      const state = createGameState('easy', createDummySolution());
+      const state = createGameState('simple', createDummySolution());
 
       // Populate some cells across the cube
       for (let i = 0; i < 16; i += 3) {
@@ -277,7 +277,7 @@ describe('storage service', () => {
 
   describe('clearGameState', () => {
     test('removes saved state', () => {
-      const state = createGameState('easy', createDummySolution());
+      const state = createGameState('simple', createDummySolution());
       saveGameState(state);
 
       expect(hasGameState()).toBe(true);
@@ -297,7 +297,7 @@ describe('storage service', () => {
 
   describe('error handling', () => {
     test('throws error when storage quota is exceeded', () => {
-      const state = createGameState('easy', createDummySolution());
+      const state = createGameState('simple', createDummySolution());
       localStorageMock.simulateQuotaExceeded(true, 'hex-do-cube-game-state');
 
       expect(() => saveGameState(state)).toThrow('Storage quota exceeded');
@@ -313,7 +313,7 @@ describe('storage service', () => {
       const invalidData = {
         version: 999,
         cells: [],
-        difficulty: 'easy',
+        difficulty: 'simple',
         isComplete: false,
         isCorrect: null
       };
@@ -325,7 +325,7 @@ describe('storage service', () => {
     test('throws error for missing cells array', () => {
       const invalidData = {
         version: 1,
-        difficulty: 'easy',
+        difficulty: 'simple',
         isComplete: false,
         isCorrect: null
       };
@@ -357,7 +357,7 @@ describe('storage service', () => {
             type: 'given'
           }
         ],
-        difficulty: 'easy',
+        difficulty: 'simple',
         isComplete: false,
         isCorrect: null,
         solution: createDummySolution()
@@ -370,9 +370,9 @@ describe('storage service', () => {
 
   describe('storage size', () => {
     test('serialized state is reasonably sized', () => {
-      const state = createGameState('easy', createDummySolution());
+      const state = createGameState('simple', createDummySolution());
 
-      // Fill 70% of cells (like 'easy' difficulty)
+      // Fill 95% of cells (like 'simple' difficulty)
       const totalCells = 16 * 16 * 16;
       const targetFilled = Math.floor(totalCells * 0.7);
       let filled = 0;
@@ -404,7 +404,7 @@ describe('storage service', () => {
     });
 
     test('empty game state is compact', () => {
-      const state = createGameState('easy', createDummySolution());
+      const state = createGameState('simple', createDummySolution());
       saveGameState(state);
 
       const stored = localStorage.getItem('hex-do-cube-game-state');
@@ -420,7 +420,7 @@ describe('storage service', () => {
     });
 
     test('fully filled state size', () => {
-      const state = createGameState('easy', createDummySolution());
+      const state = createGameState('simple', createDummySolution());
 
       // Fill all cells
       for (let i = 0; i < 16; i++) {
@@ -450,7 +450,7 @@ describe('storage service', () => {
   describe('solution serialization', () => {
     test('saves and loads solution correctly', () => {
       const solution = createDummySolution();
-      const state = createGameState('easy', solution);
+      const state = createGameState('simple', solution);
 
       saveGameState(state);
       const loaded = loadGameState();
@@ -475,7 +475,7 @@ describe('storage service', () => {
         }
       }
 
-      const state = createGameState('easy', solution);
+      const state = createGameState('simple', solution);
       saveGameState(state);
       const loaded = loadGameState();
 
@@ -493,7 +493,7 @@ describe('storage service', () => {
 
     test('solution remains separate from cube state after serialization', () => {
       const solution = createDummySolution(); // All '0'
-      const state = createGameState('easy', solution);
+      const state = createGameState('simple', solution);
 
       // Set some cube cells to different values
       state.cube.cells[0][0][0] = createCell([0, 0, 0] as const, 'f', 'editable');
@@ -515,7 +515,7 @@ describe('storage service', () => {
 
     test('solution has no null values after deserialization', () => {
       const solution = createDummySolution();
-      const state = createGameState('easy', solution);
+      const state = createGameState('simple', solution);
 
       saveGameState(state);
       const loaded = loadGameState();
@@ -537,7 +537,7 @@ describe('storage service', () => {
       const invalidData = {
         version: 1,
         cells: [],
-        difficulty: 'easy',
+        difficulty: 'simple',
         isComplete: false,
         isCorrect: null
         // solution is missing
@@ -551,7 +551,7 @@ describe('storage service', () => {
       const invalidData = {
         version: 1,
         cells: [],
-        difficulty: 'easy',
+        difficulty: 'simple',
         isComplete: false,
         isCorrect: null,
         solution: 'not-an-array'
@@ -563,7 +563,7 @@ describe('storage service', () => {
 
     test('solution structure is correct 16x16x16 after deserialization', () => {
       const solution = createDummySolution();
-      const state = createGameState('easy', solution);
+      const state = createGameState('simple', solution);
 
       saveGameState(state);
       const loaded = loadGameState();

@@ -3,7 +3,8 @@
  * Provides LocalStorage persistence for complete game state
  */
 
-import type { GameState, Difficulty } from '../models/GameState.js';
+import type { GameState } from '../models/GameState.js';
+import type { Difficulty } from '../models/Difficulty.js';
 import type { HexValue, CellType } from '../models/Cell.js';
 import { createCube } from '../models/Cube.js';
 import { createCell } from '../models/Cell.js';

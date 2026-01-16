@@ -40,7 +40,7 @@ console.log('Hex-Do-Cube initialized');
  */
 interface CachedPuzzle {
   version: number;
-  difficulty: 'easy';
+  difficulty: 'simple';
   generatedAt: string;
   cells: Array<{
     position: [number, number, number];
@@ -119,18 +119,18 @@ export function init(): void {
       } else {
         console.log('No saved game found, loading cached puzzle');
         const { cube, solution } = loadCachedPuzzle();
-        gameState = createGameStateFromCube(cube, 'easy', solution);
+        gameState = createGameStateFromCube(cube, 'simple', solution);
       }
     } catch (error) {
       console.error('Failed to load saved game:', error);
       console.log('Loading cached puzzle instead');
       const { cube, solution } = loadCachedPuzzle();
-      gameState = createGameStateFromCube(cube, 'easy', solution);
+      gameState = createGameStateFromCube(cube, 'simple', solution);
     }
   } else {
     console.log('No saved game found, loading cached puzzle');
     const { cube, solution } = loadCachedPuzzle();
-    gameState = createGameStateFromCube(cube, 'easy', solution);
+    gameState = createGameStateFromCube(cube, 'simple', solution);
   }
 
   // 4. Initialize CubeRenderer with cube
