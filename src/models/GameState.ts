@@ -3,17 +3,26 @@
  * Manages game session state, difficulty, completion status, and validation results
  */
 
-import { Cube, createCube, isCubeFilled, type ValidationResult } from './Cube.js';
-import type { HexValue } from './Cell.js';
+import {
+  Cube,
+  createCube,
+  isCubeFilled,
+  type ValidationResult,
+} from "./Cube.js";
+import type { HexValue } from "./Cell.js";
 
 /**
- * Difficulty levels for puzzle generation
- * - trivial: Only 1 cell empty (for testing/quick demo)
- * - easy: ~70% cells given (~2867 given, ~1229 empty)
- * - medium: ~50% cells given (~2048 given, ~2048 empty)
- * - hard: ~30% cells given (~1229 given, ~2867 empty)
+ * Difficulty level configuration
  */
-export type Difficulty = 'trivial' | 'easy' | 'medium' | 'hard';
+export type Difficulty =
+  | "trivial"
+  | "simple"
+  | "challenging"
+  | "devious"
+  | "egotistical"
+  | "ludicrous"
+  | "herculean"
+  | "sisyphean";
 
 /**
  * GameState interface representing a complete game session
@@ -32,13 +41,16 @@ export interface GameState {
  * @param solution - The complete solution for the puzzle (16x16x16 array)
  * @returns A new GameState instance
  */
-export function createGameState(difficulty: Difficulty = 'easy', solution: HexValue[][][]): GameState {
+export function createGameState(
+  difficulty: Difficulty = "simple",
+  solution: HexValue[][][],
+): GameState {
   return {
     cube: createCube(),
     difficulty,
     isComplete: false,
     isCorrect: null,
-    solution
+    solution,
   };
 }
 
@@ -50,13 +62,17 @@ export function createGameState(difficulty: Difficulty = 'easy', solution: HexVa
  * @param solution - The complete solution for the puzzle (16x16x16 array)
  * @returns A new GameState instance
  */
-export function createGameStateFromCube(cube: Cube, difficulty: Difficulty = 'easy', solution: HexValue[][][]): GameState {
+export function createGameStateFromCube(
+  cube: Cube,
+  difficulty: Difficulty = "simple",
+  solution: HexValue[][][],
+): GameState {
   return {
     cube,
     difficulty,
     isComplete: false,
     isCorrect: null,
-    solution
+    solution,
   };
 }
 

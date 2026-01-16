@@ -149,7 +149,7 @@ just build
 **Expected Results:**
 - ✓ Loading state is shown during generation
 - ✓ Puzzle generates successfully without errors
-- ✓ Approximately 70% of cells are filled with "given" values
+- ✓ Approximately 95% of cells are filled with "given" values
 - ✓ Given cells are visually distinct (different color/styling)
 - ✓ Given cells contain valid hex values (0-9, a-f)
 - ✓ Empty cells are transparent/blank
