@@ -30,6 +30,7 @@ import { GameUI } from './ui/GameUI.js';
 import { ViewStateManager } from './ui/ViewStateManager.js';
 import { MessagePanel } from './ui/MessagePanel.js';
 import { GameStateCoordinator } from './ui/GameStateCoordinator.js';
+import { CellStateManager } from './ui/CellStateManager.js';
 
 console.log('Hex-Do-Cube initialized');
 
@@ -157,6 +158,9 @@ export function init(): void {
     subsquareSeparatorRenderer,
   });
 
+  // 8a. Initialize CellStateManager for centralized cell state management
+  const cellStateManager = new CellStateManager(cubeRenderer);
+
   // 9. Initialize InputController
   const inputController = new InputController(
     {
@@ -166,7 +170,8 @@ export function init(): void {
     cubeRenderer,
     faceRenderer,
     minimapRenderer,
-    gameState.cube
+    gameState.cube,
+    cellStateManager
   );
 
   // 9a. Wire up ViewStateManager to InputController for coordinated view transitions
@@ -176,6 +181,7 @@ export function init(): void {
   const cellEditor = new CellEditor(
     gameState.cube,
     cubeRenderer,
+    cellStateManager,
     gameState.solution,
     {
       autoValidate: false, // On-demand validation only

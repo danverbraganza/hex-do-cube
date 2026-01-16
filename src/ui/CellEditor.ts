@@ -15,6 +15,7 @@
 import type { Cube } from '../models/Cube.js';
 import type { Position, HexValue } from '../models/Cell.js';
 import type { CubeRenderer } from '../renderer/CubeRenderer.js';
+import type { CellStateManager } from './CellStateManager.js';
 import { isCellEditable, setCellValue, positionKey, parsePositionKey } from '../models/Cell.js';
 import { validateCube, type CubeValidationResult } from '../services/validator.js';
 
@@ -44,6 +45,7 @@ export type CellEditCallback = (position: Position, value: HexValue) => void;
 export class CellEditor {
   private cube: Cube;
   private renderer: CubeRenderer;
+  private cellStateManager: CellStateManager;
   private config: Required<CellEditorConfig>;
   private solution: HexValue[][][]; // The correct solution for comparison
 
@@ -58,11 +60,13 @@ export class CellEditor {
   constructor(
     cube: Cube,
     renderer: CubeRenderer,
+    cellStateManager: CellStateManager,
     solution: HexValue[][][],
     config: CellEditorConfig = {}
   ) {
     this.cube = cube;
     this.renderer = renderer;
+    this.cellStateManager = cellStateManager;
     this.solution = solution;
 
     // Apply default configuration
@@ -165,7 +169,7 @@ export class CellEditor {
       const state = this.renderer.getCellState(position);
       // Clear any error-related state (error, conflict-given, wrong)
       if (state === 'error' || state === 'conflict-given' || state === 'wrong') {
-        this.renderer.clearCellState(position);
+        this.cellStateManager.clearErrorState(position);
       }
     }
     this.errorPositions.clear();
@@ -212,26 +216,23 @@ export class CellEditor {
         continue;
       }
 
-      // Determine the appropriate highlight state
-      let highlightState: 'conflict-given' | 'wrong' | 'error';
-
+      // Determine the appropriate highlight state and apply via CellStateManager
       if (cell.type === 'given') {
         // Given cells in conflict get GREEN highlight
-        highlightState = 'conflict-given';
+        this.cellStateManager.setConflictGivenState(position);
       } else {
         // User cells: check if value is wrong compared to solution
         const correctValue = this.solution[i][j][k];
         if (cell.value !== correctValue) {
           // User cell with WRONG value gets RED highlight
-          highlightState = 'wrong';
+          this.cellStateManager.setWrongState(position);
         } else {
           // User cell with CORRECT value but in conflict (shouldn't happen in valid puzzle)
           // Use generic error state
-          highlightState = 'error';
+          this.cellStateManager.setErrorState(position);
         }
       }
 
-      this.renderer.setCellState(position, highlightState);
       this.errorPositions.add(posKey);
     }
   }

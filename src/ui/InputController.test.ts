@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { InputController } from './InputController.js';
 import { ViewStateManager } from './ViewStateManager.js';
+import { CellStateManager } from './CellStateManager.js';
 import { Window } from 'happy-dom';
 
 describe('InputController - Mouse Rotation in Isometric View', () => {
@@ -88,6 +89,9 @@ describe('InputController - Mouse Rotation in Isometric View', () => {
       cubeRenderer: mockCubeRenderer,
     });
 
+    // Create cell state manager with mock renderer
+    const cellStateManager = new CellStateManager(mockCubeRenderer);
+
     // Create input controller with mocks
     inputController = new InputController(
       { canvas },
@@ -95,7 +99,8 @@ describe('InputController - Mouse Rotation in Isometric View', () => {
       mockCubeRenderer,
       mockFaceRenderer,
       mockMinimapRenderer,
-      mockCube
+      mockCube,
+      cellStateManager
     );
 
     // Wire up ViewStateManager to InputController (this is the key connection!)

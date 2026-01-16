@@ -62,14 +62,14 @@ export class InputController {
   private minimapRenderer: MinimapRenderer;
   private cube: Cube;
 
+  // Cell state manager for visual state coordination
+  private cellStateManager: import('./CellStateManager.js').CellStateManager;
+
   // View state manager (optional, for coordinated view transitions)
   private viewStateManager: import('./ViewStateManager.js').ViewStateManager | null = null; // Used conditionally in enterFaceOnView and exitFaceOnView
 
   // Message panel (optional, for logging and debugging)
   private messagePanel: import('./MessagePanel.js').MessagePanel | null = null;
-
-  // Cell selection state
-  private selectedCell: Position | null = null;
 
   // Disposal flag to prevent operations after dispose()
   private isDisposed: boolean = false;
@@ -105,7 +105,8 @@ export class InputController {
     cubeRenderer: CubeRenderer,
     faceRenderer: FaceRenderer,
     minimapRenderer: MinimapRenderer,
-    cube: Cube
+    cube: Cube,
+    cellStateManager: import('./CellStateManager.js').CellStateManager
   ) {
     this.canvas = config.canvas;
     this.sceneManager = sceneManager;
@@ -113,6 +114,7 @@ export class InputController {
     this.faceRenderer = faceRenderer;
     this.minimapRenderer = minimapRenderer;
     this.cube = cube;
+    this.cellStateManager = cellStateManager;
 
     // Apply default configuration
     this.config = {
@@ -413,7 +415,8 @@ export class InputController {
    */
   private handleKeyDown(event: KeyboardEvent): void {
     // Only handle keyboard input if a cell is selected
-    if (!this.selectedCell) {
+    const selectedCell = this.cellStateManager.getSelectedCell();
+    if (!selectedCell) {
       return;
     }
 
@@ -459,11 +462,12 @@ export class InputController {
    * Input a hex value into the selected cell
    */
   private inputHexValue(value: Exclude<HexValue, null>): void {
-    if (!this.selectedCell) {
+    const selectedCell = this.cellStateManager.getSelectedCell();
+    if (!selectedCell) {
       return;
     }
 
-    const [i, j, k] = this.selectedCell;
+    const [i, j, k] = selectedCell;
     const cell = this.cube.cells[i][j][k];
 
     // Only allow editing of editable cells
@@ -475,21 +479,22 @@ export class InputController {
     setCellValue(cell, value);
 
     // Update renderer
-    this.updateCellRenderers(this.selectedCell);
+    this.updateCellRenderers(selectedCell);
 
     // Notify listeners
-    this.notifyCellValueChange(this.selectedCell, value);
+    this.notifyCellValueChange(selectedCell, value);
   }
 
   /**
    * Clear the selected cell's value
    */
   private clearSelectedCell(): void {
-    if (!this.selectedCell) {
+    const selectedCell = this.cellStateManager.getSelectedCell();
+    if (!selectedCell) {
       return;
     }
 
-    const [i, j, k] = this.selectedCell;
+    const [i, j, k] = selectedCell;
     const cell = this.cube.cells[i][j][k];
 
     // Only allow editing of editable cells
@@ -501,34 +506,24 @@ export class InputController {
     setCellValue(cell, null);
 
     // Update renderer
-    this.updateCellRenderers(this.selectedCell);
+    this.updateCellRenderers(selectedCell);
 
     // Notify listeners
-    this.notifyCellValueChange(this.selectedCell, null);
+    this.notifyCellValueChange(selectedCell, null);
   }
 
   /**
    * Select a cell
    */
   private selectCell(position: Position): void {
-    // Deselect previous cell
-    if (this.selectedCell) {
-      this.cubeRenderer.clearCellState(this.selectedCell);
-    }
-
-    // Select new cell
-    this.selectedCell = position;
-    this.cubeRenderer.setCellState(position, 'selected');
+    this.cellStateManager.selectCell(position);
   }
 
   /**
    * Deselect the currently selected cell
    */
   private deselectCell(): void {
-    if (this.selectedCell) {
-      this.cubeRenderer.clearCellState(this.selectedCell);
-      this.selectedCell = null;
-    }
+    this.cellStateManager.clearSelection();
   }
 
   /**
@@ -590,7 +585,7 @@ export class InputController {
    * Get the currently selected cell
    */
   public getSelectedCell(): Position | null {
-    return this.selectedCell;
+    return this.cellStateManager.getSelectedCell();
   }
 
   /**

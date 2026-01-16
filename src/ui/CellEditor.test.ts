@@ -6,6 +6,7 @@
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { CellEditor } from './CellEditor.js';
 import { CubeRenderer } from '../renderer/CubeRenderer.js';
+import { CellStateManager } from './CellStateManager.js';
 import { createCube, type Cube } from '../models/Cube.js';
 import { createGivenCell, createCell, type HexValue, type Position } from '../models/Cell.js';
 import * as THREE from 'three';
@@ -55,6 +56,7 @@ describe('CellEditor validation highlighting', () => {
   let cube: Cube;
   let solution: HexValue[][][];
   let renderer: MockCubeRenderer;
+  let cellStateManager: CellStateManager;
   let editor: CellEditor;
 
   beforeEach(() => {
@@ -72,9 +74,11 @@ describe('CellEditor validation highlighting', () => {
     );
 
     renderer = new MockCubeRenderer(cube) as unknown as MockCubeRenderer;
+    cellStateManager = new CellStateManager(renderer as unknown as CubeRenderer);
     editor = new CellEditor(
       cube,
       renderer as unknown as CubeRenderer,
+      cellStateManager,
       solution,
       { autoValidate: false, showErrorHighlights: true }
     );
@@ -284,6 +288,7 @@ describe('CellEditor edit operations', () => {
   let cube: Cube;
   let solution: HexValue[][][];
   let renderer: MockCubeRenderer;
+  let cellStateManager: CellStateManager;
   let editor: CellEditor;
 
   beforeEach(() => {
@@ -294,9 +299,11 @@ describe('CellEditor edit operations', () => {
       )
     );
     renderer = new MockCubeRenderer(cube) as unknown as MockCubeRenderer;
+    cellStateManager = new CellStateManager(renderer as unknown as CubeRenderer);
     editor = new CellEditor(
       cube,
       renderer as unknown as CubeRenderer,
+      cellStateManager,
       solution,
       { autoValidate: false, showErrorHighlights: true }
     );
