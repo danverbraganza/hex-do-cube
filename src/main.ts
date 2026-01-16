@@ -256,6 +256,10 @@ export function init(): void {
     // Generate puzzle asynchronously to avoid blocking UI
     setTimeout(() => {
       try {
+        // Reset view state before generating new puzzle
+        // This ensures we exit face-on mode and reset opacities to translucent
+        viewStateManager.exitFaceOnView();
+
         const { cube: newCube, solution: newSolution } = generatePuzzle(difficulty);
         const newGameState = createGameStateFromCube(newCube, difficulty, newSolution);
 
@@ -270,9 +274,6 @@ export function init(): void {
 
         // Save new game
         saveGameState(gameState);
-
-        // Reset camera to canonical view
-        sceneManager.resetCamera();
 
         messagePanel.log('New puzzle generated successfully');
       } catch (error) {
