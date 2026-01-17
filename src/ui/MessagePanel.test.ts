@@ -146,14 +146,14 @@ describe('MessagePanel', () => {
       messagePanel.addMessage('User message', 'USER');
       const messageList = container.querySelector('#message-list');
       const messageElement = messageList?.children[0] as HTMLElement;
-      expect(messageElement.className).toContain('message-user');
+      expect(messageElement.className).toContain('hdc-message-item--user');
     });
 
     test('should apply message-log class for LOG messages', () => {
       messagePanel.addMessage('Log message', 'LOG');
       const messageList = container.querySelector('#message-list');
       const messageElement = messageList?.children[0] as HTMLElement;
-      expect(messageElement.className).toContain('message-log');
+      expect(messageElement.className).toContain('hdc-message-item--log');
     });
 
     test('should display message text', () => {
@@ -344,28 +344,28 @@ describe('MessagePanel', () => {
       messagePanel = new MessagePanel({ container });
     });
 
-    test('should have fixed positioning for full-height sidebar', () => {
+    test('should have hdc-message-panel class', () => {
       const panel = container.querySelector('#message-panel') as HTMLElement;
-      expect(panel.style.position).toBe('fixed');
+      expect(panel.className).toContain('hdc-message-panel');
     });
 
-    test('should have scrollable message content', () => {
-      const messageContent = container.querySelector('.message-panel-content') as HTMLElement;
-      expect(messageContent.style.overflowY).toBe('auto');
+    test('should have message content with hdc-message-panel-content class', () => {
+      const messageContent = container.querySelector('.hdc-message-panel-content') as HTMLElement;
+      expect(messageContent).not.toBeNull();
     });
 
-    test('should have modern font family', () => {
+    test('should have panel with proper CSS class', () => {
       const panel = container.querySelector('#message-panel') as HTMLElement;
-      expect(panel.style.fontFamily).toContain('Segoe UI');
+      expect(panel.className).toContain('hdc-message-panel');
     });
 
     test('should have header element', () => {
-      const header = container.querySelector('.message-panel-header');
+      const header = container.querySelector('.hdc-message-panel-header');
       expect(header).not.toBeNull();
     });
 
     test('should have collapse button', () => {
-      const header = container.querySelector('.message-panel-header');
+      const header = container.querySelector('.hdc-message-panel-header');
       const button = header?.querySelector('button');
       expect(button).not.toBeNull();
     });
@@ -429,7 +429,7 @@ describe('MessagePanel', () => {
     });
 
     test('should update collapse button icon when collapsing', () => {
-      const button = container.querySelector('.message-panel-header button') as HTMLButtonElement;
+      const button = container.querySelector('.hdc-message-panel-header button') as HTMLButtonElement;
       const initialText = button.innerHTML;
       messagePanel.collapse();
       expect(button.innerHTML).not.toBe(initialText);
@@ -472,7 +472,7 @@ describe('MessagePanel', () => {
 
       // Verify the remaining message is the USER message
       const messageElement = messageList?.children[0];
-      expect(messageElement?.className).toContain('message-user');
+      expect(messageElement?.className).toContain('hdc-message-item--user');
     });
 
     test('should show LOG messages when checkbox is checked', () => {
@@ -539,8 +539,8 @@ describe('MessagePanel', () => {
       // Verify both are USER messages
       const firstMessage = messageList?.children[0];
       const secondMessage = messageList?.children[1];
-      expect(firstMessage?.className).toContain('message-user');
-      expect(secondMessage?.className).toContain('message-user');
+      expect(firstMessage?.className).toContain('hdc-message-item--user');
+      expect(secondMessage?.className).toContain('hdc-message-item--user');
     });
 
     test('should preserve message order when filtering', () => {

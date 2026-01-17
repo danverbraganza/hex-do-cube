@@ -100,79 +100,36 @@ export class MessagePanel {
     // Create panel container (full-height sidebar)
     this.panelElement = document.createElement('div');
     this.panelElement.id = 'message-panel';
-    this.panelElement.className = 'message-panel';
-    this.panelElement.style.cssText = `
-      position: fixed;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      width: 280px;
-      background: rgba(20, 20, 30, 0.95);
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      flex-direction: column;
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      z-index: 100;
-      transition: width 0.3s ease;
-    `;
+    this.panelElement.className = 'hdc-message-panel';
 
     // Create header with title, checkbox, and collapse button
     this.headerElement = document.createElement('div');
-    this.headerElement.className = 'message-panel-header';
-    this.headerElement.style.cssText = `
-      padding: 12px 16px;
-      background: rgba(0, 0, 0, 0.3);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
-      flex-wrap: wrap;
-      gap: 8px;
-    `;
+    this.headerElement.className = 'hdc-message-panel-header';
 
     // Create title and checkbox container
     const leftContainer = document.createElement('div');
-    leftContainer.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    `;
+    leftContainer.className = 'hdc-message-panel-header-left';
 
     // Create title
     const titleElement = document.createElement('div');
     titleElement.textContent = 'Messages';
-    titleElement.style.cssText = `
-      color: rgba(255, 255, 255, 0.9);
-      font-weight: 600;
-      font-size: 14px;
-    `;
+    titleElement.className = 'hdc-message-panel-title';
 
     // Create checkbox container
     const checkboxContainer = document.createElement('div');
-    checkboxContainer.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    `;
+    checkboxContainer.className = 'hdc-message-panel-checkbox-container';
 
     // Create checkbox for showing/hiding logs
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = this.showLogs;
     checkbox.id = 'show-logs';
-    checkbox.style.cssText = `
-      cursor: pointer;
-    `;
+    checkbox.className = 'hdc-message-panel-checkbox';
 
     const label = document.createElement('label');
     label.htmlFor = 'show-logs';
     label.textContent = 'Logs';
-    label.style.cssText = `
-      color: rgba(255, 255, 255, 0.5);
-      font-size: 11px;
-      cursor: pointer;
-    `;
+    label.className = 'hdc-message-panel-checkbox-label';
 
     checkbox.addEventListener('change', () => {
       this.showLogs = checkbox.checked;
@@ -189,29 +146,7 @@ export class MessagePanel {
     this.collapseButton = document.createElement('button');
     this.collapseButton.innerHTML = '&laquo;'; // Left double angle
     this.collapseButton.title = 'Collapse panel';
-    this.collapseButton.style.cssText = `
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 3px;
-      color: rgba(255, 255, 255, 0.8);
-      cursor: pointer;
-      font-size: 16px;
-      width: 24px;
-      height: 24px;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s ease;
-    `;
-
-    this.collapseButton.addEventListener('mouseenter', () => {
-      this.collapseButton.style.background = 'rgba(255, 255, 255, 0.2)';
-    });
-
-    this.collapseButton.addEventListener('mouseleave', () => {
-      this.collapseButton.style.background = 'rgba(255, 255, 255, 0.1)';
-    });
+    this.collapseButton.className = 'hdc-message-panel-collapse-button';
 
     this.collapseButton.addEventListener('click', () => {
       this.toggleCollapse();
@@ -222,50 +157,12 @@ export class MessagePanel {
 
     // Create message content container
     this.messageContentElement = document.createElement('div');
-    this.messageContentElement.className = 'message-panel-content';
-    this.messageContentElement.style.cssText = `
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding: 8px;
-    `;
+    this.messageContentElement.className = 'hdc-message-panel-content';
 
     // Create message list container
     this.messageListElement = document.createElement('div');
     this.messageListElement.id = 'message-list';
-    this.messageListElement.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    `;
-
-    // Custom scrollbar styling
-    const style = document.createElement('style');
-    style.textContent = `
-      .message-panel-content::-webkit-scrollbar {
-        width: 8px;
-      }
-      .message-panel-content::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.05);
-      }
-      .message-panel-content::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 4px;
-      }
-      .message-panel-content::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.3);
-      }
-      .message-panel.collapsed {
-        width: 40px !important;
-      }
-      .message-panel.collapsed .message-panel-header > div:first-child {
-        display: none;
-      }
-      .message-panel.collapsed .message-panel-content {
-        display: none;
-      }
-    `;
-    document.head.appendChild(style);
+    this.messageListElement.className = 'hdc-message-list';
 
     this.messageContentElement.appendChild(this.messageListElement);
     this.panelElement.appendChild(this.headerElement);
@@ -327,29 +224,15 @@ export class MessagePanel {
     }
 
     const messageElement = document.createElement('div');
-    messageElement.className = message.type === 'LOG' ? 'message message-log' : 'message message-user';
-    messageElement.style.cssText = `
-      padding: 6px 8px;
-      margin-bottom: 4px;
-      border-radius: 4px;
-      font-size: 12px;
-      line-height: 1.4;
-      word-wrap: break-word;
-      ${message.type === 'LOG' ? 'color: rgba(255, 255, 255, 0.5);' : 'color: rgba(255, 255, 255, 0.9); background: rgba(255, 255, 255, 0.05);'}
-    `;
+    messageElement.className = message.type === 'LOG' ? 'hdc-message-item hdc-message-item--log' : 'hdc-message-item hdc-message-item--user';
 
     // Format timestamp as HH:MM:SS
     const timestamp = this.formatTimestamp(message.timestamp);
 
     // Create timestamp span
     const timestampSpan = document.createElement('span');
-    timestampSpan.className = 'message-timestamp';
+    timestampSpan.className = 'hdc-message-timestamp';
     timestampSpan.textContent = timestamp;
-    timestampSpan.style.cssText = `
-      color: rgba(255, 255, 255, 0.3);
-      font-size: 10px;
-      margin-right: 8px;
-    `;
 
     // Create message text span
     const textSpan = document.createElement('span');
