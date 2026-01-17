@@ -109,16 +109,7 @@ export class GameUI {
     // Create HUD overlay container
     this.hudOverlay = document.createElement("div");
     this.hudOverlay.id = "hud-overlay";
-    this.hudOverlay.style.cssText = `
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 100;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    `;
+    this.hudOverlay.className = "hdc-hud-overlay";
 
     // Top-left controls
     const topLeftControls = document.createElement("div");
@@ -135,13 +126,13 @@ export class GameUI {
     this.homeButton = document.createElement("button");
     this.homeButton.textContent = "Home";
     this.homeButton.title = "Return to canonical isometric view";
-    this.applyButtonStyle(this.homeButton);
+    this.homeButton.className = "hdc-button";
 
     // Check button
     this.checkButton = document.createElement("button");
     this.checkButton.textContent = "Check";
     this.checkButton.title = "Validate current solution";
-    this.applyButtonStyle(this.checkButton);
+    this.checkButton.className = "hdc-button";
 
     topLeftControls.appendChild(this.homeButton);
     topLeftControls.appendChild(this.checkButton);
@@ -163,22 +154,11 @@ export class GameUI {
     // Difficulty selector
     const difficultyLabel = document.createElement("label");
     difficultyLabel.textContent = "Difficulty: ";
-    difficultyLabel.style.cssText = `
-      color: #ffffff;
-      font-size: 14px;
-      margin-right: 4px;
-    `;
+    difficultyLabel.className = "hdc-control-label";
+    difficultyLabel.style.marginRight = "4px"; // Position-specific spacing
 
     this.difficultySelect = document.createElement("select");
-    this.difficultySelect.style.cssText = `
-      background: rgba(255, 255, 255, 0.1);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 14px;
-      cursor: pointer;
-    `;
+    this.difficultySelect.className = "hdc-select";
 
     // Add all difficulty levels from centralized configuration
     for (const diff of DIFFICULTY_ORDER) {
@@ -195,7 +175,7 @@ export class GameUI {
     this.newGameButton = document.createElement("button");
     this.newGameButton.textContent = "New Game";
     this.newGameButton.title = "Start a new puzzle";
-    this.applyButtonStyle(this.newGameButton);
+    this.newGameButton.className = "hdc-button";
 
     topRightControls.appendChild(difficultyLabel);
     topRightControls.appendChild(this.difficultySelect);
@@ -216,44 +196,37 @@ export class GameUI {
     // Label for face view controls
     const faceViewLabel = document.createElement("div");
     faceViewLabel.textContent = "Face Views:";
-    faceViewLabel.style.cssText = `
-      color: #ffffff;
-      font-size: 12px;
-      font-weight: bold;
-      margin-bottom: 4px;
-    `;
+    faceViewLabel.className = "hdc-control-label";
+    faceViewLabel.style.fontWeight = "bold";
 
     // Container for face view buttons
     const faceViewButtons = document.createElement("div");
-    faceViewButtons.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    `;
+    faceViewButtons.className = "hdc-control-group";
+    faceViewButtons.style.gap = "4px"; // Override default gap for tighter spacing
 
     // XY face view button (looking down Z axis)
     this.xyViewButton = document.createElement("button");
     this.xyViewButton.textContent = "XY Face";
     this.xyViewButton.title = "View XY face (looking down Z axis)";
-    this.applyButtonStyle(this.xyViewButton);
+    this.xyViewButton.className = "hdc-button";
 
     // XZ face view button (looking down Y axis)
     this.xzViewButton = document.createElement("button");
     this.xzViewButton.textContent = "XZ Face";
     this.xzViewButton.title = "View XZ face (looking down Y axis)";
-    this.applyButtonStyle(this.xzViewButton);
+    this.xzViewButton.className = "hdc-button";
 
     // YZ face view button (looking down X axis)
     this.yzViewButton = document.createElement("button");
     this.yzViewButton.textContent = "YZ Face";
     this.yzViewButton.title = "View YZ face (looking down X axis)";
-    this.applyButtonStyle(this.yzViewButton);
+    this.yzViewButton.className = "hdc-button";
 
     // Home/isometric view button
     this.homeViewButton = document.createElement("button");
     this.homeViewButton.textContent = "Isometric";
     this.homeViewButton.title = "Return to isometric 3D view";
-    this.applyButtonStyle(this.homeViewButton);
+    this.homeViewButton.className = "hdc-button";
 
     faceViewButtons.appendChild(this.xyViewButton);
     faceViewButtons.appendChild(this.xzViewButton);
@@ -266,13 +239,9 @@ export class GameUI {
     // Layer navigation controls
     const layerNavLabel = document.createElement("div");
     layerNavLabel.textContent = "Layer:";
-    layerNavLabel.style.cssText = `
-      color: #ffffff;
-      font-size: 12px;
-      font-weight: bold;
-      margin-top: 12px;
-      margin-bottom: 4px;
-    `;
+    layerNavLabel.className = "hdc-control-label";
+    layerNavLabel.style.fontWeight = "bold";
+    layerNavLabel.style.marginTop = "12px";
 
     // Container for layer navigation buttons
     const layerNavButtons = document.createElement("div");
@@ -288,8 +257,7 @@ export class GameUI {
 </svg>`;
     this.layerMinusButton.title = "Navigate to previous layer (shallower)";
     this.layerMinusButton.disabled = true; // Initially disabled
-    this.applyButtonStyle(this.layerMinusButton);
-    this.applyDisabledButtonStyle(this.layerMinusButton); // Apply initial disabled styling
+    this.layerMinusButton.className = "hdc-button";
 
     // Layer plus button [+]
     this.layerPlusButton = document.createElement("button");
@@ -299,8 +267,7 @@ export class GameUI {
 </svg>`;
     this.layerPlusButton.title = "Navigate to next layer (deeper)";
     this.layerPlusButton.disabled = true; // Initially disabled
-    this.applyButtonStyle(this.layerPlusButton);
-    this.applyDisabledButtonStyle(this.layerPlusButton); // Apply initial disabled styling
+    this.layerPlusButton.className = "hdc-button";
 
     layerNavButtons.appendChild(this.layerMinusButton);
     layerNavButtons.appendChild(this.layerPlusButton);
@@ -311,21 +278,12 @@ export class GameUI {
     // Win notification (initially hidden)
     this.winNotification = document.createElement("div");
     this.winNotification.id = "win-notification";
+    this.winNotification.className = "hdc-notification hdc-notification--success";
+    // Keep position-specific and special styling inline
     this.winNotification.style.cssText = `
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.5);
-      color: #ffffff;
       padding: 48px 64px;
       border-radius: 16px;
       font-size: 48px;
-      font-weight: bold;
-      text-align: center;
-      pointer-events: auto;
-      display: none;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
       cursor: pointer;
       animation: winPulse 1.5s ease-in-out infinite;
     `;
@@ -357,43 +315,16 @@ export class GameUI {
     // Wrong completion notification (initially hidden)
     this.wrongCompletionNotification = document.createElement("div");
     this.wrongCompletionNotification.id = "wrong-completion-notification";
-    this.wrongCompletionNotification.style.cssText = `
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(200, 50, 0, 0.95);
-      color: #ffffff;
-      padding: 32px 48px;
-      border-radius: 8px;
-      font-size: 24px;
-      font-weight: bold;
-      text-align: center;
-      pointer-events: auto;
-      display: none;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-    `;
+    this.wrongCompletionNotification.className = "hdc-notification hdc-notification--error";
+    this.wrongCompletionNotification.style.cursor = "pointer"; // Position-specific: make clickable
     this.wrongCompletionNotification.innerHTML =
       'Cube Complete but Incorrect!<br/><span style="font-size: 16px; font-weight: normal;">Check the highlighted errors</span>';
 
     // Layer indicator (initially hidden, shown only in face-on view)
     this.layerIndicator = document.createElement("div");
     this.layerIndicator.id = "layer-indicator";
-    this.layerIndicator.style.cssText = `
-      position: absolute;
-      top: 16px;
-      right: 50%;
-      transform: translateX(50%);
-      background: rgba(0, 0, 0, 0.7);
-      color: #ffffff;
-      padding: 8px 16px;
-      border-radius: 4px;
-      font-size: 14px;
-      font-weight: bold;
-      pointer-events: none;
-      display: none;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-    `;
+    this.layerIndicator.className = "hdc-layer-indicator";
+    this.layerIndicator.style.fontWeight = "bold"; // Keep bold style
     this.layerIndicator.textContent = "Layer: 0 / 16";
 
     // Version display (bottom-right corner)
@@ -424,37 +355,6 @@ export class GameUI {
 
     // Add to container
     this.container.appendChild(this.hudOverlay);
-  }
-
-  /**
-   * Apply consistent button styling
-   */
-  private applyButtonStyle(button: HTMLButtonElement): void {
-    button.style.cssText = `
-      background: rgba(255, 255, 255, 0.1);
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      padding: 8px 16px;
-      border-radius: 4px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.2s, opacity 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    `;
-
-    // Hover effect - only when not disabled
-    button.addEventListener("mouseenter", () => {
-      if (!button.disabled) {
-        button.style.background = "rgba(255, 255, 255, 0.2)";
-      }
-    });
-    button.addEventListener("mouseleave", () => {
-      if (!button.disabled) {
-        button.style.background = "rgba(255, 255, 255, 0.1)";
-      }
-    });
   }
 
   /**
@@ -678,23 +578,7 @@ export class GameUI {
       this.layerMinusButton.disabled = (currentLayer === 0);
       this.layerPlusButton.disabled = (currentLayer === 15);
     }
-
-    // Apply visual styling for disabled state
-    this.applyDisabledButtonStyle(this.layerMinusButton);
-    this.applyDisabledButtonStyle(this.layerPlusButton);
-  }
-
-  /**
-   * Apply visual styling to a button based on its disabled state
-   */
-  private applyDisabledButtonStyle(button: HTMLButtonElement): void {
-    if (button.disabled) {
-      button.style.opacity = '0.4';
-      button.style.cursor = 'not-allowed';
-    } else {
-      button.style.opacity = '1';
-      button.style.cursor = 'pointer';
-    }
+    // CSS handles the visual styling for disabled state automatically via :disabled pseudo-class
   }
 
   /**
