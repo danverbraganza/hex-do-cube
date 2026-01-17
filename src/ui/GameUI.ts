@@ -287,6 +287,7 @@ export class GameUI {
     this.layerMinusButton.title = "Navigate to previous layer (shallower)";
     this.layerMinusButton.disabled = true; // Initially disabled
     this.applyButtonStyle(this.layerMinusButton);
+    this.applyDisabledButtonStyle(this.layerMinusButton); // Apply initial disabled styling
 
     // Layer plus button [+]
     this.layerPlusButton = document.createElement("button");
@@ -294,6 +295,7 @@ export class GameUI {
     this.layerPlusButton.title = "Navigate to next layer (deeper)";
     this.layerPlusButton.disabled = true; // Initially disabled
     this.applyButtonStyle(this.layerPlusButton);
+    this.applyDisabledButtonStyle(this.layerPlusButton); // Apply initial disabled styling
 
     layerNavButtons.appendChild(this.layerMinusButton);
     layerNavButtons.appendChild(this.layerPlusButton);
@@ -431,15 +433,19 @@ export class GameUI {
       border-radius: 4px;
       font-size: 14px;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.2s, opacity 0.2s;
     `;
 
-    // Hover effect
+    // Hover effect - only when not disabled
     button.addEventListener("mouseenter", () => {
-      button.style.background = "rgba(255, 255, 255, 0.2)";
+      if (!button.disabled) {
+        button.style.background = "rgba(255, 255, 255, 0.2)";
+      }
     });
     button.addEventListener("mouseleave", () => {
-      button.style.background = "rgba(255, 255, 255, 0.1)";
+      if (!button.disabled) {
+        button.style.background = "rgba(255, 255, 255, 0.1)";
+      }
     });
   }
 
@@ -663,6 +669,23 @@ export class GameUI {
       // In face-on view - enable based on layer position
       this.layerMinusButton.disabled = (currentLayer === 0);
       this.layerPlusButton.disabled = (currentLayer === 15);
+    }
+
+    // Apply visual styling for disabled state
+    this.applyDisabledButtonStyle(this.layerMinusButton);
+    this.applyDisabledButtonStyle(this.layerPlusButton);
+  }
+
+  /**
+   * Apply visual styling to a button based on its disabled state
+   */
+  private applyDisabledButtonStyle(button: HTMLButtonElement): void {
+    if (button.disabled) {
+      button.style.opacity = '0.4';
+      button.style.cursor = 'not-allowed';
+    } else {
+      button.style.opacity = '1';
+      button.style.cursor = 'pointer';
     }
   }
 
