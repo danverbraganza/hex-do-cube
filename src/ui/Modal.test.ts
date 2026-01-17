@@ -66,7 +66,7 @@ describe('Modal', () => {
     modal.show(config);
 
     // Check that the message is in the DOM
-    const messageElements = document.querySelectorAll('.modal-message');
+    const messageElements = document.querySelectorAll('.hdc-modal-message');
     expect(messageElements.length).toBeGreaterThan(0);
     const messageElement = messageElements[0] as HTMLElement;
     expect(messageElement.textContent).toBe(testMessage);
@@ -83,8 +83,8 @@ describe('Modal', () => {
 
     modal.show(config);
 
-    const confirmButtons = document.querySelectorAll('.modal-confirm');
-    const cancelButtons = document.querySelectorAll('.modal-cancel');
+    const confirmButtons = document.querySelectorAll('.hdc-modal-button--confirm');
+    const cancelButtons = document.querySelectorAll('.hdc-modal-button--cancel');
 
     expect(confirmButtons.length).toBeGreaterThan(0);
     expect(cancelButtons.length).toBeGreaterThan(0);
@@ -105,8 +105,8 @@ describe('Modal', () => {
 
     modal.show(config);
 
-    const confirmButtons = document.querySelectorAll('.modal-confirm');
-    const cancelButtons = document.querySelectorAll('.modal-cancel');
+    const confirmButtons = document.querySelectorAll('.hdc-modal-button--confirm');
+    const cancelButtons = document.querySelectorAll('.hdc-modal-button--cancel');
 
     expect(confirmButtons.length).toBeGreaterThan(0);
     expect(cancelButtons.length).toBeGreaterThan(0);
@@ -130,7 +130,7 @@ describe('Modal', () => {
 
     modal.show(config);
 
-    const confirmButtons = document.querySelectorAll('.modal-confirm');
+    const confirmButtons = document.querySelectorAll('.hdc-modal-button--confirm');
     const confirmButton = confirmButtons[0] as HTMLButtonElement;
     confirmButton.click();
 
@@ -151,7 +151,7 @@ describe('Modal', () => {
 
     modal.show(config);
 
-    const cancelButtons = document.querySelectorAll('.modal-cancel');
+    const cancelButtons = document.querySelectorAll('.hdc-modal-button--cancel');
     const cancelButton = cancelButtons[0] as HTMLButtonElement;
     cancelButton.click();
 
@@ -172,7 +172,7 @@ describe('Modal', () => {
 
     modal.show(config);
 
-    const overlays = document.querySelectorAll('.modal-overlay');
+    const overlays = document.querySelectorAll('.hdc-modal-overlay');
     const overlay = overlays[0] as HTMLElement;
     overlay.click();
 
@@ -214,7 +214,7 @@ describe('Modal', () => {
 
     modal.show(config);
 
-    const contents = document.querySelectorAll('.modal-content');
+    const contents = document.querySelectorAll('.hdc-modal-dialog');
     const content = contents[0] as HTMLElement;
     content.click();
 
@@ -231,10 +231,10 @@ describe('Modal', () => {
     };
 
     modal.show(config);
-    expect(document.querySelectorAll('.modal-overlay').length).toBeGreaterThan(0);
+    expect(document.querySelectorAll('.hdc-modal-overlay').length).toBeGreaterThan(0);
 
     modal.dispose();
-    expect(document.querySelectorAll('.modal-overlay').length).toBe(0);
+    expect(document.querySelectorAll('.hdc-modal-overlay').length).toBe(0);
   });
 
   it('should not respond to ESC key when modal is hidden', () => {

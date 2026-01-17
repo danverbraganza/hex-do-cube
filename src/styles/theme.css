@@ -164,29 +164,68 @@ body.hdc-app {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   background: var(--hdc-bg-overlay);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  backdrop-filter: blur(2px);
 }
 
 .hdc-modal-dialog {
-  background: var(--hdc-bg-primary);
+  background: rgba(20, 20, 30, 0.95);
   border-radius: var(--hdc-radius-md);
-  padding: var(--hdc-spacing-lg);
-  max-width: 400px;
+  padding: calc(var(--hdc-spacing-lg) * 1.33);
+  min-width: 320px;
+  max-width: 480px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  border: 1px solid var(--hdc-border-color);
+  font-family: var(--hdc-font-family);
+}
+
+.hdc-modal-message {
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: var(--hdc-spacing-lg);
   text-align: center;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  color: var(--hdc-text-primary);
 }
 
 .hdc-modal-buttons {
   display: flex;
-  gap: var(--hdc-spacing-sm);
+  gap: 12px;
   justify-content: center;
-  margin-top: var(--hdc-spacing-md);
+}
+
+/* Modal button variants */
+.hdc-modal-button {
+  border: none;
+  padding: 10px 24px;
+  border-radius: var(--hdc-radius-sm);
+  font-size: var(--hdc-font-size-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--hdc-transition-normal);
+  min-width: 100px;
+  color: var(--hdc-text-primary);
+}
+
+.hdc-modal-button--cancel {
+  background: #666666;
+}
+
+.hdc-modal-button--cancel:hover {
+  background: #555555;
+}
+
+.hdc-modal-button--confirm {
+  background: #2563eb;
+}
+
+.hdc-modal-button--confirm:hover {
+  background: #1d4ed8;
 }
 
 /* ===== Message Panel ===== */
