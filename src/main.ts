@@ -86,21 +86,9 @@ export function init(): void {
     throw new Error('App container not found');
   }
 
-  // Set up basic styling for body and container to ensure no offsets
-  document.body.style.cssText = `
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-  `;
-
-  container.style.cssText = `
-    width: 100vw;
-    height: 100vh;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    position: relative;
-  `;
+  // Apply centralized CSS theme styling
+  document.body.classList.add('hdc-app');
+  // Container (#app) is styled via CSS selector in theme.css
 
   // 2. Initialize Three.js scene
   const sceneManager = new SceneManager({
