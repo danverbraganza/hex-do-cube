@@ -1,0 +1,190 @@
+/* Hex-Do-Cube Theme
+ * Centralized styling for consistent look and feel
+ */
+
+/* ===== CSS Custom Properties (Variables) ===== */
+:root {
+  /* Colors */
+  --hdc-bg-primary: #1a1a1a;
+  --hdc-bg-overlay: rgba(0, 0, 0, 0.7);
+  --hdc-bg-button: rgba(255, 255, 255, 0.1);
+  --hdc-bg-button-hover: rgba(255, 255, 255, 0.2);
+  --hdc-text-primary: #ffffff;
+  --hdc-text-secondary: rgba(255, 255, 255, 0.7);
+  --hdc-accent-success: #4ade80;
+  --hdc-accent-error: #ef4444;
+  --hdc-accent-warning: #f59e0b;
+  --hdc-border-color: rgba(255, 255, 255, 0.2);
+
+  /* Spacing */
+  --hdc-spacing-xs: 4px;
+  --hdc-spacing-sm: 8px;
+  --hdc-spacing-md: 16px;
+  --hdc-spacing-lg: 24px;
+
+  /* Typography */
+  --hdc-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --hdc-font-size-sm: 12px;
+  --hdc-font-size-md: 14px;
+  --hdc-font-size-lg: 18px;
+
+  /* Border Radius */
+  --hdc-radius-sm: 4px;
+  --hdc-radius-md: 8px;
+
+  /* Transitions */
+  --hdc-transition-fast: 0.15s ease;
+  --hdc-transition-normal: 0.2s ease;
+}
+
+/* ===== Base Styles ===== */
+body.hdc-app {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--hdc-font-family);
+  background: var(--hdc-bg-primary);
+  color: var(--hdc-text-primary);
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ===== Button Styles ===== */
+.hdc-button {
+  background: var(--hdc-bg-button);
+  color: var(--hdc-text-primary);
+  border: 1px solid var(--hdc-border-color);
+  border-radius: var(--hdc-radius-sm);
+  padding: var(--hdc-spacing-sm) var(--hdc-spacing-md);
+  font-size: var(--hdc-font-size-md);
+  cursor: pointer;
+  transition: background var(--hdc-transition-fast), opacity var(--hdc-transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hdc-button:hover:not(:disabled) {
+  background: var(--hdc-bg-button-hover);
+}
+
+.hdc-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===== HUD Overlay ===== */
+.hdc-hud-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.hdc-hud-overlay > * {
+  pointer-events: auto;
+}
+
+/* ===== Control Groups ===== */
+.hdc-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hdc-spacing-sm);
+}
+
+.hdc-control-label {
+  color: var(--hdc-text-primary);
+  font-size: var(--hdc-font-size-sm);
+  margin-bottom: var(--hdc-spacing-xs);
+}
+
+/* ===== Notifications ===== */
+.hdc-notification {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: var(--hdc-spacing-lg) calc(var(--hdc-spacing-lg) * 2);
+  border-radius: var(--hdc-radius-md);
+  font-size: var(--hdc-font-size-lg);
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  display: none;
+}
+
+.hdc-notification--success {
+  background: var(--hdc-accent-success);
+  color: #000;
+}
+
+.hdc-notification--error {
+  background: var(--hdc-accent-error);
+  color: #fff;
+}
+
+/* ===== Layer Indicator ===== */
+.hdc-layer-indicator {
+  position: absolute;
+  top: var(--hdc-spacing-md);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--hdc-bg-overlay);
+  color: var(--hdc-text-primary);
+  padding: var(--hdc-spacing-sm) var(--hdc-spacing-md);
+  border-radius: var(--hdc-radius-sm);
+  font-size: var(--hdc-font-size-md);
+  display: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== Select/Dropdown ===== */
+.hdc-select {
+  background: var(--hdc-bg-button);
+  color: var(--hdc-text-primary);
+  border: 1px solid var(--hdc-border-color);
+  border-radius: var(--hdc-radius-sm);
+  padding: var(--hdc-spacing-sm);
+  font-size: var(--hdc-font-size-md);
+  cursor: pointer;
+}
+
+/* ===== Modal Styles ===== */
+.hdc-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--hdc-bg-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.hdc-modal-dialog {
+  background: var(--hdc-bg-primary);
+  border-radius: var(--hdc-radius-md);
+  padding: var(--hdc-spacing-lg);
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.hdc-modal-buttons {
+  display: flex;
+  gap: var(--hdc-spacing-sm);
+  justify-content: center;
+  margin-top: var(--hdc-spacing-md);
+}
