@@ -220,26 +220,28 @@ describe('GameUI - Layer Navigation Buttons', () => {
   });
 
   describe('button creation', () => {
-    it('should create layer minus button [-]', () => {
+    it('should create layer minus button with minus icon', () => {
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerMinusButton = buttons.find(btn => btn.textContent === '[-]');
+      const layerMinusButton = buttons.find(btn => btn.title.includes('previous layer'));
 
       expect(layerMinusButton).not.toBeNull();
       expect(layerMinusButton?.tagName).toBe('BUTTON');
+      expect(layerMinusButton?.querySelector('svg')).not.toBeNull();
     });
 
-    it('should create layer plus button [+]', () => {
+    it('should create layer plus button with plus icon', () => {
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerPlusButton = buttons.find(btn => btn.textContent === '[+]');
+      const layerPlusButton = buttons.find(btn => btn.title.includes('next layer'));
 
       expect(layerPlusButton).not.toBeNull();
       expect(layerPlusButton?.tagName).toBe('BUTTON');
+      expect(layerPlusButton?.querySelector('svg')).not.toBeNull();
     });
 
     it('should have appropriate title attributes', () => {
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerMinusButton = buttons.find(btn => btn.textContent === '[-]') as HTMLButtonElement;
-      const layerPlusButton = buttons.find(btn => btn.textContent === '[+]') as HTMLButtonElement;
+      const layerMinusButton = buttons.find(btn => btn.title.includes('previous layer')) as HTMLButtonElement;
+      const layerPlusButton = buttons.find(btn => btn.title.includes('next layer')) as HTMLButtonElement;
 
       expect(layerMinusButton.title).toContain('previous layer');
       expect(layerPlusButton.title).toContain('next layer');
@@ -256,8 +258,8 @@ describe('GameUI - Layer Navigation Buttons', () => {
       onViewModeChangeCallback();
 
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerMinusButton = buttons.find(btn => btn.textContent === '[-]') as HTMLButtonElement;
-      const layerPlusButton = buttons.find(btn => btn.textContent === '[+]') as HTMLButtonElement;
+      const layerMinusButton = buttons.find(btn => btn.title.includes('previous layer')) as HTMLButtonElement;
+      const layerPlusButton = buttons.find(btn => btn.title.includes('next layer')) as HTMLButtonElement;
 
       expect(layerMinusButton.disabled).toBe(true);
       expect(layerPlusButton.disabled).toBe(true);
@@ -274,8 +276,8 @@ describe('GameUI - Layer Navigation Buttons', () => {
       onViewModeChangeCallback();
 
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerMinusButton = buttons.find(btn => btn.textContent === '[-]') as HTMLButtonElement;
-      const layerPlusButton = buttons.find(btn => btn.textContent === '[+]') as HTMLButtonElement;
+      const layerMinusButton = buttons.find(btn => btn.title.includes('previous layer')) as HTMLButtonElement;
+      const layerPlusButton = buttons.find(btn => btn.title.includes('next layer')) as HTMLButtonElement;
 
       expect(layerMinusButton.disabled).toBe(false);
       expect(layerPlusButton.disabled).toBe(false);
@@ -290,8 +292,8 @@ describe('GameUI - Layer Navigation Buttons', () => {
       onViewModeChangeCallback();
 
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerMinusButton = buttons.find(btn => btn.textContent === '[-]') as HTMLButtonElement;
-      const layerPlusButton = buttons.find(btn => btn.textContent === '[+]') as HTMLButtonElement;
+      const layerMinusButton = buttons.find(btn => btn.title.includes('previous layer')) as HTMLButtonElement;
+      const layerPlusButton = buttons.find(btn => btn.title.includes('next layer')) as HTMLButtonElement;
 
       expect(layerMinusButton.disabled).toBe(true);
       expect(layerPlusButton.disabled).toBe(false);
@@ -306,8 +308,8 @@ describe('GameUI - Layer Navigation Buttons', () => {
       onViewModeChangeCallback();
 
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerMinusButton = buttons.find(btn => btn.textContent === '[-]') as HTMLButtonElement;
-      const layerPlusButton = buttons.find(btn => btn.textContent === '[+]') as HTMLButtonElement;
+      const layerMinusButton = buttons.find(btn => btn.title.includes('previous layer')) as HTMLButtonElement;
+      const layerPlusButton = buttons.find(btn => btn.title.includes('next layer')) as HTMLButtonElement;
 
       expect(layerMinusButton.disabled).toBe(false);
       expect(layerPlusButton.disabled).toBe(true);
@@ -325,7 +327,7 @@ describe('GameUI - Layer Navigation Buttons', () => {
       onViewModeChangeCallback();
 
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerMinusButton = buttons.find(btn => btn.textContent === '[-]') as HTMLButtonElement;
+      const layerMinusButton = buttons.find(btn => btn.title.includes('previous layer')) as HTMLButtonElement;
 
       // Click the minus button
       layerMinusButton.click();
@@ -344,7 +346,7 @@ describe('GameUI - Layer Navigation Buttons', () => {
       onViewModeChangeCallback();
 
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerPlusButton = buttons.find(btn => btn.textContent === '[+]') as HTMLButtonElement;
+      const layerPlusButton = buttons.find(btn => btn.title.includes('next layer')) as HTMLButtonElement;
 
       // Click the plus button
       layerPlusButton.click();
@@ -363,7 +365,7 @@ describe('GameUI - Layer Navigation Buttons', () => {
       onViewModeChangeCallback();
 
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerMinusButton = buttons.find(btn => btn.textContent === '[-]') as HTMLButtonElement;
+      const layerMinusButton = buttons.find(btn => btn.title.includes('previous layer')) as HTMLButtonElement;
 
       // Reset the mock call count
       (mockViewStateManager.enterFaceOnView as any).mockClear();
@@ -385,7 +387,7 @@ describe('GameUI - Layer Navigation Buttons', () => {
       onViewModeChangeCallback();
 
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerPlusButton = buttons.find(btn => btn.textContent === '[+]') as HTMLButtonElement;
+      const layerPlusButton = buttons.find(btn => btn.title.includes('next layer')) as HTMLButtonElement;
 
       // Reset the mock call count
       (mockViewStateManager.enterFaceOnView as any).mockClear();
@@ -406,8 +408,8 @@ describe('GameUI - Layer Navigation Buttons', () => {
       onViewModeChangeCallback();
 
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerMinusButton = buttons.find(btn => btn.textContent === '[-]') as HTMLButtonElement;
-      const layerPlusButton = buttons.find(btn => btn.textContent === '[+]') as HTMLButtonElement;
+      const layerMinusButton = buttons.find(btn => btn.title.includes('previous layer')) as HTMLButtonElement;
+      const layerPlusButton = buttons.find(btn => btn.title.includes('next layer')) as HTMLButtonElement;
 
       // Verify buttons are disabled in 3D view
       expect(layerMinusButton.disabled).toBe(true);
@@ -430,8 +432,8 @@ describe('GameUI - Layer Navigation Buttons', () => {
       onViewModeChangeCallback();
 
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerMinusButton = buttons.find(btn => btn.textContent === '[-]') as HTMLButtonElement;
-      const layerPlusButton = buttons.find(btn => btn.textContent === '[+]') as HTMLButtonElement;
+      const layerMinusButton = buttons.find(btn => btn.title.includes('previous layer')) as HTMLButtonElement;
+      const layerPlusButton = buttons.find(btn => btn.title.includes('next layer')) as HTMLButtonElement;
 
       // Verify buttons are enabled in face-on view
       expect(layerMinusButton.disabled).toBe(false);
@@ -449,8 +451,8 @@ describe('GameUI - Layer Navigation Buttons', () => {
 
     it('should update button states when navigating between layers', () => {
       const buttons = Array.from(container.querySelectorAll('button'));
-      const layerMinusButton = buttons.find(btn => btn.textContent === '[-]') as HTMLButtonElement;
-      const layerPlusButton = buttons.find(btn => btn.textContent === '[+]') as HTMLButtonElement;
+      const layerMinusButton = buttons.find(btn => btn.title.includes('previous layer')) as HTMLButtonElement;
+      const layerPlusButton = buttons.find(btn => btn.title.includes('next layer')) as HTMLButtonElement;
 
       // Start at layer 1
       mockViewStateManager.getViewMode = mock(() => 'face-on' as ViewMode);

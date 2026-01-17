@@ -283,7 +283,9 @@ export class GameUI {
 
     // Layer minus button [-]
     this.layerMinusButton = document.createElement("button");
-    this.layerMinusButton.textContent = "[-]";
+    this.layerMinusButton.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+  <rect x="3" y="7" width="10" height="2" rx="1"/>
+</svg>`;
     this.layerMinusButton.title = "Navigate to previous layer (shallower)";
     this.layerMinusButton.disabled = true; // Initially disabled
     this.applyButtonStyle(this.layerMinusButton);
@@ -291,7 +293,10 @@ export class GameUI {
 
     // Layer plus button [+]
     this.layerPlusButton = document.createElement("button");
-    this.layerPlusButton.textContent = "[+]";
+    this.layerPlusButton.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+  <rect x="3" y="7" width="10" height="2" rx="1"/>
+  <rect x="7" y="3" width="2" height="10" rx="1"/>
+</svg>`;
     this.layerPlusButton.title = "Navigate to next layer (deeper)";
     this.layerPlusButton.disabled = true; // Initially disabled
     this.applyButtonStyle(this.layerPlusButton);
@@ -434,6 +439,9 @@ export class GameUI {
       font-size: 14px;
       cursor: pointer;
       transition: background 0.2s, opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     `;
 
     // Hover effect - only when not disabled
