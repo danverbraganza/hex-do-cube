@@ -173,10 +173,10 @@ export class MessagePanel {
     this.messageListElement.className = 'hdc-message-list';
 
     this.messageContentElement.appendChild(this.messageListElement);
-    this.panelElement.appendChild(this.tabElement);
     this.panelElement.appendChild(this.headerElement);
     this.panelElement.appendChild(this.messageContentElement);
     this.container.appendChild(this.panelElement);
+    this.container.appendChild(this.tabElement);
   }
 
   /**
@@ -358,6 +358,9 @@ export class MessagePanel {
   public dispose(): void {
     if (this.panelElement.parentElement === this.container) {
       this.container.removeChild(this.panelElement);
+    }
+    if (this.tabElement.parentElement === this.container) {
+      this.container.removeChild(this.tabElement);
     }
     this.messages = [];
   }
