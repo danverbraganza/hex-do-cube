@@ -108,7 +108,7 @@ describe('GameUI - Version Display', () => {
     const styles = versionDisplay.style;
 
     expect(styles.position).toBe('absolute');
-    expect(styles.bottom).toBe('16px');
+    expect(styles.bottom).toBe('44px');
     expect(styles.right).toBe('16px');
   });
 

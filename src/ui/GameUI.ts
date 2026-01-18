@@ -190,7 +190,7 @@ export class GameUI {
     const bottomLeftControls = document.createElement("div");
     bottomLeftControls.style.cssText = `
       position: absolute;
-      bottom: 16px;
+      bottom: 44px;
       left: 16px;
       display: flex;
       flex-direction: column;
@@ -337,7 +337,7 @@ export class GameUI {
     this.versionDisplay.id = "version-display";
     this.versionDisplay.style.cssText = `
       position: absolute;
-      bottom: 16px;
+      bottom: 44px;
       right: 16px;
       color: rgba(255, 255, 255, 0.5);
       font-size: 11px;
