@@ -369,3 +369,30 @@ body.hdc-app {
   font-size: 10px;
   margin-right: 8px;
 }
+
+/* ===== Sculptor Badge Footer ===== */
+.hdc-sculptor-badge {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 28px;
+  background: #0a0a0a;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hdc-sculptor-badge a {
+  color: #00d4aa;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.hdc-sculptor-badge a:hover {
+  text-decoration: underline;
+}

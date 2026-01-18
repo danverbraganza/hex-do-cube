@@ -69,6 +69,7 @@ export class GameUI {
   private wrongCompletionNotification!: HTMLDivElement;
   private layerIndicator!: HTMLDivElement;
   private versionDisplay!: HTMLDivElement;
+  private sculptorBadge!: HTMLDivElement;
 
   // Face view control buttons
   private xyViewButton!: HTMLButtonElement;
@@ -344,6 +345,15 @@ export class GameUI {
     const gitSha = typeof __GIT_SHA__ !== "undefined" ? __GIT_SHA__ : "dev";
     this.versionDisplay.textContent = `v${gitSha}`;
 
+    // Sculptor badge footer
+    this.sculptorBadge = document.createElement("div");
+    this.sculptorBadge.id = "sculptor-badge";
+    this.sculptorBadge.className = "hdc-sculptor-badge";
+    this.sculptorBadge.innerHTML = `
+      Made with
+      <a href="https://imbue.com/sculptor/" target="_blank" rel="noopener">Sculptor by Imbue</a>
+    `;
+
     // Assemble HUD
     this.hudOverlay.appendChild(topLeftControls);
     this.hudOverlay.appendChild(topRightControls);
@@ -352,6 +362,7 @@ export class GameUI {
     this.hudOverlay.appendChild(this.wrongCompletionNotification);
     this.hudOverlay.appendChild(this.layerIndicator);
     this.hudOverlay.appendChild(this.versionDisplay);
+    this.hudOverlay.appendChild(this.sculptorBadge);
 
     // Add to container
     this.container.appendChild(this.hudOverlay);
