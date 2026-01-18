@@ -431,6 +431,11 @@ export class GameUI {
     this.viewStateManager.onViewModeChange(() => {
       this.updateLayerButtonStates();
     });
+
+    // Difficulty select change handler: flash New Game button
+    this.difficultySelect.addEventListener("change", () => {
+      this.handleDifficultyChange();
+    });
   }
 
   /**
@@ -464,6 +469,18 @@ export class GameUI {
       this.showWrongCompletionNotification();
     }
     // If incomplete or has errors, the CellEditor already highlighted errors
+  }
+
+  /**
+   * Handle difficulty select change
+   * Flashes the New Game button to draw attention to it
+   */
+  private handleDifficultyChange(): void {
+    this.newGameButton.classList.add('hdc-button--flashing');
+    // Remove class after animation completes (3 flashes × 400ms = 1200ms)
+    setTimeout(() => {
+      this.newGameButton.classList.remove('hdc-button--flashing');
+    }, 1200);
   }
 
   /**

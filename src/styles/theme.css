@@ -80,6 +80,20 @@ body.hdc-app {
   cursor: not-allowed;
 }
 
+/* ===== Button Flash Animation ===== */
+@keyframes hdc-button-flash {
+  0%, 100% {
+    background: var(--hdc-bg-button);
+  }
+  50% {
+    background: var(--hdc-accent-warning, #f59e0b);
+  }
+}
+
+.hdc-button--flashing {
+  animation: hdc-button-flash 0.4s ease-in-out 3;
+}
+
 /* ===== HUD Overlay ===== */
 .hdc-hud-overlay {
   position: absolute;
