@@ -396,3 +396,74 @@ body.hdc-app {
 .hdc-sculptor-badge a:hover {
   text-decoration: underline;
 }
+
+/* ===== Welcome Modal ===== */
+.hdc-welcome-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--hdc-bg-overlay);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.hdc-welcome-dialog {
+  background: rgba(20, 20, 30, 0.95);
+  border-radius: var(--hdc-radius-md);
+  padding: calc(var(--hdc-spacing-lg) * 2);
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  border: 1px solid var(--hdc-border-color);
+  font-family: var(--hdc-font-family);
+}
+
+.hdc-welcome-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 16px;
+  color: var(--hdc-text-primary);
+  text-align: center;
+}
+
+.hdc-welcome-content {
+  line-height: 1.6;
+  margin-bottom: 24px;
+  color: var(--hdc-text-primary);
+  font-size: 15px;
+}
+
+.hdc-welcome-content a {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.hdc-welcome-content a:hover {
+  color: #93c5fd;
+}
+
+.hdc-welcome-button-container {
+  display: flex;
+  justify-content: center;
+}
+
+.hdc-welcome-button {
+  background: #2563eb;
+  color: var(--hdc-text-primary);
+  border: none;
+  padding: 12px 32px;
+  border-radius: var(--hdc-radius-sm);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--hdc-transition-normal);
+}
+
+.hdc-welcome-button:hover {
+  background: #1d4ed8;
+}

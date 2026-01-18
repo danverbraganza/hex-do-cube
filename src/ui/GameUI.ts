@@ -59,6 +59,9 @@ export class GameUI {
   // Confirmation modal
   private confirmModal: Modal;
 
+  // Welcome modal elements
+  private welcomeModalOverlay: HTMLDivElement | null = null;
+
   // UI elements
   private hudOverlay!: HTMLDivElement;
   private homeButton!: HTMLButtonElement;
@@ -101,6 +104,7 @@ export class GameUI {
 
     this.initializeUI();
     this.attachEventHandlers();
+    this.checkAndShowWelcomeModal();
   }
 
   /**
@@ -712,6 +716,114 @@ export class GameUI {
   }
 
   /**
+   * Check if this is the user's first time and show welcome modal
+   * Uses localStorage key 'hex-do-cube-welcomed' to track first-time status
+   */
+  private checkAndShowWelcomeModal(): void {
+    const WELCOMED_KEY = 'hex-do-cube-welcomed';
+
+    // Check if localStorage is available (not available in test environment)
+    try {
+      // Check if user has already been welcomed
+      if (typeof localStorage !== 'undefined' && !localStorage.getItem(WELCOMED_KEY)) {
+        this.showWelcomeModal();
+      }
+    } catch (e) {
+      // localStorage not available, skip welcome modal
+    }
+  }
+
+  /**
+   * Create and show the welcome modal for first-time users
+   */
+  private showWelcomeModal(): void {
+    // Create overlay
+    this.welcomeModalOverlay = document.createElement('div');
+    this.welcomeModalOverlay.className = 'hdc-welcome-modal-overlay';
+
+    // Create dialog
+    const dialog = document.createElement('div');
+    dialog.className = 'hdc-welcome-dialog';
+
+    // Create title
+    const title = document.createElement('div');
+    title.className = 'hdc-welcome-title';
+    title.textContent = 'Welcome to Hex-do-ku';
+
+    // Create content
+    const content = document.createElement('div');
+    content.className = 'hdc-welcome-content';
+    content.innerHTML = `
+      <p>
+        Hex-do-ku is <a href="https://en.wikipedia.org/wiki/Sudoku" target="_blank" rel="noopener">Sudoku</a>
+        with <a href="https://en.wikipedia.org/wiki/Hexadecimal" target="_blank" rel="noopener">hexadecimal</a>
+        numbers (0-9, a-f) instead of 1-9.
+      </p>
+      <p>
+        It's played in 3 dimensions - a 16×16×16 cube.
+      </p>
+      <p>
+        Each row, column, depth-line, and 4×4 subsquare must contain each hex digit exactly once.
+      </p>
+    `;
+
+    // Create button container
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'hdc-welcome-button-container';
+
+    // Create button
+    const button = document.createElement('button');
+    button.className = 'hdc-welcome-button';
+    button.textContent = 'Start Playing';
+    button.addEventListener('click', () => {
+      this.dismissWelcomeModal();
+    });
+
+    // Assemble modal
+    buttonContainer.appendChild(button);
+    dialog.appendChild(title);
+    dialog.appendChild(content);
+    dialog.appendChild(buttonContainer);
+    this.welcomeModalOverlay.appendChild(dialog);
+
+    // Add to DOM
+    document.body.appendChild(this.welcomeModalOverlay);
+
+    // Show modal
+    this.welcomeModalOverlay.style.display = 'flex';
+
+    // Prevent dialog clicks from closing modal
+    dialog.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  /**
+   * Dismiss the welcome modal and mark user as welcomed
+   */
+  private dismissWelcomeModal(): void {
+    const WELCOMED_KEY = 'hex-do-cube-welcomed';
+
+    // Set localStorage flag
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(WELCOMED_KEY, 'true');
+      }
+    } catch (e) {
+      // localStorage not available, continue anyway
+    }
+
+    // Hide and remove modal
+    if (this.welcomeModalOverlay) {
+      this.welcomeModalOverlay.style.display = 'none';
+      if (this.welcomeModalOverlay.parentElement) {
+        this.welcomeModalOverlay.parentElement.removeChild(this.welcomeModalOverlay);
+      }
+      this.welcomeModalOverlay = null;
+    }
+  }
+
+  /**
    * Clean up resources and remove UI elements
    */
   public dispose(): void {
@@ -725,6 +837,12 @@ export class GameUI {
 
     // Dispose confirmation modal
     this.confirmModal.dispose();
+
+    // Dispose welcome modal if still present
+    if (this.welcomeModalOverlay && this.welcomeModalOverlay.parentElement) {
+      this.welcomeModalOverlay.parentElement.removeChild(this.welcomeModalOverlay);
+      this.welcomeModalOverlay = null;
+    }
 
     // Clear callbacks
     this.newGameCallbacks = [];
