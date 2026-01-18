@@ -279,7 +279,7 @@ body.hdc-app {
   position: fixed;
   right: 0;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(50%);
   background: var(--hdc-bg-overlay);
   color: var(--hdc-text-primary);
   padding: 8px 16px;
@@ -287,7 +287,7 @@ body.hdc-app {
   z-index: 99;
   white-space: nowrap;
   border-radius: 0;
-  writing-mode: vertical-rl;
+  //writing-mode: vertical-rl;
   text-orientation: mixed;
   font-size: var(--hdc-font-size-md);
   font-weight: 600;
