@@ -494,3 +494,14 @@ body.hdc-app {
 .hdc-welcome-button:hover {
   background: #1d4ed8;
 }
+
+/* ===== Welcome Modal Warning ===== */
+.hdc-welcome-warning {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid var(--hdc-accent-warning, #f59e0b);
+  border-radius: var(--hdc-radius-sm);
+  padding: var(--hdc-spacing-sm) var(--hdc-spacing-md);
+  margin-top: var(--hdc-spacing-md);
+  font-size: var(--hdc-font-size-sm);
+  color: var(--hdc-accent-warning, #f59e0b);
+}

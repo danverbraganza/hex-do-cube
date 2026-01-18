@@ -784,6 +784,14 @@ export class GameUI {
       </p>
     `;
 
+    // Check for mobile and add warning if needed
+    if (window.matchMedia('(max-width: 768px)').matches) {
+      const warning = document.createElement('p');
+      warning.className = 'hdc-welcome-warning';
+      warning.textContent = '⚠️ Note: This experience is optimized for desktop browsers. Mobile support is limited.';
+      content.appendChild(warning);
+    }
+
     // Create button container
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'hdc-welcome-button-container';
