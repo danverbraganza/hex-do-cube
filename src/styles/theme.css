@@ -255,11 +255,11 @@ body.hdc-app {
   flex-direction: column;
   font-family: var(--hdc-font-family);
   z-index: 100;
-  transition: width 0.3s ease;
+  transition: transform 0.3s ease-in-out;
 }
 
 .hdc-message-panel.collapsed {
-  width: 40px !important;
+  transform: translateX(100%);
 }
 
 .hdc-message-panel-header {
@@ -274,7 +274,33 @@ body.hdc-app {
   gap: var(--hdc-spacing-sm);
 }
 
-.hdc-message-panel.collapsed .hdc-message-panel-header > div:first-child {
+/* Vertical tab when collapsed */
+.hdc-message-tab {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--hdc-bg-overlay);
+  color: var(--hdc-text-primary);
+  padding: 8px 16px;
+  cursor: pointer;
+  z-index: 99;
+  white-space: nowrap;
+  border-radius: 0;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-size: var(--hdc-font-size-md);
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-right: none;
+  transition: background var(--hdc-transition-normal);
+}
+
+.hdc-message-tab:hover {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.hdc-message-panel:not(.collapsed) .hdc-message-tab {
   display: none;
 }
 
@@ -288,6 +314,12 @@ body.hdc-app {
   color: rgba(255, 255, 255, 0.9);
   font-weight: 600;
   font-size: var(--hdc-font-size-md);
+  cursor: pointer;
+  user-select: none;
+}
+
+.hdc-message-panel-title:hover {
+  color: rgba(255, 255, 255, 1);
 }
 
 .hdc-message-panel-checkbox-container {
@@ -306,25 +338,6 @@ body.hdc-app {
   cursor: pointer;
 }
 
-.hdc-message-panel-collapse-button {
-  background: var(--hdc-bg-button);
-  border: 1px solid var(--hdc-border-color);
-  border-radius: 3px;
-  color: rgba(255, 255, 255, 0.8);
-  cursor: pointer;
-  font-size: 16px;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background var(--hdc-transition-normal);
-}
-
-.hdc-message-panel-collapse-button:hover {
-  background: var(--hdc-bg-button-hover);
-}
 
 .hdc-message-panel-content {
   flex: 1;

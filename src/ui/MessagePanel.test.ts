@@ -364,24 +364,24 @@ describe('MessagePanel', () => {
       expect(header).not.toBeNull();
     });
 
-    test('should have collapse button', () => {
-      const header = container.querySelector('.hdc-message-panel-header');
-      const button = header?.querySelector('button');
-      expect(button).not.toBeNull();
+    test('should have vertical tab', () => {
+      const tab = container.querySelector('.hdc-message-tab');
+      expect(tab).not.toBeNull();
+      expect(tab?.textContent).toBe('Messages');
     });
   });
 
   describe('Collapse/Expand Functionality', () => {
     beforeEach(() => {
-      messagePanel = new MessagePanel({ container });
       // Clear localStorage before each test
-      localStorage.removeItem('messagePanel.collapsed');
+      localStorage.removeItem('hex-do-cube-messages-panel-collapsed');
+      messagePanel = new MessagePanel({ container });
     });
 
-    test('should start in expanded state by default', () => {
-      expect(messagePanel.isCollapsedState()).toBe(false);
+    test('should start in collapsed state by default', () => {
+      expect(messagePanel.isCollapsedState()).toBe(true);
       const panel = container.querySelector('#message-panel') as HTMLElement;
-      expect(panel.className).not.toContain('collapsed');
+      expect(panel.className).toContain('collapsed');
     });
 
     test('should collapse when collapse() is called', () => {
@@ -400,41 +400,39 @@ describe('MessagePanel', () => {
     });
 
     test('should toggle collapse state', () => {
-      expect(messagePanel.isCollapsedState()).toBe(false);
-      messagePanel.toggleCollapse();
       expect(messagePanel.isCollapsedState()).toBe(true);
       messagePanel.toggleCollapse();
       expect(messagePanel.isCollapsedState()).toBe(false);
+      messagePanel.toggleCollapse();
+      expect(messagePanel.isCollapsedState()).toBe(true);
     });
 
     test('should save collapsed state to localStorage', () => {
       messagePanel.collapse();
-      expect(localStorage.getItem('messagePanel.collapsed')).toBe('true');
+      expect(localStorage.getItem('hex-do-cube-messages-panel-collapsed')).toBe('true');
       messagePanel.expand();
-      expect(localStorage.getItem('messagePanel.collapsed')).toBe('false');
+      expect(localStorage.getItem('hex-do-cube-messages-panel-collapsed')).toBe('false');
     });
 
     test('should restore collapsed state from localStorage', () => {
-      localStorage.setItem('messagePanel.collapsed', 'true');
+      localStorage.setItem('hex-do-cube-messages-panel-collapsed', 'true');
       const newPanel = new MessagePanel({ container });
       expect(newPanel.isCollapsedState()).toBe(true);
       newPanel.dispose();
     });
 
     test('should prefer config.collapsed over localStorage when provided', () => {
-      localStorage.setItem('messagePanel.collapsed', 'true');
+      localStorage.setItem('hex-do-cube-messages-panel-collapsed', 'true');
       const newPanel = new MessagePanel({ container, collapsed: false });
       expect(newPanel.isCollapsedState()).toBe(false);
       newPanel.dispose();
     });
 
-    test('should update collapse button icon when collapsing', () => {
-      const button = container.querySelector('.hdc-message-panel-header button') as HTMLButtonElement;
-      const initialText = button.innerHTML;
+    test('should show vertical tab when collapsed', () => {
       messagePanel.collapse();
-      expect(button.innerHTML).not.toBe(initialText);
-      messagePanel.expand();
-      expect(button.innerHTML).toBe(initialText);
+      const tab = container.querySelector('.hdc-message-tab') as HTMLElement;
+      expect(tab).not.toBeNull();
+      expect(tab.style.display).not.toBe('none');
     });
   });
 

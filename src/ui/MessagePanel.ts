@@ -54,25 +54,29 @@ export class MessagePanel {
   private container: HTMLElement;
   private panelElement!: HTMLDivElement;
   private headerElement!: HTMLDivElement;
-  private collapseButton!: HTMLButtonElement;
+  private tabElement!: HTMLDivElement;
   private messageContentElement!: HTMLDivElement;
   private messageListElement!: HTMLDivElement;
   private messages: Message[] = [];
-  private isCollapsed: boolean = false;
+  private isCollapsed: boolean = true;
   private showLogs: boolean = true;
-  private readonly STORAGE_KEY = 'messagePanel.collapsed';
+  private readonly STORAGE_KEY = 'hex-do-cube-messages-panel-collapsed';
   private readonly SHOW_LOGS_KEY = 'messagePanel-showLogs';
 
   constructor(config: MessagePanelConfig) {
     this.container = config.container;
 
     // Load collapse state: config.collapsed takes precedence over localStorage
+    // Default to collapsed (true)
     if (config.collapsed !== undefined) {
       this.isCollapsed = config.collapsed;
     } else {
       const savedCollapsed = localStorage.getItem(this.STORAGE_KEY);
       if (savedCollapsed !== null) {
         this.isCollapsed = savedCollapsed === 'true';
+      } else {
+        // Default state is collapsed
+        this.isCollapsed = true;
       }
     }
 
@@ -102,7 +106,17 @@ export class MessagePanel {
     this.panelElement.id = 'message-panel';
     this.panelElement.className = 'hdc-message-panel';
 
-    // Create header with title, checkbox, and collapse button
+    // Create vertical tab (visible when collapsed)
+    this.tabElement = document.createElement('div');
+    this.tabElement.className = 'hdc-message-tab';
+    this.tabElement.textContent = 'Messages';
+    this.tabElement.title = 'Expand Messages panel';
+
+    this.tabElement.addEventListener('click', () => {
+      this.expand();
+    });
+
+    // Create header with title and checkbox
     this.headerElement = document.createElement('div');
     this.headerElement.className = 'hdc-message-panel-header';
 
@@ -110,10 +124,15 @@ export class MessagePanel {
     const leftContainer = document.createElement('div');
     leftContainer.className = 'hdc-message-panel-header-left';
 
-    // Create title
+    // Create title (clickable to collapse)
     const titleElement = document.createElement('div');
     titleElement.textContent = 'Messages';
     titleElement.className = 'hdc-message-panel-title';
+    titleElement.title = 'Collapse Messages panel';
+
+    titleElement.addEventListener('click', () => {
+      this.collapse();
+    });
 
     // Create checkbox container
     const checkboxContainer = document.createElement('div');
@@ -142,18 +161,7 @@ export class MessagePanel {
     leftContainer.appendChild(titleElement);
     leftContainer.appendChild(checkboxContainer);
 
-    // Create collapse button
-    this.collapseButton = document.createElement('button');
-    this.collapseButton.innerHTML = '&laquo;'; // Left double angle
-    this.collapseButton.title = 'Collapse panel';
-    this.collapseButton.className = 'hdc-message-panel-collapse-button';
-
-    this.collapseButton.addEventListener('click', () => {
-      this.toggleCollapse();
-    });
-
     this.headerElement.appendChild(leftContainer);
-    this.headerElement.appendChild(this.collapseButton);
 
     // Create message content container
     this.messageContentElement = document.createElement('div');
@@ -165,6 +173,7 @@ export class MessagePanel {
     this.messageListElement.className = 'hdc-message-list';
 
     this.messageContentElement.appendChild(this.messageListElement);
+    this.panelElement.appendChild(this.tabElement);
     this.panelElement.appendChild(this.headerElement);
     this.panelElement.appendChild(this.messageContentElement);
     this.container.appendChild(this.panelElement);
@@ -318,24 +327,20 @@ export class MessagePanel {
   }
 
   /**
-   * Collapse the panel to a thin strip
+   * Collapse the panel (slide out to the right)
    */
   public collapse(): void {
     this.isCollapsed = true;
     this.panelElement.classList.add('collapsed');
-    this.collapseButton.innerHTML = '&raquo;'; // Right double angle
-    this.collapseButton.title = 'Expand panel';
     localStorage.setItem(this.STORAGE_KEY, 'true');
   }
 
   /**
-   * Expand the panel to full width
+   * Expand the panel (slide in from the right)
    */
   public expand(): void {
     this.isCollapsed = false;
     this.panelElement.classList.remove('collapsed');
-    this.collapseButton.innerHTML = '&laquo;'; // Left double angle
-    this.collapseButton.title = 'Collapse panel';
     localStorage.setItem(this.STORAGE_KEY, 'false');
   }
 
