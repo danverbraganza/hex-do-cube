@@ -11,7 +11,6 @@
 
 import type { GameState } from "../models/GameState.js";
 import type { SceneManager } from "../renderer/SceneManager.js";
-import type { InputController } from "./InputController.js";
 import type { ViewStateManager } from "./ViewStateManager.js";
 import type { Difficulty } from "../models/Difficulty.js";
 import { DIFFICULTIES, DIFFICULTY_ORDER } from "../models/Difficulty.js";
@@ -30,8 +29,6 @@ export interface GameUIConfig {
   sceneManager: SceneManager;
   /** Reference to the view state manager for coordinated view transitions */
   viewStateManager: ViewStateManager;
-  /** Reference to the input controller for view transitions */
-  inputController: InputController;
   /** Reference to the game validator for unified validation */
   gameValidator: GameValidator;
   /** Current game state */
@@ -91,7 +88,6 @@ export class GameUI {
     this.container = config.container;
     this.sceneManager = config.sceneManager;
     this.viewStateManager = config.viewStateManager;
-    // inputController is in config but not used by GameUI - it's managed by main.ts
     this.gameValidator = config.gameValidator;
     this.gameState = config.gameState;
 

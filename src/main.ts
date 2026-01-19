@@ -205,7 +205,6 @@ export function init(): void {
     container,
     sceneManager,
     viewStateManager,
-    inputController,
     gameValidator,
     gameState,
   });

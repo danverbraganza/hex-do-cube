@@ -152,8 +152,6 @@ class MockMinimapRenderer implements Partial<MinimapRenderer> {
 class MockCubeRenderer implements Partial<CubeRenderer> {
   public setModeCalls: Array<'3d' | 'face-on'> = [];
   public setVisibleLayerCalls: Array<{ face: Face | null; layer: number | null }> = [];
-  public showAllLayersForTransitionCalls = 0;
-  public restoreLayerVisibilityAfterTransitionCalls: Array<{ face: Face | null; layer: number | null }> = [];
   public revealEntireCubeCalls = 0;
   public hideAllButCurrentLayerCalls: Array<{ face: Face | null; layer: number | null }> = [];
 
@@ -163,14 +161,6 @@ class MockCubeRenderer implements Partial<CubeRenderer> {
 
   setVisibleLayer(face: Face | null, layer: number | null): void {
     this.setVisibleLayerCalls.push({ face, layer });
-  }
-
-  showAllLayersForTransition(): void {
-    this.showAllLayersForTransitionCalls++;
-  }
-
-  restoreLayerVisibilityAfterTransition(face: Face | null, layer: number | null): void {
-    this.restoreLayerVisibilityAfterTransitionCalls.push({ face, layer });
   }
 
   revealEntireCube(): void {
@@ -184,8 +174,6 @@ class MockCubeRenderer implements Partial<CubeRenderer> {
   reset(): void {
     this.setModeCalls = [];
     this.setVisibleLayerCalls = [];
-    this.showAllLayersForTransitionCalls = 0;
-    this.restoreLayerVisibilityAfterTransitionCalls = [];
     this.revealEntireCubeCalls = 0;
     this.hideAllButCurrentLayerCalls = [];
   }

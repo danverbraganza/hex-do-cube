@@ -9,7 +9,6 @@ import { createGameStateFromCube } from '../models/GameState.js';
 import { createCube } from '../models/Cube.js';
 import type { SceneManager } from '../renderer/SceneManager.js';
 import type { ViewStateManager, ViewMode } from './ViewStateManager.js';
-import type { InputController } from './InputController.js';
 import type { GameValidator } from '../services/GameValidator.js';
 import type { Face } from '../models/Cube.js';
 import { Window } from 'happy-dom';
@@ -66,14 +65,11 @@ describe('GameUI - Version Display', () => {
       check: mock(() => ({ isComplete: false, isValid: true, isWon: false, errors: [] })),
     } as unknown as GameValidator;
 
-    const mockInputController = {} as unknown as InputController;
-
     // Create GameUI
     const config: GameUIConfig = {
       container,
       sceneManager: mockSceneManager,
       viewStateManager: mockViewStateManager,
-      inputController: mockInputController,
       gameValidator: mockGameValidator,
       gameState,
     };
@@ -200,14 +196,11 @@ describe('GameUI - Layer Navigation Buttons', () => {
       check: mock(() => ({ isComplete: false, isValid: true, isWon: false, errors: [] })),
     } as unknown as GameValidator;
 
-    const mockInputController = {} as unknown as InputController;
-
     // Create GameUI
     const config: GameUIConfig = {
       container,
       sceneManager: mockSceneManager,
       viewStateManager: mockViewStateManager,
-      inputController: mockInputController,
       gameValidator: mockGameValidator,
       gameState,
     };

@@ -48,8 +48,6 @@ describe('InputController - Mouse Rotation in Isometric View', () => {
       setCellState: mock(() => {}),
       setMode: mock(() => {}),
       setVisibleLayer: mock(() => {}),
-      showAllLayersForTransition: mock(() => {}),
-      restoreLayerVisibilityAfterTransition: mock(() => {}),
       revealEntireCube: mock(() => {}),
       hideAllButCurrentLayer: mock(() => {}),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

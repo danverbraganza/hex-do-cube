@@ -560,13 +560,6 @@ export class CubeRenderer {
     this.updateAllCells();
   }
 
-  /**
-   * @deprecated Use revealEntireCube() instead
-   * Backward compatibility wrapper
-   */
-  public showAllLayersForTransition(): void {
-    this.revealEntireCube();
-  }
 
   /**
    * Hide all layers except the current one after transition
@@ -595,13 +588,6 @@ export class CubeRenderer {
     this.updateAllCells();
   }
 
-  /**
-   * @deprecated Use hideAllButCurrentLayer() instead
-   * Backward compatibility wrapper
-   */
-  public restoreLayerVisibilityAfterTransition(face: 'i' | 'j' | 'k' | null, layer: number | null): void {
-    this.hideAllButCurrentLayer(face, layer);
-  }
 
   /**
    * Get the bounding box of the entire cube in world space
