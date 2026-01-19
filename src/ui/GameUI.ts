@@ -3,7 +3,6 @@
  * Provides HUD overlay with game controls and notifications
  *
  * Responsibilities:
- * - Home button: Returns to canonical isometric view
  * - Check button: Triggers on-demand validation (not automatic)
  * - Win notification: Shows when cube is complete and correct
  * - Difficulty selector: For now, just "Easy" (70% given cells)
@@ -65,7 +64,6 @@ export class GameUI {
 
   // UI elements
   private hudOverlay!: HTMLDivElement;
-  private homeButton!: HTMLButtonElement;
   private checkButton!: HTMLButtonElement;
   private helpButton!: HTMLButtonElement;
   private newGameButton!: HTMLButtonElement;
@@ -129,12 +127,6 @@ export class GameUI {
       pointer-events: auto;
     `;
 
-    // Home button
-    this.homeButton = document.createElement("button");
-    this.homeButton.textContent = "Home";
-    this.homeButton.title = "Return to canonical isometric view";
-    this.homeButton.className = "hdc-button";
-
     // Check button
     this.checkButton = document.createElement("button");
     this.checkButton.textContent = "Check";
@@ -147,7 +139,6 @@ export class GameUI {
     this.helpButton.title = "Show instructions";
     this.helpButton.className = "hdc-button";
 
-    topLeftControls.appendChild(this.homeButton);
     topLeftControls.appendChild(this.checkButton);
     topLeftControls.appendChild(this.helpButton);
 
@@ -385,11 +376,6 @@ export class GameUI {
    * Attach event handlers to UI elements
    */
   private attachEventHandlers(): void {
-    // Home button: Reset camera to canonical view
-    this.homeButton.addEventListener("click", () => {
-      this.handleHomeButton();
-    });
-
     // Check button: Validate current solution
     this.checkButton.addEventListener("click", () => {
       this.handleCheckButton();
@@ -450,15 +436,6 @@ export class GameUI {
     this.difficultySelect.addEventListener("change", () => {
       this.handleDifficultyChange();
     });
-  }
-
-  /**
-   * Handle home button click
-   * Returns to canonical 3D rotational view, properly exiting face-on mode if active
-   */
-  private handleHomeButton(): void {
-    // Use ViewStateManager to properly coordinate all view components
-    this.viewStateManager.returnTo3DView();
   }
 
   /**
