@@ -13,6 +13,7 @@ import type { InputController } from './InputController.js';
 import type { GameValidator } from '../services/GameValidator.js';
 import type { Face } from '../models/Cube.js';
 import { Window } from 'happy-dom';
+import { PALETTE } from '../config/ColorPalette.js';
 
 /**
  * Simple version display tests - only testing the UI element creation and styling
@@ -124,8 +125,8 @@ describe('GameUI - Version Display', () => {
 
   it('should style version display as translucent', () => {
     const versionDisplay = container.querySelector('#version-display') as HTMLElement;
-    // Check for translucent white color
-    expect(versionDisplay.style.color).toContain('rgba(255, 255, 255, 0.5)');
+    // Check for translucent white color from ColorPalette
+    expect(versionDisplay.style.color).toContain(PALETTE.ui.versionDisplay.css);
   });
 
   it('should make version display non-interactive', () => {

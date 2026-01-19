@@ -19,6 +19,7 @@ import { DIFFICULTIES, DIFFICULTY_ORDER } from "../models/Difficulty.js";
 import { GameValidator } from "../services/GameValidator.js";
 import { WinScreenRenderer } from "../renderer/WinScreenRenderer.js";
 import { Modal } from "./Modal.js";
+import { PALETTE } from "../config/ColorPalette.js";
 
 /**
  * Configuration for GameUI
@@ -293,7 +294,7 @@ export class GameUI {
       animation: winPulse 1.5s ease-in-out infinite;
     `;
     this.winNotification.innerHTML = `
-      <div style="font-size: 48px; margin-bottom: 16px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);">
+      <div style="font-size: 48px; margin-bottom: 16px; text-shadow: 0 0 10px ${PALETTE.ui.winGlow.css};">
         YOU WIN!
       </div>
       <div style="font-size: 18px; font-weight: normal; margin-top: 16px; opacity: 0.8;">
@@ -307,11 +308,11 @@ export class GameUI {
       @keyframes winPulse {
         0%, 100% {
           transform: translate(-50%, -50%) scale(1);
-          text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+          text-shadow: 0 0 10px ${PALETTE.ui.winGlow.css};
         }
         50% {
           transform: translate(-50%, -50%) scale(1.05);
-          text-shadow: 0 0 20px rgba(255, 215, 0, 1);
+          text-shadow: 0 0 20px ${PALETTE.ui.winGlowBright.css};
         }
       }
     `;
@@ -339,7 +340,7 @@ export class GameUI {
       position: absolute;
       bottom: 44px;
       right: 16px;
-      color: rgba(255, 255, 255, 0.5);
+      color: ${PALETTE.ui.versionDisplay.css};
       font-size: 11px;
       font-family: monospace;
       pointer-events: none;

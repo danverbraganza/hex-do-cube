@@ -86,6 +86,12 @@ export const PALETTE = {
     linkHover: { hex: 0x93c5fd, css: '#93c5fd' } as ColorDef,
     /** Sculptor badge link */
     sculptorLink: { hex: 0x00d4aa, css: '#00d4aa' } as ColorDef,
+    /** Win notification glow (gold) */
+    winGlow: { hex: 0xffd700, css: 'rgba(255, 215, 0, 0.8)', opacity: 0.8 } as ColorDef,
+    /** Win notification glow bright (gold) */
+    winGlowBright: { hex: 0xffd700, css: 'rgba(255, 215, 0, 1)', opacity: 1.0 } as ColorDef,
+    /** Version display (translucent white) */
+    versionDisplay: { hex: 0xffffff, css: 'rgba(255, 255, 255, 0.5)', opacity: 0.5 } as ColorDef,
   },
 
   /** Three.js scene and lighting colors */
