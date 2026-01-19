@@ -3,8 +3,13 @@
  */
 
 /* ===== CSS Custom Properties (Variables) ===== */
+/*
+ * Color values are dynamically injected at runtime from ColorPalette.ts
+ * See main.ts for injection logic via getCSSVariables()
+ * Fallback values below are used only if JS fails to load
+ */
 :root {
-  /* Colors */
+  /* Colors - sourced from ColorPalette.ts */
   --hdc-bg-primary: #1a1a1a;
   --hdc-bg-overlay: rgba(0, 0, 0, 0.7);
   --hdc-bg-button: rgba(255, 255, 255, 0.1);

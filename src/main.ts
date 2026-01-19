@@ -3,6 +3,9 @@
  * Wires up all models, services, renderers, and UI components
  */
 
+// Config
+import { getCSSVariables } from './config/ColorPalette.js';
+
 // Models
 import { createGameStateFromCube, type GameState } from './models/GameState.js';
 import { createCube } from './models/Cube.js';
@@ -32,6 +35,12 @@ import { ViewStateManager } from './ui/ViewStateManager.js';
 import { MessagePanel } from './ui/MessagePanel.js';
 import { GameStateCoordinator } from './ui/GameStateCoordinator.js';
 import { CellStateManager } from './ui/CellStateManager.js';
+
+// Inject CSS variables from ColorPalette into document
+// This wires theme.css custom properties to the single source of truth
+const style = document.createElement('style');
+style.textContent = `:root { ${getCSSVariables()} }`;
+document.head.appendChild(style);
 
 console.log('Hex-Do-Cube initialized');
 
