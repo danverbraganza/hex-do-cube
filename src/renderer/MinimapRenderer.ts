@@ -23,6 +23,7 @@ import type { Cube } from '../models/Cube.js';
 import type { HexValue, Position } from '../models/Cell.js';
 import type { Face } from '../models/Cube.js';
 import { COLORS, LIGHTING } from '../config/RenderConfig.js';
+import { PALETTE } from '../config/ColorPalette.js';
 import { cellPositionToWorld } from './geometry.js';
 
 /**
@@ -58,22 +59,22 @@ export interface MinimapRendererConfig {
  * Creates a gradient from dark blue (0) to bright red (f)
  */
 const HEX_VALUE_COLORS: Record<Exclude<HexValue, null>, number> = {
-  '0': 0x1a1a2e, // Very dark blue
-  '1': 0x16213e, // Dark blue
-  '2': 0x0f3460, // Medium dark blue
-  '3': 0x1e56a0, // Medium blue
-  '4': 0x2e86ab, // Light blue
-  '5': 0x48a9a6, // Cyan
-  '6': 0x4ecdc4, // Light cyan
-  '7': 0x6dd47e, // Light green
-  '8': 0x95d5b2, // Mint
-  '9': 0xffd23f, // Yellow
-  'a': 0xffb703, // Orange
-  'b': 0xff8800, // Deep orange
-  'c': 0xff6b35, // Red-orange
-  'd': 0xff4d4d, // Light red
-  'e': 0xe63946, // Red
-  'f': 0xd62828, // Dark red
+  '0': PALETTE.hexValues['0'].hex,
+  '1': PALETTE.hexValues['1'].hex,
+  '2': PALETTE.hexValues['2'].hex,
+  '3': PALETTE.hexValues['3'].hex,
+  '4': PALETTE.hexValues['4'].hex,
+  '5': PALETTE.hexValues['5'].hex,
+  '6': PALETTE.hexValues['6'].hex,
+  '7': PALETTE.hexValues['7'].hex,
+  '8': PALETTE.hexValues['8'].hex,
+  '9': PALETTE.hexValues['9'].hex,
+  'a': PALETTE.hexValues.a.hex,
+  'b': PALETTE.hexValues.b.hex,
+  'c': PALETTE.hexValues.c.hex,
+  'd': PALETTE.hexValues.d.hex,
+  'e': PALETTE.hexValues.e.hex,
+  'f': PALETTE.hexValues.f.hex,
 };
 
 /**
@@ -126,7 +127,7 @@ export class MinimapRenderer {
       backgroundAlpha: config.backgroundAlpha ?? 0.8,
       filledOpacity: config.filledOpacity ?? 0.35, // More translucent than main (0.35 vs 0.6)
       emptyOpacity: config.emptyOpacity ?? 0.05, // Reduced from 0.1, ghostly appearance
-      highlightColor: config.highlightColor ?? 0xffd700,
+      highlightColor: config.highlightColor ?? PALETTE.minimap.highlight.hex,
       highlightOpacity: config.highlightOpacity ?? 0.3,
     };
 

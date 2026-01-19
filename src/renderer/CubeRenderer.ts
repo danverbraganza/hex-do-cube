@@ -25,6 +25,7 @@ import type { Cell, Position } from '../models/Cell.js';
 import { positionKey } from '../models/Cell.js';
 import { ValueSpriteRenderer } from './ValueSpriteRenderer.js';
 import { COLORS, OPACITY } from '../config/RenderConfig.js';
+import { PALETTE } from '../config/ColorPalette.js';
 import { calculateSpacing, calculateCenterOffset, cellPositionToWorld } from './geometry.js';
 
 /**
@@ -112,13 +113,13 @@ export class CubeRenderer {
       cellGap: config.cellGap ?? 0.1,
       filledOpacity: config.filledOpacity ?? OPACITY.FILLED,
       emptyOpacity: config.emptyOpacity ?? 0.05,
-      givenColor: config.givenColor ?? 0x4a90e2,
-      editableColor: config.editableColor ?? 0x7ed321,
-      hoverColor: config.hoverColor ?? 0xffd700,
-      selectedColor: config.selectedColor ?? 0xff9500,
-      errorColor: config.errorColor ?? 0xe74c3c,
-      conflictGivenColor: config.conflictGivenColor ?? 0x2ecc71, // Green for given cells in conflict
-      wrongColor: config.wrongColor ?? 0xff0000, // Red for wrong user cells
+      givenColor: config.givenColor ?? PALETTE.cell.given.hex,
+      editableColor: config.editableColor ?? PALETTE.cell.editable.hex,
+      hoverColor: config.hoverColor ?? PALETTE.cell.hover.hex,
+      selectedColor: config.selectedColor ?? PALETTE.cell.selected.hex,
+      errorColor: config.errorColor ?? PALETTE.cell.error.hex,
+      conflictGivenColor: config.conflictGivenColor ?? PALETTE.cell.conflictGiven.hex,
+      wrongColor: config.wrongColor ?? PALETTE.cell.wrong.hex,
     };
 
     // Create container group at world origin

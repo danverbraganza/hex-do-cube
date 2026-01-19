@@ -11,6 +11,7 @@
  */
 
 import * as THREE from 'three';
+import { PALETTE } from '../config/ColorPalette.js';
 
 export interface WinScreenRendererConfig {
   /** Number of active fireworks at once (default: 3) */
@@ -51,14 +52,14 @@ export class WinScreenRenderer {
 
   // Colorful firework colors (celebration theme)
   private readonly FIREWORK_COLORS = [
-    new THREE.Color(0xff0000), // Red
-    new THREE.Color(0x00ff00), // Green
-    new THREE.Color(0x0000ff), // Blue
-    new THREE.Color(0xffff00), // Yellow
-    new THREE.Color(0xff00ff), // Magenta
-    new THREE.Color(0x00ffff), // Cyan
-    new THREE.Color(0xff8800), // Orange
-    new THREE.Color(0x8800ff), // Purple
+    new THREE.Color(PALETTE.firework.red.hex),
+    new THREE.Color(PALETTE.firework.green.hex),
+    new THREE.Color(PALETTE.firework.blue.hex),
+    new THREE.Color(PALETTE.firework.yellow.hex),
+    new THREE.Color(PALETTE.firework.magenta.hex),
+    new THREE.Color(PALETTE.firework.cyan.hex),
+    new THREE.Color(PALETTE.firework.orange.hex),
+    new THREE.Color(PALETTE.firework.purple.hex),
   ];
 
   constructor(config: WinScreenRendererConfig = {}) {

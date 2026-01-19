@@ -16,6 +16,7 @@
  */
 
 import * as THREE from 'three';
+import { PALETTE } from '../config/ColorPalette.js';
 import { calculateSpacing, calculateCenterOffset } from './geometry.js';
 
 /**
@@ -74,7 +75,7 @@ export class SubsquareSeparatorRenderer {
     this.config = {
       cellSize: config.cellSize ?? 1.0,
       cellGap: config.cellGap ?? 0.1,
-      separatorColor: config.separatorColor ?? 0xff00ff, // Magenta
+      separatorColor: config.separatorColor ?? PALETTE.separator.magenta.hex,
       opacity3D: config.opacity3D ?? 0.15,
       opacityFaceOn: config.opacityFaceOn ?? 1.0,
       planeThickness: config.planeThickness ?? 0.02,
