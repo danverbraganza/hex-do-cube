@@ -67,6 +67,7 @@ export class GameUI {
   private hudOverlay!: HTMLDivElement;
   private homeButton!: HTMLButtonElement;
   private checkButton!: HTMLButtonElement;
+  private helpButton!: HTMLButtonElement;
   private newGameButton!: HTMLButtonElement;
   private difficultySelect!: HTMLSelectElement;
   private winNotification!: HTMLDivElement;
@@ -140,8 +141,15 @@ export class GameUI {
     this.checkButton.title = "Validate current solution";
     this.checkButton.className = "hdc-button";
 
+    // Help button
+    this.helpButton = document.createElement("button");
+    this.helpButton.textContent = "?";
+    this.helpButton.title = "Show instructions";
+    this.helpButton.className = "hdc-button";
+
     topLeftControls.appendChild(this.homeButton);
     topLeftControls.appendChild(this.checkButton);
+    topLeftControls.appendChild(this.helpButton);
 
     // Top-right controls (positioned to account for MessagePanel width)
     // MessagePanel is 280px wide when expanded, 40px when collapsed
@@ -387,6 +395,11 @@ export class GameUI {
       this.handleCheckButton();
     });
 
+    // Help button: Show welcome modal
+    this.helpButton.addEventListener("click", () => {
+      this.handleHelpButton();
+    });
+
     // New game button: Generate new puzzle
     this.newGameButton.addEventListener("click", () => {
       this.handleNewGameButton();
@@ -470,6 +483,14 @@ export class GameUI {
       this.showWrongCompletionNotification();
     }
     // If incomplete or has errors, the CellEditor already highlighted errors
+  }
+
+  /**
+   * Handle help button click
+   * Shows the welcome modal with game instructions
+   */
+  private handleHelpButton(): void {
+    this.showWelcomeModal();
   }
 
   /**
