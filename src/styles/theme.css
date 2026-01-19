@@ -10,16 +10,16 @@
  */
 :root {
   /* Colors - sourced from ColorPalette.ts */
-  --hdc-bg-primary: #1a1a1a;
-  --hdc-bg-overlay: rgba(0, 0, 0, 0.7);
-  --hdc-bg-button: rgba(255, 255, 255, 0.1);
-  --hdc-bg-button-hover: rgba(255, 255, 255, 0.2);
-  --hdc-text-primary: #ffffff;
-  --hdc-text-secondary: rgba(255, 255, 255, 0.7);
-  --hdc-accent-success: #4ade80;
-  --hdc-accent-error: #ef4444;
-  --hdc-accent-warning: #f59e0b;
-  --hdc-border-color: rgba(255, 255, 255, 0.2);
+  --hdc-bg-primary: #e3f0f7;
+  --hdc-bg-overlay: rgba(213, 232, 243, 0.92);
+  --hdc-bg-button: rgba(205, 228, 240, 0.6);
+  --hdc-bg-button-hover: rgba(184, 220, 237, 0.85);
+  --hdc-text-primary: #2d4a5c;
+  --hdc-text-secondary: rgba(93, 117, 137, 0.85);
+  --hdc-accent-success: #a8dfc4;
+  --hdc-accent-error: #f4b8b8;
+  --hdc-accent-warning: #fdd5b8;
+  --hdc-border-color: rgba(184, 212, 230, 0.5);
 
   /* Spacing */
   --hdc-spacing-xs: 4px;
@@ -91,7 +91,7 @@ body.hdc-app {
     background: var(--hdc-bg-button);
   }
   50% {
-    background: var(--hdc-accent-warning, #f59e0b);
+    background: var(--hdc-accent-warning, #fdd5b8);
   }
 }
 
@@ -144,12 +144,12 @@ body.hdc-app {
 
 .hdc-notification--success {
   background: var(--hdc-accent-success);
-  color: #000;
+  color: var(--hdc-text-primary);
 }
 
 .hdc-notification--error {
   background: var(--hdc-accent-error);
-  color: #fff;
+  color: var(--hdc-text-primary);
 }
 
 /* ===== Layer Indicator ===== */
@@ -194,12 +194,12 @@ body.hdc-app {
 }
 
 .hdc-modal-dialog {
-  background: rgba(20, 20, 30, 0.95);
+  background: rgba(245, 249, 252, 0.98);
   border-radius: var(--hdc-radius-md);
   padding: calc(var(--hdc-spacing-lg) * 1.33);
   min-width: 320px;
   max-width: 480px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--hdc-border-color);
   font-family: var(--hdc-font-family);
 }
@@ -232,19 +232,19 @@ body.hdc-app {
 }
 
 .hdc-modal-button--cancel {
-  background: #666666;
+  background: #c8d8e4;
 }
 
 .hdc-modal-button--cancel:hover {
-  background: #555555;
+  background: #b0c7d9;
 }
 
 .hdc-modal-button--confirm {
-  background: #2563eb;
+  background: #7db3d8;
 }
 
 .hdc-modal-button--confirm:hover {
-  background: #1d4ed8;
+  background: #5a9fc9;
 }
 
 /* ===== Message Panel ===== */
@@ -254,8 +254,8 @@ body.hdc-app {
   right: 0;
   bottom: 0;
   width: 280px;
-  background: rgba(20, 20, 30, 0.95);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(232, 238, 249, 0.96);
+  border-left: 1px solid rgba(184, 212, 230, 0.5);
   display: flex;
   flex-direction: column;
   font-family: var(--hdc-font-family);
@@ -269,8 +269,8 @@ body.hdc-app {
 
 .hdc-message-panel-header {
   padding: 12px 16px;
-  background: rgba(0, 0, 0, 0.3);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(213, 232, 243, 0.6);
+  border-bottom: 1px solid rgba(184, 212, 230, 0.5);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -296,13 +296,13 @@ body.hdc-app {
   text-orientation: mixed;
   font-size: var(--hdc-font-size-md);
   font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(184, 212, 230, 0.5);
   border-right: none;
   transition: background var(--hdc-transition-normal);
 }
 
 .hdc-message-tab:hover {
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(184, 220, 237, 0.9);
 }
 
 .hdc-message-panel:not(.collapsed) .hdc-message-tab {
@@ -316,7 +316,7 @@ body.hdc-app {
 }
 
 .hdc-message-panel-title {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--hdc-text-primary);
   font-weight: 600;
   font-size: var(--hdc-font-size-md);
   cursor: pointer;
@@ -324,7 +324,7 @@ body.hdc-app {
 }
 
 .hdc-message-panel-title:hover {
-  color: rgba(255, 255, 255, 1);
+  color: var(--hdc-text-primary);
 }
 
 .hdc-message-panel-checkbox-container {
@@ -360,16 +360,16 @@ body.hdc-app {
 }
 
 .hdc-message-panel-content::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(184, 212, 230, 0.2);
 }
 
 .hdc-message-panel-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(184, 212, 230, 0.5);
   border-radius: var(--hdc-radius-sm);
 }
 
 .hdc-message-panel-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(140, 169, 189, 0.7);
 }
 
 .hdc-message-list {
@@ -392,12 +392,12 @@ body.hdc-app {
 }
 
 .hdc-message-item--user {
-  color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--hdc-text-primary);
+  background: rgba(184, 212, 230, 0.3);
 }
 
 .hdc-message-timestamp {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--hdc-text-secondary);
   font-size: 10px;
   margin-right: 8px;
 }
@@ -409,18 +409,18 @@ body.hdc-app {
   left: 0;
   right: 0;
   height: 28px;
-  background: #0a0a0a;
-  color: rgba(255, 255, 255, 0.7);
+  background: #d0e3ed;
+  color: var(--hdc-text-secondary);
   font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 50;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(184, 212, 230, 0.5);
 }
 
 .hdc-sculptor-badge a {
-  color: #00d4aa;
+  color: #6dccbd;
   text-decoration: none;
   margin-left: 4px;
 }
@@ -445,12 +445,12 @@ body.hdc-app {
 }
 
 .hdc-welcome-dialog {
-  background: rgba(20, 20, 30, 0.95);
+  background: rgba(245, 249, 252, 0.98);
   border-radius: var(--hdc-radius-md);
   padding: calc(var(--hdc-spacing-lg) * 2);
   max-width: 500px;
   width: 90%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   border: 1px solid var(--hdc-border-color);
   font-family: var(--hdc-font-family);
 }
@@ -471,12 +471,12 @@ body.hdc-app {
 }
 
 .hdc-welcome-content a {
-  color: #60a5fa;
+  color: #5a9fc9;
   text-decoration: underline;
 }
 
 .hdc-welcome-content a:hover {
-  color: #93c5fd;
+  color: #7db3d8;
 }
 
 .hdc-welcome-button-container {
@@ -485,7 +485,7 @@ body.hdc-app {
 }
 
 .hdc-welcome-button {
-  background: #2563eb;
+  background: #7db3d8;
   color: var(--hdc-text-primary);
   border: none;
   padding: 12px 32px;
@@ -497,16 +497,16 @@ body.hdc-app {
 }
 
 .hdc-welcome-button:hover {
-  background: #1d4ed8;
+  background: #5a9fc9;
 }
 
 /* ===== Welcome Modal Warning ===== */
 .hdc-welcome-warning {
-  background: rgba(245, 158, 11, 0.2);
-  border: 1px solid var(--hdc-accent-warning, #f59e0b);
+  background: rgba(253, 213, 184, 0.4);
+  border: 1px solid var(--hdc-accent-warning, #fdd5b8);
   border-radius: var(--hdc-radius-sm);
   padding: var(--hdc-spacing-sm) var(--hdc-spacing-md);
   margin-top: var(--hdc-spacing-md);
   font-size: var(--hdc-font-size-sm);
-  color: var(--hdc-accent-warning, #f59e0b);
+  color: var(--hdc-text-primary);
 }
