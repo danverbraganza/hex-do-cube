@@ -1,3 +1,5 @@
+import { PALETTE } from './ColorPalette.js';
+
 /**
  * Centralized rendering configuration for Hex-Do-Cube
  *
@@ -6,7 +8,7 @@
  * cameraDistance) are kept in their respective renderer files.
  *
  * SHARED VALUES (defined here):
- * - COLORS.BACKGROUND: Scene background color
+ * - COLORS.BACKGROUND: Scene background color (imported from ColorPalette)
  * - LIGHTING: Ambient and directional light intensities
  * - OPACITY.FILLED: Opacity for filled cells
  *
@@ -18,13 +20,13 @@
  */
 
 /**
- * Shared color constants
+ * Shared color constants (imported from ColorPalette for single source of truth)
  */
 export const COLORS = {
   /** Background color for scenes (dark gray) */
-  BACKGROUND: 0x1a1a1a,
+  BACKGROUND: PALETTE.background.primary.hex,
   /** White color for empty cells and sprites */
-  WHITE: 0xffffff,
+  WHITE: PALETTE.threejs.white.hex,
 } as const;
 
 /**
@@ -36,7 +38,7 @@ export const LIGHTING = {
   /** Directional light intensity (0-1) */
   DIRECTIONAL_INTENSITY: 0.8,
   /** Directional light color */
-  LIGHT_COLOR: 0xffffff,
+  LIGHT_COLOR: PALETTE.threejs.lightColor.hex,
 } as const;
 
 /**
