@@ -409,37 +409,12 @@ export class CubeRenderer {
    * - 'k': YZ plane at different X depths, hide cells where k !== layer
    *
    * When layer is null, all layers are visible (3D view mode)
+   *
+   * This method now delegates to setExclusiveVisibleLayer() to ensure
+   * atomic visibility control for both cells and sprites.
    */
   public setVisibleLayer(face: 'i' | 'j' | 'k' | null, layer: number | null): void {
-    if (face === null || layer === null) {
-      // Show all layers (3D view mode)
-      this.setAllCellsVisibility(true);
-      return;
-    }
-
-    // Show only the specified layer
-    for (let i = 0; i < 16; i++) {
-      for (let j = 0; j < 16; j++) {
-        for (let k = 0; k < 16; k++) {
-          const position: Position = [i, j, k];
-          let visible = false;
-
-          switch (face) {
-            case 'i': // XY plane, layer is i index
-              visible = (i === layer);
-              break;
-            case 'j': // XZ plane, layer is j index
-              visible = (j === layer);
-              break;
-            case 'k': // YZ plane, layer is k index
-              visible = (k === layer);
-              break;
-          }
-
-          this.setCellVisibility(position, visible);
-        }
-      }
-    }
+    this.setExclusiveVisibleLayer(face, layer);
   }
 
   /**
@@ -581,13 +556,72 @@ export class CubeRenderer {
       this.materials.editableFilled.opacity = this.config.filledOpacity;
     }
 
-    // Restore layer visibility (this hides cells and sprites for non-active layers)
-    this.setVisibleLayer(face, layer);
+    // Atomically set layer visibility (hides cells and sprites for non-active layers)
+    this.setExclusiveVisibleLayer(face, layer);
 
     // Update all cells to reflect the restored state
     this.updateAllCells();
   }
 
+
+  /**
+   * Set exclusive visible layer - guarantees single layer visibility
+   *
+   * This method atomically sets layer visibility for both cells AND sprites,
+   * ensuring that after it returns, ONLY the specified layer is visible.
+   * This prevents race conditions and inconsistent visibility states.
+   *
+   * INVARIANT: After this function returns, only one layer's cells and sprites are visible.
+   *
+   * @param face - The face being viewed ('i', 'j', or 'k'), or null for 3D view (all layers visible)
+   * @param layer - The layer index (0-15), or null for 3D view (all layers visible)
+   *
+   * This method is idempotent - calling it twice with the same arguments has no additional effect.
+   */
+  public setExclusiveVisibleLayer(face: 'i' | 'j' | 'k' | null, layer: number | null): void {
+    if (face === null || layer === null) {
+      // 3D view mode: show all layers
+      for (const mesh of this.cellMeshes.values()) {
+        mesh.visible = true;
+      }
+      this.spriteRenderer.setAllSpritesVisibility(true);
+      return;
+    }
+
+    // Face-on view mode: show ONLY the specified layer
+    // Iterate through ALL cells and sprites, setting visibility atomically
+    for (let i = 0; i < 16; i++) {
+      for (let j = 0; j < 16; j++) {
+        for (let k = 0; k < 16; k++) {
+          const position: Position = [i, j, k];
+
+          // Determine if this cell/sprite should be visible
+          let visible = false;
+          switch (face) {
+            case 'i': // XY plane, layer is i index
+              visible = (i === layer);
+              break;
+            case 'j': // XZ plane, layer is j index
+              visible = (j === layer);
+              break;
+            case 'k': // YZ plane, layer is k index
+              visible = (k === layer);
+              break;
+          }
+
+          // Set cell visibility
+          const key = positionKey(position);
+          const mesh = this.cellMeshes.get(key);
+          if (mesh) {
+            mesh.visible = visible;
+          }
+
+          // Set sprite visibility atomically
+          this.spriteRenderer.setSpriteVisibility(position, visible);
+        }
+      }
+    }
+  }
 
   /**
    * Get the bounding box of the entire cube in world space
