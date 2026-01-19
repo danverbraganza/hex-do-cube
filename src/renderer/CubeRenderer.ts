@@ -540,10 +540,11 @@ export class CubeRenderer {
   }
 
   /**
-   * Show all layers with increased opacity for transition effect
+   * Reveal entire cube during transition
+   * Shows all layers and their sprites with increased opacity for better visibility
    * This is used during face transitions to reveal the full 3D cube
    */
-  public showAllLayersForTransition(): void {
+  public revealEntireCube(): void {
     // Show all cells
     this.setAllCellsVisibility(true);
 
@@ -560,12 +561,20 @@ export class CubeRenderer {
   }
 
   /**
-   * Restore normal layer visibility after transition
+   * @deprecated Use revealEntireCube() instead
+   * Backward compatibility wrapper
+   */
+  public showAllLayersForTransition(): void {
+    this.revealEntireCube();
+  }
+
+  /**
+   * Hide all layers except the current one after transition
    * This is called after face transitions complete to return to normal rendering
    * @param face - The face being viewed ('i', 'j', or 'k'), or null for 3D view
    * @param layer - The layer index (0-15), or null for 3D view
    */
-  public restoreLayerVisibilityAfterTransition(face: 'i' | 'j' | 'k' | null, layer: number | null): void {
+  public hideAllButCurrentLayer(face: 'i' | 'j' | 'k' | null, layer: number | null): void {
     // Restore normal opacity based on current mode
     if (this.renderMode === 'face-on') {
       // Face-on mode: opaque cells
@@ -579,11 +588,19 @@ export class CubeRenderer {
       this.materials.editableFilled.opacity = this.config.filledOpacity;
     }
 
-    // Restore layer visibility
+    // Restore layer visibility (this hides cells and sprites for non-active layers)
     this.setVisibleLayer(face, layer);
 
     // Update all cells to reflect the restored state
     this.updateAllCells();
+  }
+
+  /**
+   * @deprecated Use hideAllButCurrentLayer() instead
+   * Backward compatibility wrapper
+   */
+  public restoreLayerVisibilityAfterTransition(face: 'i' | 'j' | 'k' | null, layer: number | null): void {
+    this.hideAllButCurrentLayer(face, layer);
   }
 
   /**

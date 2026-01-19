@@ -160,17 +160,17 @@ export class ViewStateManager {
     // Update state
     this.currentMode = 'face-on';
 
-    // VISUAL PIZZAZZ: Show all layers during transition
-    this.cubeRenderer.showAllLayersForTransition();
+    // VISUAL PIZZAZZ: Reveal entire cube during transition
+    this.cubeRenderer.revealEntireCube();
 
     // Coordinate all components
     this.faceRenderer.enterFaceOnView(face, targetLayer);
 
     // Set up camera animation with completion callback
     this.sceneManager.setFaceOnView(face, targetLayer, true, () => {
-      // TRANSITION COMPLETE: Restore normal layer visibility
+      // TRANSITION COMPLETE: Hide all but current layer
       this.cubeRenderer.setMode('face-on');
-      this.cubeRenderer.restoreLayerVisibilityAfterTransition(face, targetLayer);
+      this.cubeRenderer.hideAllButCurrentLayer(face, targetLayer);
     });
 
     // Only highlight the layer slice, not the face surface
@@ -200,17 +200,17 @@ export class ViewStateManager {
     // Update state
     this.currentMode = '3d-rotational';
 
-    // VISUAL PIZZAZZ: Show all layers during transition
-    this.cubeRenderer.showAllLayersForTransition();
+    // VISUAL PIZZAZZ: Reveal entire cube during transition
+    this.cubeRenderer.revealEntireCube();
 
     // Coordinate all components
     this.faceRenderer.exitFaceOnView();
 
     // Set up camera animation with completion callback
     this.sceneManager.resetCamera(true, () => {
-      // TRANSITION COMPLETE: Restore normal 3D view
+      // TRANSITION COMPLETE: Show all layers for 3D view
       this.cubeRenderer.setMode('3d');
-      this.cubeRenderer.restoreLayerVisibilityAfterTransition(null, null);
+      this.cubeRenderer.hideAllButCurrentLayer(null, null);
     });
 
     this.minimapRenderer.setHighlightedFace(null);
