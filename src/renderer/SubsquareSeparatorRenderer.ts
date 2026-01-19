@@ -5,7 +5,7 @@
  * Responsibilities:
  * - Create thin plane geometry segments at subsquare boundaries
  * - Position planes at indices 4, 8, 12 on each axis
- * - Magenta color (0xff00ff) with translucent opacity (0.15) in 3D view
+ * - Coral/orange-red color with translucent opacity (0.15) in 3D view
  * - In face-on view: render only active layer's separators, fully opaque (1.0)
  * - Coordinate with ViewStateManager for mode transitions
  *
@@ -75,7 +75,7 @@ export class SubsquareSeparatorRenderer {
     this.config = {
       cellSize: config.cellSize ?? 1.0,
       cellGap: config.cellGap ?? 0.1,
-      separatorColor: config.separatorColor ?? PALETTE.separator.magenta.hex,
+      separatorColor: config.separatorColor ?? PALETTE.separator.coral.hex,
       opacity3D: config.opacity3D ?? 0.15,
       opacityFaceOn: config.opacityFaceOn ?? 1.0,
       planeThickness: config.planeThickness ?? 0.02,

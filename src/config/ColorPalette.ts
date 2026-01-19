@@ -169,9 +169,9 @@ export const PALETTE = {
 
   /** Subsquare separator colors */
   separator: {
-    /** Subsquare separator lines (pastel magenta-pink, hue ~320°) */
+    /** Subsquare separator lines (pastel coral-orange, hue ~25°) */
     // OLD (dark theme): { hex: 0xff00ff, css: '#ff00ff' }
-    magenta: { hex: 0xf4b8e8, css: '#f4b8e8' } as ColorDef,
+    coral: { hex: 0xf4c4a8, css: '#f4c4a8' } as ColorDef,
   },
 
   /** Win screen firework colors (keep vibrant for celebration) */
