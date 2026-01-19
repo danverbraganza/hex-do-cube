@@ -30,8 +30,12 @@ describe('InputController - Mouse Rotation in Isometric View', () => {
       getCamera: mock(() => ({
         position: { x: 10, y: 10, z: 10, clone: () => ({ x: 10, y: 10, z: 10, equals: () => false }) },
       })),
-      resetCamera: mock(() => {}),
-      setFaceOnView: mock(() => {}),
+      resetCamera: mock((_animated?: boolean, onComplete?: () => void) => {
+        if (onComplete) onComplete();
+      }),
+      setFaceOnView: mock((_face: any, _layer: any, _animated?: boolean, onComplete?: () => void) => {
+        if (onComplete) onComplete();
+      }),
       updateFaceOnLayer: mock(() => {}),
       getCameraMode: mock(() => 'isometric'),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,6 +48,8 @@ describe('InputController - Mouse Rotation in Isometric View', () => {
       setCellState: mock(() => {}),
       setMode: mock(() => {}),
       setVisibleLayer: mock(() => {}),
+      showAllLayersForTransition: mock(() => {}),
+      restoreLayerVisibilityAfterTransition: mock(() => {}),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
 

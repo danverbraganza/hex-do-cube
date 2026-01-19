@@ -540,6 +540,53 @@ export class CubeRenderer {
   }
 
   /**
+   * Show all layers with increased opacity for transition effect
+   * This is used during face transitions to reveal the full 3D cube
+   */
+  public showAllLayersForTransition(): void {
+    // Show all cells
+    this.setAllCellsVisibility(true);
+
+    // Increase opacity of all cells for better visibility during transition
+    // Use a moderate opacity that's higher than normal 3D view but still translucent
+    const transitionOpacity = 0.15; // Higher than normal filled opacity (0.05)
+
+    this.materials.empty.opacity = transitionOpacity;
+    this.materials.givenFilled.opacity = transitionOpacity;
+    this.materials.editableFilled.opacity = transitionOpacity;
+
+    // Update all cells to reflect the new opacity
+    this.updateAllCells();
+  }
+
+  /**
+   * Restore normal layer visibility after transition
+   * This is called after face transitions complete to return to normal rendering
+   * @param face - The face being viewed ('i', 'j', or 'k'), or null for 3D view
+   * @param layer - The layer index (0-15), or null for 3D view
+   */
+  public restoreLayerVisibilityAfterTransition(face: 'i' | 'j' | 'k' | null, layer: number | null): void {
+    // Restore normal opacity based on current mode
+    if (this.renderMode === 'face-on') {
+      // Face-on mode: opaque cells
+      this.materials.empty.opacity = 1.0;
+      this.materials.givenFilled.opacity = 1.0;
+      this.materials.editableFilled.opacity = 1.0;
+    } else {
+      // 3D mode: translucent cells
+      this.materials.empty.opacity = this.config.emptyOpacity;
+      this.materials.givenFilled.opacity = this.config.filledOpacity;
+      this.materials.editableFilled.opacity = this.config.filledOpacity;
+    }
+
+    // Restore layer visibility
+    this.setVisibleLayer(face, layer);
+
+    // Update all cells to reflect the restored state
+    this.updateAllCells();
+  }
+
+  /**
    * Get the bounding box of the entire cube in world space
    * This is useful for verification that the cube is centered at origin
    *

@@ -160,15 +160,27 @@ export class ViewStateManager {
     // Update state
     this.currentMode = 'face-on';
 
+    // VISUAL PIZZAZZ: Show all layers during transition
+    this.cubeRenderer.showAllLayersForTransition();
+
     // Coordinate all components
     this.faceRenderer.enterFaceOnView(face, targetLayer);
-    this.sceneManager.setFaceOnView(face, targetLayer);
+
+    // Set up camera animation with completion callback
+    this.sceneManager.setFaceOnView(face, targetLayer, true, () => {
+      // TRANSITION COMPLETE: Restore normal layer visibility
+      this.cubeRenderer.setMode('face-on');
+      this.cubeRenderer.restoreLayerVisibilityAfterTransition(face, targetLayer);
+    });
+
     // Only highlight the layer slice, not the face surface
     // (layer highlight already shows which face we're viewing at which depth)
     this.minimapRenderer.setHighlightedLayer(face, targetLayer);
+
+    // Set rendering mode for face-on
     this.cubeRenderer.setMode('face-on');
-    // Set visible layer to show only the active layer
-    this.cubeRenderer.setVisibleLayer(face, targetLayer);
+
+    // Set subsquare separator mode
     this.subsquareSeparatorRenderer?.setMode('face-on', face, targetLayer);
 
     // Notify listeners
@@ -188,14 +200,25 @@ export class ViewStateManager {
     // Update state
     this.currentMode = '3d-rotational';
 
+    // VISUAL PIZZAZZ: Show all layers during transition
+    this.cubeRenderer.showAllLayersForTransition();
+
     // Coordinate all components
     this.faceRenderer.exitFaceOnView();
-    this.sceneManager.resetCamera();
+
+    // Set up camera animation with completion callback
+    this.sceneManager.resetCamera(true, () => {
+      // TRANSITION COMPLETE: Restore normal 3D view
+      this.cubeRenderer.setMode('3d');
+      this.cubeRenderer.restoreLayerVisibilityAfterTransition(null, null);
+    });
+
     this.minimapRenderer.setHighlightedFace(null);
     this.minimapRenderer.setHighlightedLayer(null, null);
+
+    // Set rendering mode for 3D
     this.cubeRenderer.setMode('3d');
-    // Show all layers when returning to 3D view
-    this.cubeRenderer.setVisibleLayer(null, null);
+
     this.subsquareSeparatorRenderer?.setMode('3d');
 
     // Notify listeners

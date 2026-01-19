@@ -24,12 +24,20 @@ class MockSceneManager implements Partial<SceneManager> {
   public resetCameraCalls: number = 0;
   public camera = new MockCamera();
 
-  setFaceOnView(face: Face, layer: number): void {
+  setFaceOnView(face: Face, layer: number, _animated?: boolean, onComplete?: () => void): void {
     this.setFaceOnViewCalls.push({ face, layer });
+    // Call completion callback immediately in tests (no actual animation)
+    if (onComplete) {
+      onComplete();
+    }
   }
 
-  resetCamera(): void {
+  resetCamera(_animated?: boolean, onComplete?: () => void): void {
     this.resetCameraCalls++;
+    // Call completion callback immediately in tests (no actual animation)
+    if (onComplete) {
+      onComplete();
+    }
   }
 
   getCamera(): THREE.PerspectiveCamera {
@@ -144,6 +152,8 @@ class MockMinimapRenderer implements Partial<MinimapRenderer> {
 class MockCubeRenderer implements Partial<CubeRenderer> {
   public setModeCalls: Array<'3d' | 'face-on'> = [];
   public setVisibleLayerCalls: Array<{ face: Face | null; layer: number | null }> = [];
+  public showAllLayersForTransitionCalls = 0;
+  public restoreLayerVisibilityAfterTransitionCalls: Array<{ face: Face | null; layer: number | null }> = [];
 
   setMode(mode: '3d' | 'face-on'): void {
     this.setModeCalls.push(mode);
@@ -153,9 +163,19 @@ class MockCubeRenderer implements Partial<CubeRenderer> {
     this.setVisibleLayerCalls.push({ face, layer });
   }
 
+  showAllLayersForTransition(): void {
+    this.showAllLayersForTransitionCalls++;
+  }
+
+  restoreLayerVisibilityAfterTransition(face: Face | null, layer: number | null): void {
+    this.restoreLayerVisibilityAfterTransitionCalls.push({ face, layer });
+  }
+
   reset(): void {
     this.setModeCalls = [];
     this.setVisibleLayerCalls = [];
+    this.showAllLayersForTransitionCalls = 0;
+    this.restoreLayerVisibilityAfterTransitionCalls = [];
   }
 }
 

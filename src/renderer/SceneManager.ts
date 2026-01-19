@@ -61,6 +61,7 @@ export class SceneManager {
     targetLookAt: THREE.Vector3;
     startTime: number;
     duration: number;
+    onComplete?: () => void;
   } | null = null;
 
   // Auto-rotation state
@@ -256,8 +257,9 @@ export class SceneManager {
   /**
    * Reset camera to canonical isometric view with smooth animation
    * @param animated - Whether to animate the transition (default: true)
+   * @param onComplete - Optional callback to execute when animation completes
    */
-  public resetCamera(animated: boolean = true): void {
+  public resetCamera(animated: boolean = true, onComplete?: () => void): void {
     // Switch to perspective camera for 3D rotational view
     this.cameraMode = 'isometric';
     this.currentCamera = this.perspectiveCamera;
@@ -266,9 +268,13 @@ export class SceneManager {
       const distance = this.cameraDistance;
       const targetPosition = new THREE.Vector3(distance, distance, distance);
       const targetUp = new THREE.Vector3(0, 1, 0);
-      this.animateCameraTo(targetPosition, targetUp);
+      this.animateCameraTo(targetPosition, targetUp, 400, onComplete);
     } else {
       this.setupCanonicalView();
+      // Call completion callback immediately if not animating
+      if (onComplete) {
+        onComplete();
+      }
     }
   }
 
@@ -287,14 +293,16 @@ export class SceneManager {
    * @param targetPosition - Target camera position
    * @param targetUp - Target camera up vector
    * @param duration - Animation duration in milliseconds (default: 400ms)
+   * @param onComplete - Optional callback to execute when animation completes
    */
   private animateCameraTo(
     targetPosition: THREE.Vector3,
     targetUp: THREE.Vector3,
-    duration: number = 400
+    duration: number = 400,
+    onComplete?: () => void
   ): void {
     // For backward compatibility, animate looking at origin
-    this.animateCameraToWithLookAt(targetPosition, new THREE.Vector3(0, 0, 0), targetUp, duration);
+    this.animateCameraToWithLookAt(targetPosition, new THREE.Vector3(0, 0, 0), targetUp, duration, onComplete);
   }
 
   /**
@@ -303,12 +311,14 @@ export class SceneManager {
    * @param targetLookAt - Target point to look at
    * @param targetUp - Target camera up vector
    * @param duration - Animation duration in milliseconds (default: 400ms)
+   * @param onComplete - Optional callback to execute when animation completes
    */
   private animateCameraToWithLookAt(
     targetPosition: THREE.Vector3,
     targetLookAt: THREE.Vector3,
     targetUp: THREE.Vector3,
-    duration: number = 400
+    duration: number = 400,
+    onComplete?: () => void
   ): void {
     // Use the currently active camera for animation
     const camera = this.cameraMode === 'isometric' ? this.perspectiveCamera : this.orthographicCamera;
@@ -329,6 +339,7 @@ export class SceneManager {
       targetLookAt: targetLookAt.clone(),
       startTime: performance.now(),
       duration,
+      onComplete,
     };
   }
 
@@ -377,6 +388,15 @@ export class SceneManager {
     // Check if animation is complete
     if (progress >= 1) {
       this.cameraAnimation.active = false;
+
+      // Call completion callback if provided
+      const onComplete = this.cameraAnimation.onComplete;
+      if (onComplete) {
+        // Clear the callback before calling it to prevent potential issues
+        this.cameraAnimation.onComplete = undefined;
+        onComplete();
+      }
+
       return false;
     }
 
@@ -403,11 +423,12 @@ export class SceneManager {
    * @param face - The face to view ('i', 'j', or 'k')
    * @param layer - The layer depth (0-15)
    * @param animated - Whether to animate the transition (default: true)
+   * @param onComplete - Optional callback to execute when animation completes
    *
    * Camera is positioned to look at the specific layer plane.
    * Uses orthographic camera for true 2D appearance.
    */
-  public setFaceOnView(face: 'i' | 'j' | 'k', layer: number, animated: boolean = true): void {
+  public setFaceOnView(face: 'i' | 'j' | 'k', layer: number, animated: boolean = true, onComplete?: () => void): void {
     // Switch to orthographic camera for face-on view
     this.cameraMode = 'face-on';
     this.currentCamera = this.orthographicCamera;
@@ -415,12 +436,16 @@ export class SceneManager {
     const { position, lookAt, up } = this.calculateFaceOnCameraParams(face, layer);
 
     if (animated) {
-      this.animateCameraToWithLookAt(position, lookAt, up);
+      this.animateCameraToWithLookAt(position, lookAt, up, 400, onComplete);
     } else {
       // Instant snap
       this.orthographicCamera.position.copy(position);
       this.orthographicCamera.up.copy(up);
       this.orthographicCamera.lookAt(lookAt);
+      // Call completion callback immediately if not animating
+      if (onComplete) {
+        onComplete();
+      }
     }
   }
 
