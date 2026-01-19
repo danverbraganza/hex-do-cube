@@ -143,48 +143,66 @@ export class ViewStateManager {
         targetLayer = this.getOutermostLayer(face);
       }
     }
-    // Don't re-enter if already in face-on view for the same face
-    if (this.currentMode === 'face-on' && this.faceRenderer.getCurrentFace() === face) {
-      // Just update the layer if different
-      if (this.faceRenderer.getCurrentLayer() !== targetLayer) {
-        this.faceRenderer.setLayer(targetLayer);
-        this.minimapRenderer.setHighlightedLayer(face, targetLayer);
-        // Update layer visibility for CubeRenderer
-        this.cubeRenderer.setVisibleLayer(face, targetLayer);
-        // Notify listeners of layer change
-        this.notifyViewModeChange('face-on', face, targetLayer);
-      }
+
+    // Check if already in face-on view for the same face and layer
+    const alreadyInTargetView =
+      this.currentMode === 'face-on' &&
+      this.faceRenderer.getCurrentFace() === face &&
+      this.faceRenderer.getCurrentLayer() === targetLayer;
+
+    if (alreadyInTargetView) {
+      // Already viewing the exact target - no action needed
       return;
     }
+
+    // Determine if this is a layer change within the same face
+    const isLayerChangeOnly =
+      this.currentMode === 'face-on' &&
+      this.faceRenderer.getCurrentFace() === face;
 
     // Update state
     this.currentMode = 'face-on';
 
-    // VISUAL PIZZAZZ: Reveal entire cube during transition
-    this.cubeRenderer.revealEntireCube();
+    if (isLayerChangeOnly) {
+      // Layer change within same face - use simple layer transition without full face animation
+      this.faceRenderer.setLayer(targetLayer);
+      this.minimapRenderer.setHighlightedLayer(face, targetLayer);
 
-    // Coordinate all components
-    this.faceRenderer.enterFaceOnView(face, targetLayer);
+      // CRITICAL: Ensure exclusive visibility is set atomically
+      this.cubeRenderer.setExclusiveVisibleLayer(face, targetLayer);
 
-    // Set up camera animation with completion callback
-    this.sceneManager.setFaceOnView(face, targetLayer, true, () => {
-      // TRANSITION COMPLETE: Hide all but current layer
+      // Notify listeners of layer change
+      this.notifyViewModeChange('face-on', face, targetLayer);
+    } else {
+      // Full face transition (from 3D view or different face)
+
+      // VISUAL PIZZAZZ: Reveal entire cube during transition
+      this.cubeRenderer.revealEntireCube();
+
+      // Coordinate all components
+      this.faceRenderer.enterFaceOnView(face, targetLayer);
+
+      // Set up camera animation with completion callback
+      this.sceneManager.setFaceOnView(face, targetLayer, true, () => {
+        // TRANSITION COMPLETE: Hide all but current layer
+        // This guarantees exclusive visibility is set after camera animation completes
+        this.cubeRenderer.setMode('face-on');
+        this.cubeRenderer.hideAllButCurrentLayer(face, targetLayer);
+      });
+
+      // Only highlight the layer slice, not the face surface
+      // (layer highlight already shows which face we're viewing at which depth)
+      this.minimapRenderer.setHighlightedLayer(face, targetLayer);
+
+      // Set rendering mode for face-on
       this.cubeRenderer.setMode('face-on');
-      this.cubeRenderer.hideAllButCurrentLayer(face, targetLayer);
-    });
 
-    // Only highlight the layer slice, not the face surface
-    // (layer highlight already shows which face we're viewing at which depth)
-    this.minimapRenderer.setHighlightedLayer(face, targetLayer);
+      // Set subsquare separator mode
+      this.subsquareSeparatorRenderer?.setMode('face-on', face, targetLayer);
 
-    // Set rendering mode for face-on
-    this.cubeRenderer.setMode('face-on');
-
-    // Set subsquare separator mode
-    this.subsquareSeparatorRenderer?.setMode('face-on', face, targetLayer);
-
-    // Notify listeners
-    this.notifyViewModeChange('face-on', face, targetLayer);
+      // Notify listeners
+      this.notifyViewModeChange('face-on', face, targetLayer);
+    }
   }
 
   /**
