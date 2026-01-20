@@ -218,22 +218,8 @@ export class FaceRenderer {
       return;
     }
 
-    const face = this.currentFace;
-    const layer = this.currentLayer;
-
-    // Filter cells to show only those in the current layer
-    this.cubeRenderer.filterCells((cell) => {
-      const [i, j, k] = cell.position;
-
-      switch (face) {
-        case 'i': // Rows=j, columns=k, layers=i
-          return i === layer;
-        case 'j': // Rows=i, columns=k, layers=j
-          return j === layer;
-        case 'k': // Rows=i, columns=j, layers=k
-          return k === layer;
-      }
-    });
+    // Use setExclusiveVisibleLayer for atomic, consistent visibility control
+    this.cubeRenderer.setExclusiveVisibleLayer(this.currentFace, this.currentLayer);
   }
 
   /**
