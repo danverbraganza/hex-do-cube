@@ -285,15 +285,13 @@ export class GameUI {
       padding: 48px 64px;
       border-radius: 16px;
       font-size: 48px;
-      cursor: pointer;
       animation: winPulse 1.5s ease-in-out infinite;
     `;
     this.winNotification.innerHTML = `
       <div style="font-size: 48px; margin-bottom: 16px; text-shadow: 0 0 10px ${PALETTE.ui.winGlow.css};">
-        YOU WIN!
+        Puzzle Solved
       </div>
-      <div style="font-size: 18px; font-weight: normal; margin-top: 16px; opacity: 0.8;">
-        Click anywhere to dismiss
+      <div id="solve-time-subtitle" style="font-size: 18px; font-weight: normal; margin-top: 16px; opacity: 0.8;">
       </div>
     `;
 
@@ -385,11 +383,6 @@ export class GameUI {
     // New game button: Generate new puzzle
     this.newGameButton.addEventListener("click", () => {
       this.handleNewGameButton();
-    });
-
-    // Win notification click: Dismiss
-    this.winNotification.addEventListener("click", () => {
-      this.hideWinNotification();
     });
 
     // Wrong completion notification click: Dismiss
@@ -609,10 +602,39 @@ export class GameUI {
   }
 
   /**
+   * Format elapsed time from ISO 8601 timestamp to solve time string
+   * @param startedAt - ISO 8601 timestamp when game started
+   * @returns Formatted time string (hh:mm:ss or mm:ss)
+   */
+  private formatElapsedTime(startedAt: string): string {
+    const start = new Date(startedAt).getTime();
+    const now = Date.now();
+    const elapsedMs = now - start;
+
+    const totalSeconds = Math.floor(elapsedMs / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  /**
    * Show the win notification with fireworks and auto-rotation
    */
   private showWinNotification(): void {
     this.hideWrongCompletionNotification(); // Ensure only one notification shows
+
+    // Calculate and display solve time
+    const solveTime = this.formatElapsedTime(this.gameState.startedAt);
+    const subtitleElement = this.winNotification.querySelector('#solve-time-subtitle');
+    if (subtitleElement) {
+      subtitleElement.textContent = `Solved in ${solveTime}`;
+    }
+
     this.winNotification.style.display = "block";
 
     // Start fireworks effect
