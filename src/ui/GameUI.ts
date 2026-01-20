@@ -131,7 +131,7 @@ export class GameUI {
 
     // Help button
     this.helpButton = document.createElement("button");
-    this.helpButton.textContent = "?";
+    this.helpButton.textContent = "Help";
     this.helpButton.title = "Show instructions";
     this.helpButton.className = "hdc-button";
 
