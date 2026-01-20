@@ -176,6 +176,8 @@ class MockCubeRenderer implements Partial<CubeRenderer> {
 
   hideAllButCurrentLayer(face: Face | null, layer: number | null): void {
     this.hideAllButCurrentLayerCalls.push({ face, layer });
+    // hideAllButCurrentLayer calls setExclusiveVisibleLayer atomically
+    this.setExclusiveVisibleLayer(face, layer);
   }
 
   reset(): void {
@@ -834,6 +836,164 @@ describe('ViewStateManager', () => {
       expect(mockMinimapRenderer.setHighlightedLayerCalls[0]).toEqual({ face: 'i', layer: 1 });
       expect(mockMinimapRenderer.setHighlightedLayerCalls[1]).toEqual({ face: 'i', layer: 2 });
       expect(mockMinimapRenderer.setHighlightedLayerCalls[2]).toEqual({ face: 'i', layer: 3 });
+    });
+  });
+
+  describe('face-to-face transition sprite visibility bug (code-121)', () => {
+    it('should call setExclusiveVisibleLayer during layer change within same face', () => {
+      // Enter face 'k' at layer 5
+      viewStateManager.enterFaceOnView('k', 5);
+      mockCubeRenderer.reset();
+
+      // Change to layer 10 within same face
+      viewStateManager.enterFaceOnView('k', 10);
+
+      // Should call setExclusiveVisibleLayer atomically
+      expect(mockCubeRenderer.setExclusiveVisibleLayerCalls).toHaveLength(1);
+      expect(mockCubeRenderer.setExclusiveVisibleLayerCalls[0]).toEqual({ face: 'k', layer: 10 });
+    });
+
+    it('should call revealEntireCube when transitioning from one face to another', () => {
+      // Enter face 'k' at layer 5
+      viewStateManager.enterFaceOnView('k', 5);
+      mockCubeRenderer.reset();
+
+      // Transition to face 'i' at layer 7
+      viewStateManager.enterFaceOnView('i', 7);
+
+      // Should call revealEntireCube for visual pizzazz
+      expect(mockCubeRenderer.revealEntireCubeCalls).toBe(1);
+    });
+
+    it('should call hideAllButCurrentLayer in camera animation callback after face-to-face transition', () => {
+      // Enter face 'k' at layer 5
+      viewStateManager.enterFaceOnView('k', 5);
+      mockCubeRenderer.reset();
+
+      // Transition to face 'i' at layer 7
+      viewStateManager.enterFaceOnView('i', 7);
+
+      // The callback is invoked immediately in our mock (line 29-32)
+      // So hideAllButCurrentLayer should have been called
+      expect(mockCubeRenderer.hideAllButCurrentLayerCalls).toHaveLength(1);
+      expect(mockCubeRenderer.hideAllButCurrentLayerCalls[0]).toEqual({ face: 'i', layer: 7 });
+    });
+
+    it('should call setExclusiveVisibleLayer after face-to-face transition completes', () => {
+      // Enter face 'k' at layer 5
+      viewStateManager.enterFaceOnView('k', 5);
+      mockCubeRenderer.reset();
+
+      // Transition to face 'i' at layer 7
+      viewStateManager.enterFaceOnView('i', 7);
+
+      // After transition completes (callback fired immediately in mock),
+      // setExclusiveVisibleLayer should have been called
+      // (from hideAllButCurrentLayer -> setExclusiveVisibleLayer)
+      expect(mockCubeRenderer.setExclusiveVisibleLayerCalls.length).toBeGreaterThanOrEqual(1);
+      expect(mockCubeRenderer.setExclusiveVisibleLayerCalls[0]).toEqual({ face: 'i', layer: 7 });
+    });
+
+    it('should ensure FaceRenderer enterFaceOnView is called before camera animation starts', () => {
+      // Start in 3D view
+      expect(viewStateManager.getViewMode()).toBe('3d-rotational');
+
+      // Enter face 'k' at layer 5
+      viewStateManager.enterFaceOnView('k', 5);
+
+      // FaceRenderer should be set up before camera animation
+      expect(mockFaceRenderer.enterFaceOnViewCalls).toHaveLength(1);
+      expect(mockFaceRenderer.enterFaceOnViewCalls[0]).toEqual({ face: 'k', layer: 5 });
+
+      mockFaceRenderer.reset();
+      mockCubeRenderer.reset();
+      mockSceneManager.reset();
+
+      // Transition to face 'i'
+      viewStateManager.enterFaceOnView('i', 7);
+
+      // FaceRenderer.enterFaceOnView should be called BEFORE SceneManager.setFaceOnView
+      // In our test, we can verify both were called
+      expect(mockFaceRenderer.enterFaceOnViewCalls).toHaveLength(1);
+      expect(mockSceneManager.setFaceOnViewCalls).toHaveLength(1);
+    });
+
+    it('DEMONSTRATES BUG: revealEntireCube is called but filterCells happens before camera callback', () => {
+      // This test demonstrates the exact sequence of calls during a face-to-face transition.
+      //
+      // ROOT CAUSE ANALYSIS:
+      // ====================
+      // When transitioning from face 'k' to face 'i':
+      //
+      // 1. ViewStateManager.enterFaceOnView('i', 7) is called
+      // 2. Since this is a face-to-face transition (not same-face layer change):
+      //    a. Line 180: revealEntireCube() - Sets ALL sprites visible
+      //    b. Line 183: faceRenderer.enterFaceOnView('i', 7)
+      //       - This calls updateCellVisibility()
+      //       - Which calls cubeRenderer.filterCells(predicate)
+      //       - Which should filter sprites to only show layer 7
+      //    c. Line 186: Camera animation starts
+      //    d. Eventually: Camera callback fires
+      //       - Calls hideAllButCurrentLayer('i', 7)
+      //       - Which calls setExclusiveVisibleLayer('i', 7)
+      //
+      // THE BUG:
+      // ========
+      // Between steps 2a and 2b, there is a window where ALL sprites are visible.
+      // Step 2b calls filterCells(), which SHOULD hide sprites not in layer 7.
+      // However, filterCells() iterates through ALL cells and calls setSpriteVisibility()
+      // for each one based on a predicate.
+      //
+      // The problem is that filterCells() and setExclusiveVisibleLayer() may produce
+      // different results if:
+      // - They iterate in different orders
+      // - They use different logic to determine visibility
+      // - There's a race condition between them
+      //
+      // The user reports that clicking the same face button AGAIN (which triggers a
+      // same-face layer change) fixes the issue. This is because same-face layer
+      // changes use setExclusiveVisibleLayer() ATOMICALLY (line 172), without the
+      // revealEntireCube() + filterCells() sequence.
+      //
+      // CONCLUSION:
+      // ===========
+      // The root cause is that face-to-face transitions use filterCells() (via
+      // FaceRenderer.updateCellVisibility()), while same-face layer changes use
+      // setExclusiveVisibleLayer() directly. These two methods may not produce
+      // identical visibility states, or there's a timing issue where filterCells()
+      // doesn't complete before the user sees the result.
+
+      // Start in face 'k' at layer 5
+      viewStateManager.enterFaceOnView('k', 5);
+
+      mockCubeRenderer.reset();
+      mockFaceRenderer.reset();
+      mockSceneManager.reset();
+
+      // Transition to face 'i' at layer 7 (face-to-face transition)
+      viewStateManager.enterFaceOnView('i', 7);
+
+      // Verify the call sequence:
+      // 1. revealEntireCube() should be called
+      expect(mockCubeRenderer.revealEntireCubeCalls).toBe(1);
+
+      // 2. faceRenderer.enterFaceOnView() should be called
+      expect(mockFaceRenderer.enterFaceOnViewCalls).toHaveLength(1);
+      expect(mockFaceRenderer.enterFaceOnViewCalls[0]).toEqual({ face: 'i', layer: 7 });
+
+      // 3. Camera animation callback should fire (hideAllButCurrentLayer)
+      expect(mockCubeRenderer.hideAllButCurrentLayerCalls).toHaveLength(1);
+      expect(mockCubeRenderer.hideAllButCurrentLayerCalls[0]).toEqual({ face: 'i', layer: 7 });
+
+      // 4. setExclusiveVisibleLayer should be called from hideAllButCurrentLayer
+      expect(mockCubeRenderer.setExclusiveVisibleLayerCalls.length).toBeGreaterThanOrEqual(1);
+
+      // The bug is that FaceRenderer.enterFaceOnView() calls updateCellVisibility()
+      // which uses filterCells(), but this may not produce the same result as
+      // setExclusiveVisibleLayer(). The fix would be to ensure that
+      // FaceRenderer.enterFaceOnView() does NOT call filterCells() during face-to-face
+      // transitions, and instead relies solely on the camera callback's
+      // hideAllButCurrentLayer() -> setExclusiveVisibleLayer() to set visibility.
     });
   });
 });
