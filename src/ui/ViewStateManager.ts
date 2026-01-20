@@ -179,26 +179,22 @@ export class ViewStateManager {
       // VISUAL PIZZAZZ: Reveal entire cube during transition
       this.cubeRenderer.revealEntireCube();
 
-      // Coordinate all components
+      // Set rendering mode BEFORE visibility (setMode may recreate sprites)
+      this.cubeRenderer.setMode('face-on');
+      this.subsquareSeparatorRenderer?.setMode('face-on', face, targetLayer);
+
+      // Set visibility LAST - this is the single source of truth
+      // enterFaceOnView calls setExclusiveVisibleLayer which must win
       this.faceRenderer.enterFaceOnView(face, targetLayer);
 
       // Set up camera animation with completion callback
       this.sceneManager.setFaceOnView(face, targetLayer, true, () => {
-        // TRANSITION COMPLETE: Hide all but current layer
-        // This guarantees exclusive visibility is set after camera animation completes
-        this.cubeRenderer.setMode('face-on');
+        // TRANSITION COMPLETE: Ensure visibility is correct after animation
         this.cubeRenderer.hideAllButCurrentLayer(face, targetLayer);
       });
 
       // Only highlight the layer slice, not the face surface
-      // (layer highlight already shows which face we're viewing at which depth)
       this.minimapRenderer.setHighlightedLayer(face, targetLayer);
-
-      // Set rendering mode for face-on
-      this.cubeRenderer.setMode('face-on');
-
-      // Set subsquare separator mode
-      this.subsquareSeparatorRenderer?.setMode('face-on', face, targetLayer);
 
       // Notify listeners
       this.notifyViewModeChange('face-on', face, targetLayer);
