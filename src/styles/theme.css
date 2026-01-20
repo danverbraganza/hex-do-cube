@@ -292,7 +292,7 @@ body.hdc-app {
   z-index: 99;
   white-space: nowrap;
   border-radius: 0;
-  //writing-mode: vertical-rl;
+  /* writing-mode: vertical-rl; */
   text-orientation: mixed;
   font-size: var(--hdc-font-size-md);
   font-weight: 600;
