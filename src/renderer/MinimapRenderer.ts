@@ -118,17 +118,17 @@ export class MinimapRenderer {
 
     // Apply default configuration
     this.config = {
-      viewportSize: config.viewportSize ?? 200,
+      viewportSize: config.viewportSize ?? 400,
       margin: config.margin ?? 20,
       cellSize: config.cellSize ?? 0.8, // Intentionally smaller than main (0.8 vs 1.0)
       cellGap: config.cellGap ?? 0.05, // Intentionally smaller than main (0.05 vs 0.1)
       cameraDistance: config.cameraDistance ?? 30, // Intentionally different than main (30 vs 37.5)
       backgroundColor: config.backgroundColor ?? COLORS.BACKGROUND,
       backgroundAlpha: config.backgroundAlpha ?? 0.8,
-      filledOpacity: config.filledOpacity ?? 0.35, // More translucent than main (0.35 vs 0.6)
-      emptyOpacity: config.emptyOpacity ?? 0.05, // Reduced from 0.1, ghostly appearance
+      filledOpacity: config.filledOpacity ?? 0.15, // More translucent than main (0.35 vs 0.6)
+      emptyOpacity: config.emptyOpacity ?? 0, // Reduced from 0.1, ghostly appearance
       highlightColor: config.highlightColor ?? PALETTE.minimap.highlight.hex,
-      highlightOpacity: config.highlightOpacity ?? 0.3,
+      highlightOpacity: config.highlightOpacity ?? 0.6,
     };
 
     // Initialize scene
