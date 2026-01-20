@@ -48,3 +48,10 @@ rebuild: clean install build
 # Generate cached puzzle for fast game startup
 generate-puzzle:
     bun run scripts/generate-puzzle.ts
+
+# Deploys to a local website
+deploy: build
+    cp ./dist/assets/* ../website/assets/
+    cp ./dist/index.html ../website/hex-do-cube.html
+    
+

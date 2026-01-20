@@ -33,6 +33,22 @@ export default defineConfig({
         manualChunks: {
           three: ['three'],
         },
+        // Remove hashes from filenames and use custom names
+        entryFileNames: 'assets/hex-do-cube.js',
+        chunkFileNames: (chunkInfo) => {
+          // Name the three.js chunk
+          if (chunkInfo.name === 'three') {
+            return 'assets/three.js'
+          }
+          return 'assets/[name].js'
+        },
+        assetFileNames: (assetInfo) => {
+          // Name the CSS file
+          if (assetInfo.name?.endsWith('.css')) {
+            return 'assets/hex-do-cube.css'
+          }
+          return 'assets/[name].[ext]'
+        },
       },
     },
   },
