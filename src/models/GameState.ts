@@ -22,6 +22,7 @@ export interface GameState {
   isComplete: boolean;
   isCorrect: boolean | null; // null = not yet checked
   solution: HexValue[][][]; // 16x16x16 array with all cells filled (never null)
+  startedAt: string; // ISO 8601 timestamp when the game was started
 }
 
 /**
@@ -40,6 +41,7 @@ export function createGameState(
     isComplete: false,
     isCorrect: null,
     solution,
+    startedAt: new Date().toISOString(),
   };
 }
 
@@ -62,6 +64,7 @@ export function createGameStateFromCube(
     isComplete: false,
     isCorrect: null,
     solution,
+    startedAt: new Date().toISOString(),
   };
 }
 
