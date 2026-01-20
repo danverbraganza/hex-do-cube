@@ -126,7 +126,7 @@ export class MessagePanel {
 
     // Create title (clickable to collapse)
     const titleElement = document.createElement('div');
-    titleElement.textContent = 'Messages';
+    titleElement.textContent = '>> Messages';
     titleElement.className = 'hdc-message-panel-title';
     titleElement.title = 'Collapse Messages panel';
 
