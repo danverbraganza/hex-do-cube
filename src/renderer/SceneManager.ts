@@ -272,7 +272,7 @@ export class SceneManager {
     const distance = this.cameraDistance;
     const targetPosition = new THREE.Vector3(distance, distance, distance);
     const targetUp = new THREE.Vector3(0, 1, 0);
-    this.animateCameraTo(targetPosition, targetUp, 400, onComplete);
+    this.animateCameraTo(targetPosition, targetUp, 800, onComplete);
   }
 
   /**

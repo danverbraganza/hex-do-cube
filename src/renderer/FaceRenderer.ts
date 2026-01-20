@@ -14,8 +14,8 @@
  * Note: Camera positioning is handled by ViewStateManager for consistency.
  */
 
-import type { CubeRenderer } from './CubeRenderer.js';
-import type { Position } from '../models/Cell.js';
+import type { CubeRenderer } from "./CubeRenderer.js";
+import type { Position } from "../models/Cell.js";
 
 /**
  * Face type for the face-on view
@@ -23,7 +23,7 @@ import type { Position } from '../models/Cell.js';
  * - 'j': right/left face (x-axis), rows=i, columns=k, layers=j
  * - 'k': front/back face (z-axis), rows=i, columns=j, layers=k
  */
-export type Face = 'i' | 'j' | 'k';
+export type Face = "i" | "j" | "k";
 
 /**
  * Configuration for FaceRenderer
@@ -56,10 +56,7 @@ export class FaceRenderer {
   // Layer change callbacks
   private layerChangeCallbacks: Array<(face: Face, layer: number) => void> = [];
 
-  constructor(
-    cubeRenderer: CubeRenderer,
-    config: FaceRendererConfig = {}
-  ) {
+  constructor(cubeRenderer: CubeRenderer, config: FaceRendererConfig = {}) {
     this.cubeRenderer = cubeRenderer;
 
     // Apply default configuration
@@ -97,7 +94,7 @@ export class FaceRenderer {
     this.isTransitioning = false;
 
     // Show all cells with translucent rendering
-    this.cubeRenderer.setAllCellsVisibility(true);
+    //this.cubeRenderer.setAllCellsVisibility(true);
   }
 
   /**
@@ -127,7 +124,7 @@ export class FaceRenderer {
    */
   public setLayer(layer: number): void {
     if (!this.isActive || this.currentFace === null) {
-      throw new Error('Face-on view is not active');
+      throw new Error("Face-on view is not active");
     }
 
     if (layer < 0 || layer > 15) {
@@ -219,7 +216,10 @@ export class FaceRenderer {
     }
 
     // Use setExclusiveVisibleLayer for atomic, consistent visibility control
-    this.cubeRenderer.setExclusiveVisibleLayer(this.currentFace, this.currentLayer);
+    this.cubeRenderer.setExclusiveVisibleLayer(
+      this.currentFace,
+      this.currentLayer,
+    );
   }
 
   /**
@@ -247,13 +247,13 @@ export class FaceRenderer {
       let cellLayer: number;
 
       switch (face) {
-        case 'i':
+        case "i":
           cellLayer = i;
           break;
-        case 'j':
+        case "j":
           cellLayer = j;
           break;
-        case 'k':
+        case "k":
           cellLayer = k;
           break;
       }
@@ -285,13 +285,13 @@ export class FaceRenderer {
         let position: Position;
 
         switch (face) {
-          case 'i': // layer=i, rows=j, columns=k
+          case "i": // layer=i, rows=j, columns=k
             position = [layer, a, b] as const;
             break;
-          case 'j': // layer=j, rows=i, columns=k
+          case "j": // layer=j, rows=i, columns=k
             position = [a, layer, b] as const;
             break;
-          case 'k': // layer=k, rows=i, columns=j
+          case "k": // layer=k, rows=i, columns=j
             position = [a, b, layer] as const;
             break;
         }
@@ -309,7 +309,10 @@ export class FaceRenderer {
    * @param col - The column index (0-15) in the face
    * @returns The 3D position of the cell
    */
-  public getCellPositionFromFaceCoords(row: number, col: number): Position | null {
+  public getCellPositionFromFaceCoords(
+    row: number,
+    col: number,
+  ): Position | null {
     if (!this.isActive || this.currentFace === null) {
       return null;
     }
@@ -322,11 +325,11 @@ export class FaceRenderer {
     const layer = this.currentLayer;
 
     switch (face) {
-      case 'i': // layer=i, rows=j, columns=k
+      case "i": // layer=i, rows=j, columns=k
         return [layer, row, col] as const;
-      case 'j': // layer=j, rows=i, columns=k
+      case "j": // layer=j, rows=i, columns=k
         return [row, layer, col] as const;
-      case 'k': // layer=k, rows=i, columns=j
+      case "k": // layer=k, rows=i, columns=j
         return [row, col, layer] as const;
     }
   }
@@ -336,7 +339,9 @@ export class FaceRenderer {
    * @param position - The 3D cell position
    * @returns The [row, col] coordinates in the face, or null if not in current layer
    */
-  public getFaceCoordsFromPosition(position: Position): [row: number, col: number] | null {
+  public getFaceCoordsFromPosition(
+    position: Position,
+  ): [row: number, col: number] | null {
     if (!this.isActive || this.currentFace === null) {
       return null;
     }
@@ -346,13 +351,13 @@ export class FaceRenderer {
     const layer = this.currentLayer;
 
     switch (face) {
-      case 'i': // layer=i, rows=j, columns=k
+      case "i": // layer=i, rows=j, columns=k
         if (i !== layer) return null;
         return [j, k];
-      case 'j': // layer=j, rows=i, columns=k
+      case "j": // layer=j, rows=i, columns=k
         if (j !== layer) return null;
         return [i, k];
-      case 'k': // layer=k, rows=i, columns=j
+      case "k": // layer=k, rows=i, columns=j
         if (k !== layer) return null;
         return [i, j];
     }

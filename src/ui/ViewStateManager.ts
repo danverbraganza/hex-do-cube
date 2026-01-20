@@ -194,7 +194,6 @@ export class ViewStateManager {
       // Set up camera animation with completion callback
       this.sceneManager.setFaceOnView(face, targetLayer, () => {
         // TRANSITION COMPLETE: Ensure visibility is correct after animation
-        console.log("hiding all but", face, targetLayer);
         this.cubeRenderer.hideAllButCurrentLayer(face, targetLayer);
       });
 
@@ -218,18 +217,13 @@ export class ViewStateManager {
 
     // Update state
     this.currentMode = "3d-rotational";
-
-    // VISUAL PIZZAZZ: Reveal entire cube during transition
     this.cubeRenderer.revealEntireCube();
 
-    // Coordinate all components
     this.faceRenderer.exitFaceOnView();
 
     // Set up camera animation with completion callback
     this.sceneManager.resetCamera(() => {
-      // TRANSITION COMPLETE: Show all layers for 3D view
       this.cubeRenderer.setMode("3d");
-      this.cubeRenderer.hideAllButCurrentLayer(null, null);
     });
 
     this.minimapRenderer.setHighlightedFace(null);
