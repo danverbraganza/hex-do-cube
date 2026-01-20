@@ -30,10 +30,10 @@ describe('InputController - Mouse Rotation in Isometric View', () => {
       getCamera: mock(() => ({
         position: { x: 10, y: 10, z: 10, clone: () => ({ x: 10, y: 10, z: 10, equals: () => false }) },
       })),
-      resetCamera: mock((_animated?: boolean, onComplete?: () => void) => {
+      resetCamera: mock((onComplete?: () => void) => {
         if (onComplete) onComplete();
       }),
-      setFaceOnView: mock((_face: any, _layer: any, _animated?: boolean, onComplete?: () => void) => {
+      setFaceOnView: mock((_face: any, _layer: any, onComplete?: () => void) => {
         if (onComplete) onComplete();
       }),
       updateFaceOnLayer: mock(() => {}),

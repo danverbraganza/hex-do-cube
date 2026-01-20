@@ -256,26 +256,17 @@ export class SceneManager {
 
   /**
    * Reset camera to canonical isometric view with smooth animation
-   * @param animated - Whether to animate the transition (default: true)
    * @param onComplete - Optional callback to execute when animation completes
    */
-  public resetCamera(animated: boolean = true, onComplete?: () => void): void {
+  public resetCamera(onComplete?: () => void): void {
     // Switch to perspective camera for 3D rotational view
     this.cameraMode = 'isometric';
     this.currentCamera = this.perspectiveCamera;
 
-    if (animated) {
-      const distance = this.cameraDistance;
-      const targetPosition = new THREE.Vector3(distance, distance, distance);
-      const targetUp = new THREE.Vector3(0, 1, 0);
-      this.animateCameraTo(targetPosition, targetUp, 400, onComplete);
-    } else {
-      this.setupCanonicalView();
-      // Call completion callback immediately if not animating
-      if (onComplete) {
-        onComplete();
-      }
-    }
+    const distance = this.cameraDistance;
+    const targetPosition = new THREE.Vector3(distance, distance, distance);
+    const targetUp = new THREE.Vector3(0, 1, 0);
+    this.animateCameraTo(targetPosition, targetUp, 400, onComplete);
   }
 
   /**
@@ -422,31 +413,18 @@ export class SceneManager {
    * Set camera to face-on view for a specific face with smooth animation
    * @param face - The face to view ('i', 'j', or 'k')
    * @param layer - The layer depth (0-15)
-   * @param animated - Whether to animate the transition (default: true)
    * @param onComplete - Optional callback to execute when animation completes
    *
    * Camera is positioned to look at the specific layer plane.
    * Uses orthographic camera for true 2D appearance.
    */
-  public setFaceOnView(face: 'i' | 'j' | 'k', layer: number, animated: boolean = true, onComplete?: () => void): void {
+  public setFaceOnView(face: 'i' | 'j' | 'k', layer: number, onComplete?: () => void): void {
     // Switch to orthographic camera for face-on view
     this.cameraMode = 'face-on';
     this.currentCamera = this.orthographicCamera;
 
     const { position, lookAt, up } = this.calculateFaceOnCameraParams(face, layer);
-
-    if (animated) {
-      this.animateCameraToWithLookAt(position, lookAt, up, 400, onComplete);
-    } else {
-      // Instant snap
-      this.orthographicCamera.position.copy(position);
-      this.orthographicCamera.up.copy(up);
-      this.orthographicCamera.lookAt(lookAt);
-      // Call completion callback immediately if not animating
-      if (onComplete) {
-        onComplete();
-      }
-    }
+    this.animateCameraToWithLookAt(position, lookAt, up, 400, onComplete);
   }
 
   /**
@@ -492,22 +470,14 @@ export class SceneManager {
    * Update camera position for a layer change in face-on view
    * @param face - The current face being viewed
    * @param layer - The new layer depth (0-15)
-   * @param animated - Whether to animate the transition (default: true)
    */
-  public updateFaceOnLayer(face: 'i' | 'j' | 'k', layer: number, animated: boolean = true): void {
+  public updateFaceOnLayer(face: 'i' | 'j' | 'k', layer: number): void {
     if (this.cameraMode !== 'face-on') {
       return; // Only update in face-on mode
     }
 
     const { position, lookAt, up } = this.calculateFaceOnCameraParams(face, layer);
-
-    if (animated) {
-      this.animateCameraToWithLookAt(position, lookAt, up);
-    } else {
-      this.orthographicCamera.position.copy(position);
-      this.orthographicCamera.up.copy(up);
-      this.orthographicCamera.lookAt(lookAt);
-    }
+    this.animateCameraToWithLookAt(position, lookAt, up);
   }
 
   /**

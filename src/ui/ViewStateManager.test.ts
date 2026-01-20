@@ -24,7 +24,7 @@ class MockSceneManager implements Partial<SceneManager> {
   public resetCameraCalls: number = 0;
   public camera = new MockCamera();
 
-  setFaceOnView(face: Face, layer: number, _animated?: boolean, onComplete?: () => void): void {
+  setFaceOnView(face: Face, layer: number, onComplete?: () => void): void {
     this.setFaceOnViewCalls.push({ face, layer });
     // Call completion callback immediately in tests (no actual animation)
     if (onComplete) {
@@ -32,7 +32,7 @@ class MockSceneManager implements Partial<SceneManager> {
     }
   }
 
-  resetCamera(_animated?: boolean, onComplete?: () => void): void {
+  resetCamera(onComplete?: () => void): void {
     this.resetCameraCalls++;
     // Call completion callback immediately in tests (no actual animation)
     if (onComplete) {

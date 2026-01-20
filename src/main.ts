@@ -253,7 +253,7 @@ export function init(): void {
   faceRenderer.onLayerChange((face, layer) => {
     gameUI.updateLayerIndicator(layer);
     // Move camera to follow the layer
-    sceneManager.updateFaceOnLayer(face, layer, true);
+    sceneManager.updateFaceOnLayer(face, layer);
   });
 
   // 15. Set up auto-save on cell value changes

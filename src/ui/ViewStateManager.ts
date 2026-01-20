@@ -188,7 +188,7 @@ export class ViewStateManager {
       this.faceRenderer.enterFaceOnView(face, targetLayer);
 
       // Set up camera animation with completion callback
-      this.sceneManager.setFaceOnView(face, targetLayer, true, () => {
+      this.sceneManager.setFaceOnView(face, targetLayer, () => {
         // TRANSITION COMPLETE: Ensure visibility is correct after animation
         this.cubeRenderer.hideAllButCurrentLayer(face, targetLayer);
       });
@@ -221,7 +221,7 @@ export class ViewStateManager {
     this.faceRenderer.exitFaceOnView();
 
     // Set up camera animation with completion callback
-    this.sceneManager.resetCamera(true, () => {
+    this.sceneManager.resetCamera(() => {
       // TRANSITION COMPLETE: Show all layers for 3D view
       this.cubeRenderer.setMode('3d');
       this.cubeRenderer.hideAllButCurrentLayer(null, null);
