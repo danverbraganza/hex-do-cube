@@ -409,20 +409,21 @@ body.hdc-app {
   left: 0;
   right: 0;
   height: 28px;
-  background: #d0e3ed;
-  color: var(--hdc-text-secondary);
+  background: #ffffff;
+  color: #1a1a1a;
   font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 50;
-  border-top: 1px solid rgba(184, 212, 230, 0.5);
+  border-top: 1px solid #e0e0e0;
 }
 
 .hdc-sculptor-badge a {
-  color: #6dccbd;
+  color: #1a1a1a;
   text-decoration: none;
   margin-left: 4px;
+  font-weight: 600;
 }
 
 .hdc-sculptor-badge a:hover {
