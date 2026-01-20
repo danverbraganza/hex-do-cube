@@ -19,21 +19,31 @@
  * - Future optimization: Frustum culling per layer in face-on mode (P3 priority)
  */
 
-import * as THREE from 'three';
-import type { Cube } from '../models/Cube.js';
-import type { Cell, Position } from '../models/Cell.js';
-import { positionKey } from '../models/Cell.js';
-import { ValueSpriteRenderer } from './ValueSpriteRenderer.js';
-import { COLORS, OPACITY } from '../config/RenderConfig.js';
-import { PALETTE } from '../config/ColorPalette.js';
-import { calculateSpacing, calculateCenterOffset, cellPositionToWorld } from './geometry.js';
+import * as THREE from "three";
+import type { Cube } from "../models/Cube.js";
+import type { Cell, Position } from "../models/Cell.js";
+import { positionKey } from "../models/Cell.js";
+import { ValueSpriteRenderer } from "./ValueSpriteRenderer.js";
+import { COLORS, OPACITY } from "../config/RenderConfig.js";
+import { PALETTE } from "../config/ColorPalette.js";
+import {
+  calculateSpacing,
+  calculateCenterOffset,
+  cellPositionToWorld,
+} from "./geometry.js";
 
 /**
  * Visual state for a cell (hover, selected, error, conflict-given, wrong)
  * - 'conflict-given': Green highlight for given cells involved in conflicts
  * - 'wrong': Red highlight for user-entered cells with incorrect values
  */
-export type CellState = 'normal' | 'hover' | 'selected' | 'error' | 'conflict-given' | 'wrong';
+export type CellState =
+  | "normal"
+  | "hover"
+  | "selected"
+  | "error"
+  | "conflict-given"
+  | "wrong";
 
 /**
  * Configuration for CubeRenderer
@@ -102,7 +112,7 @@ export class CubeRenderer {
   private spriteRenderer: ValueSpriteRenderer;
 
   // Current rendering mode
-  private renderMode: '3d' | 'face-on' = '3d';
+  private renderMode: "3d" | "face-on" = "3d";
 
   constructor(cube: Cube, config: CubeRendererConfig = {}) {
     this.cube = cube;
@@ -118,7 +128,8 @@ export class CubeRenderer {
       hoverColor: config.hoverColor ?? PALETTE.cell.hover.hex,
       selectedColor: config.selectedColor ?? PALETTE.cell.selected.hex,
       errorColor: config.errorColor ?? PALETTE.cell.error.hex,
-      conflictGivenColor: config.conflictGivenColor ?? PALETTE.cell.conflictGiven.hex,
+      conflictGivenColor:
+        config.conflictGivenColor ?? PALETTE.cell.conflictGiven.hex,
       wrongColor: config.wrongColor ?? PALETTE.cell.wrong.hex,
     };
 
@@ -126,14 +137,14 @@ export class CubeRenderer {
     // The container itself stays at (0, 0, 0) - all child meshes are positioned
     // relative to this origin with offsets that center the cube's geometric center at (0, 0, 0)
     this.container = new THREE.Group();
-    this.container.name = 'CubeRenderer';
+    this.container.name = "CubeRenderer";
     this.container.position.set(0, 0, 0); // Explicitly set to origin (redundant but clear)
 
     // Create shared geometry
     this.cellGeometry = new THREE.BoxGeometry(
       this.config.cellSize,
       this.config.cellSize,
-      this.config.cellSize
+      this.config.cellSize,
     );
 
     // Create materials
@@ -227,16 +238,18 @@ export class CubeRenderer {
 
           // Position mesh using shared geometry utilities
           const worldPos = cellPositionToWorld(
-            i, j, k,
+            i,
+            j,
+            k,
             this.config.cellSize,
-            this.config.cellGap
+            this.config.cellGap,
           );
           mesh.position.set(worldPos.x, worldPos.y, worldPos.z);
 
           // Store mesh reference
           const key = positionKey([i, j, k]);
           this.cellMeshes.set(key, mesh);
-          this.cellStates.set(key, 'normal');
+          this.cellStates.set(key, "normal");
 
           // Add to container
           this.container.add(mesh);
@@ -249,7 +262,7 @@ export class CubeRenderer {
    * Create a mesh for a single cell
    */
   private createCellMesh(cell: Cell): THREE.Mesh {
-    const material = this.getMaterialForCell(cell, 'normal');
+    const material = this.getMaterialForCell(cell, "normal");
     const mesh = new THREE.Mesh(this.cellGeometry, material);
 
     // Store cell position in userData for picking
@@ -264,16 +277,16 @@ export class CubeRenderer {
    */
   private getMaterialForCell(cell: Cell, state: CellState): THREE.Material {
     // State-based materials take precedence
-    if (state === 'hover') return this.materials.hover;
-    if (state === 'selected') return this.materials.selected;
-    if (state === 'error') return this.materials.error;
-    if (state === 'conflict-given') return this.materials.conflictGiven;
-    if (state === 'wrong') return this.materials.wrong;
+    if (state === "hover") return this.materials.hover;
+    if (state === "selected") return this.materials.selected;
+    if (state === "error") return this.materials.error;
+    if (state === "conflict-given") return this.materials.conflictGiven;
+    if (state === "wrong") return this.materials.wrong;
 
     // Default materials based on cell value and type
     if (cell.value === null) {
       return this.materials.empty;
-    } else if (cell.type === 'given') {
+    } else if (cell.type === "given") {
       return this.materials.givenFilled;
     } else {
       return this.materials.editableFilled;
@@ -290,7 +303,7 @@ export class CubeRenderer {
 
     const [i, j, k] = position;
     const cell = this.cube.cells[i][j][k];
-    const state = this.cellStates.get(key) ?? 'normal';
+    const state = this.cellStates.get(key) ?? "normal";
 
     mesh.material = this.getMaterialForCell(cell, state);
     mesh.userData.cell = cell;
@@ -316,7 +329,7 @@ export class CubeRenderer {
    * In 3D mode, cells are rendered translucent for see-through effect
    * @param mode - '3d' for 3D rotational view, 'face-on' for face editing view
    */
-  public setMode(mode: '3d' | 'face-on'): void {
+  public setMode(mode: "3d" | "face-on"): void {
     if (this.renderMode === mode) {
       return; // No change needed
     }
@@ -324,7 +337,7 @@ export class CubeRenderer {
     this.renderMode = mode;
 
     // Update cell material opacities based on mode
-    if (mode === 'face-on') {
+    if (mode === "face-on") {
       // In face-on mode, all cells should be opaque to prevent seeing through layers
       this.materials.empty.opacity = 1.0;
       this.materials.givenFilled.opacity = 1.0;
@@ -354,14 +367,14 @@ export class CubeRenderer {
    */
   public getCellState(position: Position): CellState {
     const key = positionKey(position);
-    return this.cellStates.get(key) ?? 'normal';
+    return this.cellStates.get(key) ?? "normal";
   }
 
   /**
    * Clear the state of a cell back to normal
    */
   public clearCellState(position: Position): void {
-    this.setCellState(position, 'normal');
+    this.setCellState(position, "normal");
   }
 
   /**
@@ -369,7 +382,7 @@ export class CubeRenderer {
    */
   public clearAllStates(): void {
     for (const key of this.cellStates.keys()) {
-      this.cellStates.set(key, 'normal');
+      this.cellStates.set(key, "normal");
     }
     this.updateAllCells();
   }
@@ -413,7 +426,10 @@ export class CubeRenderer {
    * This method now delegates to setExclusiveVisibleLayer() to ensure
    * atomic visibility control for both cells and sprites.
    */
-  public setVisibleLayer(face: 'i' | 'j' | 'k' | null, layer: number | null): void {
+  public setVisibleLayer(
+    face: "i" | "j" | "k" | null,
+    layer: number | null,
+  ): void {
     this.setExclusiveVisibleLayer(face, layer);
   }
 
@@ -444,13 +460,15 @@ export class CubeRenderer {
   public pickCell(
     camera: THREE.Camera,
     mouseX: number,
-    mouseY: number
+    mouseY: number,
   ): Position | null {
     // Set up raycaster from mouse position
     this.raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), camera);
 
     // Find intersections with visible meshes only
-    const visibleMeshes = Array.from(this.cellMeshes.values()).filter(m => m.visible);
+    const visibleMeshes = Array.from(this.cellMeshes.values()).filter(
+      (m) => m.visible,
+    );
     const intersects = this.raycaster.intersectObjects(visibleMeshes, false);
 
     if (intersects.length > 0) {
@@ -535,34 +553,24 @@ export class CubeRenderer {
     this.updateAllCells();
   }
 
-
   /**
    * Hide all layers except the current one after transition
    * This is called after face transitions complete to return to normal rendering
    * @param face - The face being viewed ('i', 'j', or 'k'), or null for 3D view
    * @param layer - The layer index (0-15), or null for 3D view
    */
-  public hideAllButCurrentLayer(face: 'i' | 'j' | 'k' | null, layer: number | null): void {
-    // Restore normal opacity based on current mode
-    if (this.renderMode === 'face-on') {
-      // Face-on mode: opaque cells
-      this.materials.empty.opacity = 1.0;
-      this.materials.givenFilled.opacity = 1.0;
-      this.materials.editableFilled.opacity = 1.0;
-    } else {
-      // 3D mode: translucent cells
-      this.materials.empty.opacity = this.config.emptyOpacity;
-      this.materials.givenFilled.opacity = this.config.filledOpacity;
-      this.materials.editableFilled.opacity = this.config.filledOpacity;
-    }
+  public hideAllButCurrentLayer(
+    face: "i" | "j" | "k" | null,
+    layer: number | null,
+  ): void {
+    // Face-on mode: opaque cells
+    this.materials.empty.opacity = 1.0;
+    this.materials.givenFilled.opacity = 1.0;
+    this.materials.editableFilled.opacity = 1.0;
 
     // Atomically set layer visibility (hides cells and sprites for non-active layers)
     this.setExclusiveVisibleLayer(face, layer);
-
-    // Update all cells to reflect the restored state
-    this.updateAllCells();
   }
-
 
   /**
    * Set exclusive visible layer - guarantees single layer visibility
@@ -578,7 +586,10 @@ export class CubeRenderer {
    *
    * This method is idempotent - calling it twice with the same arguments has no additional effect.
    */
-  public setExclusiveVisibleLayer(face: 'i' | 'j' | 'k' | null, layer: number | null): void {
+  public setExclusiveVisibleLayer(
+    face: "i" | "j" | "k" | null,
+    layer: number | null,
+  ): void {
     if (face === null || layer === null) {
       // 3D view mode: show all layers
       for (const mesh of this.cellMeshes.values()) {
@@ -598,14 +609,14 @@ export class CubeRenderer {
           // Determine if this cell/sprite should be visible
           let visible = false;
           switch (face) {
-            case 'i': // XY plane, layer is i index
-              visible = (i === layer);
+            case "i": // XY plane, layer is i index
+              visible = i === layer;
               break;
-            case 'j': // XZ plane, layer is j index
-              visible = (j === layer);
+            case "j": // XZ plane, layer is j index
+              visible = j === layer;
               break;
-            case 'k': // YZ plane, layer is k index
-              visible = (k === layer);
+            case "k": // YZ plane, layer is k index
+              visible = k === layer;
               break;
           }
 
@@ -629,16 +640,23 @@ export class CubeRenderer {
    *
    * @returns The min and max corners of the cube's bounding box
    */
-  public getCubeBounds(): { min: THREE.Vector3; max: THREE.Vector3; center: THREE.Vector3 } {
+  public getCubeBounds(): {
+    min: THREE.Vector3;
+    max: THREE.Vector3;
+    center: THREE.Vector3;
+  } {
     const spacing = calculateSpacing(this.config.cellSize, this.config.cellGap);
-    const offset = calculateCenterOffset(this.config.cellSize, this.config.cellGap);
+    const offset = calculateCenterOffset(
+      this.config.cellSize,
+      this.config.cellGap,
+    );
     const numCells = 16;
     const maxIndex = numCells - 1;
 
     // Calculate bounds after offset is applied
     const cellHalfSize = this.config.cellSize / 2;
-    const minPos = 0 * spacing - offset - cellHalfSize;  // Cell 0's min edge
-    const maxPos = maxIndex * spacing - offset + cellHalfSize;  // Cell 15's max edge
+    const minPos = 0 * spacing - offset - cellHalfSize; // Cell 0's min edge
+    const maxPos = maxIndex * spacing - offset + cellHalfSize; // Cell 15's max edge
 
     return {
       min: new THREE.Vector3(minPos, minPos, minPos),
@@ -646,8 +664,8 @@ export class CubeRenderer {
       center: new THREE.Vector3(
         (minPos + maxPos) / 2,
         (minPos + maxPos) / 2,
-        (minPos + maxPos) / 2
-      )
+        (minPos + maxPos) / 2,
+      ),
     };
   }
 }

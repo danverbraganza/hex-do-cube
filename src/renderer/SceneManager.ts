@@ -11,10 +11,10 @@
  * - Provide camera rotation controls
  */
 
-import * as THREE from 'three';
-import { COLORS, LIGHTING } from '../config/RenderConfig.js';
+import * as THREE from "three";
+import { COLORS, LIGHTING } from "../config/RenderConfig.js";
 
-export type CameraMode = 'isometric' | 'face-on';
+export type CameraMode = "isometric" | "face-on";
 
 export interface SceneManagerConfig {
   container: HTMLElement;
@@ -39,7 +39,7 @@ export class SceneManager {
   private perspectiveCamera: THREE.PerspectiveCamera;
   private orthographicCamera: THREE.OrthographicCamera;
   private currentCamera: THREE.Camera;
-  private cameraMode: CameraMode = 'isometric';
+  private cameraMode: CameraMode = "isometric";
   private renderer: THREE.WebGLRenderer;
   private container: HTMLElement;
 
@@ -80,7 +80,7 @@ export class SceneManager {
   constructor(config: SceneManagerConfig) {
     // Ensure only one instance exists
     if (SceneManager.instance) {
-      console.warn('SceneManager: Previous instance exists, disposing it');
+      console.warn("SceneManager: Previous instance exists, disposing it");
       SceneManager.instance.dispose();
     }
     SceneManager.instance = this;
@@ -91,7 +91,7 @@ export class SceneManager {
     // Initialize scene
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(
-      config.backgroundColor ?? COLORS.BACKGROUND
+      config.backgroundColor ?? COLORS.BACKGROUND,
     );
 
     // Initialize perspective camera for isometric-style view
@@ -100,7 +100,7 @@ export class SceneManager {
       config.fov ?? 50,
       aspect,
       config.near ?? 0.1,
-      config.far ?? 1000
+      config.far ?? 1000,
     );
 
     // Initialize orthographic camera for face-on view
@@ -109,11 +109,11 @@ export class SceneManager {
     const orthoSize = 10; // Half-size to show in each direction
     this.orthographicCamera = new THREE.OrthographicCamera(
       -orthoSize * aspect, // left
-      orthoSize * aspect,  // right
-      orthoSize,           // top
-      -orthoSize,          // bottom
+      orthoSize * aspect, // right
+      orthoSize, // top
+      -orthoSize, // bottom
       config.near ?? 0.1,
-      config.far ?? 1000
+      config.far ?? 1000,
     );
 
     // Start with perspective camera
@@ -128,7 +128,10 @@ export class SceneManager {
       antialias: true,
       alpha: config.backgroundAlpha !== undefined && config.backgroundAlpha < 1,
     });
-    this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+    this.renderer.setSize(
+      this.container.clientWidth,
+      this.container.clientHeight,
+    );
     this.renderer.setPixelRatio(window.devicePixelRatio);
 
     // Enable alpha for translucent rendering
@@ -144,7 +147,7 @@ export class SceneManager {
 
     // Handle window resize
     this.handleResize = this.handleResize.bind(this);
-    window.addEventListener('resize', this.handleResize);
+    window.addEventListener("resize", this.handleResize);
   }
 
   /**
@@ -185,14 +188,14 @@ export class SceneManager {
     // Ambient light provides base illumination
     this.ambientLight = new THREE.AmbientLight(
       LIGHTING.LIGHT_COLOR,
-      LIGHTING.AMBIENT_INTENSITY
+      LIGHTING.AMBIENT_INTENSITY,
     );
     this.scene.add(this.ambientLight);
 
     // Directional light adds depth and highlights
     this.directionalLight = new THREE.DirectionalLight(
       LIGHTING.LIGHT_COLOR,
-      LIGHTING.DIRECTIONAL_INTENSITY
+      LIGHTING.DIRECTIONAL_INTENSITY,
     );
     this.directionalLight.position.set(10, 10, 10);
     this.scene.add(this.directionalLight);
@@ -231,7 +234,7 @@ export class SceneManager {
    */
   public rotateCamera(deltaAzimuth: number, deltaPolar: number): void {
     // Only rotate in isometric mode
-    if (this.cameraMode !== 'isometric') {
+    if (this.cameraMode !== "isometric") {
       return;
     }
 
@@ -245,7 +248,10 @@ export class SceneManager {
 
     // Clamp phi to prevent camera from flipping
     const epsilon = 0.001;
-    spherical.phi = Math.max(epsilon, Math.min(Math.PI - epsilon, spherical.phi));
+    spherical.phi = Math.max(
+      epsilon,
+      Math.min(Math.PI - epsilon, spherical.phi),
+    );
 
     // Convert back to Cartesian coordinates
     this.perspectiveCamera.position.setFromSpherical(spherical);
@@ -260,7 +266,7 @@ export class SceneManager {
    */
   public resetCamera(onComplete?: () => void): void {
     // Switch to perspective camera for 3D rotational view
-    this.cameraMode = 'isometric';
+    this.cameraMode = "isometric";
     this.currentCamera = this.perspectiveCamera;
 
     const distance = this.cameraDistance;
@@ -274,9 +280,7 @@ export class SceneManager {
    * Returns a smooth interpolation value between 0 and 1
    */
   private easeInOutCubic(t: number): number {
-    return t < 0.5
-      ? 4 * t * t * t
-      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   }
 
   /**
@@ -290,10 +294,16 @@ export class SceneManager {
     targetPosition: THREE.Vector3,
     targetUp: THREE.Vector3,
     duration: number = 400,
-    onComplete?: () => void
+    onComplete?: () => void,
   ): void {
     // For backward compatibility, animate looking at origin
-    this.animateCameraToWithLookAt(targetPosition, new THREE.Vector3(0, 0, 0), targetUp, duration, onComplete);
+    this.animateCameraToWithLookAt(
+      targetPosition,
+      new THREE.Vector3(0, 0, 0),
+      targetUp,
+      duration,
+      onComplete,
+    );
   }
 
   /**
@@ -309,7 +319,7 @@ export class SceneManager {
     targetLookAt: THREE.Vector3,
     targetUp: THREE.Vector3,
     duration: number = 400,
-    onComplete?: () => void
+    onComplete?: () => void,
   ): void {
     // If there's an active animation with a pending callback, fire it now
     // This ensures callbacks are never lost when a new animation interrupts
@@ -320,7 +330,10 @@ export class SceneManager {
     }
 
     // Use the currently active camera for animation
-    const camera = this.cameraMode === 'isometric' ? this.perspectiveCamera : this.orthographicCamera;
+    const camera =
+      this.cameraMode === "isometric"
+        ? this.perspectiveCamera
+        : this.orthographicCamera;
 
     // Calculate current lookAt point by projecting forward from camera
     const currentLookAt = new THREE.Vector3();
@@ -359,20 +372,23 @@ export class SceneManager {
     const easedProgress = this.easeInOutCubic(progress);
 
     // Get the camera to animate based on current mode
-    const camera = this.cameraMode === 'isometric' ? this.perspectiveCamera : this.orthographicCamera;
+    const camera =
+      this.cameraMode === "isometric"
+        ? this.perspectiveCamera
+        : this.orthographicCamera;
 
     // Interpolate position
     camera.position.lerpVectors(
       this.cameraAnimation.startPosition,
       this.cameraAnimation.targetPosition,
-      easedProgress
+      easedProgress,
     );
 
     // Interpolate up vector
     camera.up.lerpVectors(
       this.cameraAnimation.startUp,
       this.cameraAnimation.targetUp,
-      easedProgress
+      easedProgress,
     );
 
     // Interpolate lookAt point
@@ -380,7 +396,7 @@ export class SceneManager {
     currentLookAt.lerpVectors(
       this.cameraAnimation.startLookAt,
       this.cameraAnimation.targetLookAt,
-      easedProgress
+      easedProgress,
     );
     camera.lookAt(currentLookAt);
 
@@ -393,6 +409,7 @@ export class SceneManager {
       if (onComplete) {
         // Clear the callback before calling it to prevent potential issues
         this.cameraAnimation.onComplete = undefined;
+        console.log("calling onComplete was", onComplete);
         onComplete();
       }
 
@@ -426,12 +443,19 @@ export class SceneManager {
    * Camera is positioned to look at the specific layer plane.
    * Uses orthographic camera for true 2D appearance.
    */
-  public setFaceOnView(face: 'i' | 'j' | 'k', layer: number, onComplete?: () => void): void {
+  public setFaceOnView(
+    face: "i" | "j" | "k",
+    layer: number,
+    onComplete?: () => void,
+  ): void {
     // Switch to orthographic camera for face-on view
-    this.cameraMode = 'face-on';
+    this.cameraMode = "face-on";
     this.currentCamera = this.orthographicCamera;
 
-    const { position, lookAt, up } = this.calculateFaceOnCameraParams(face, layer);
+    const { position, lookAt, up } = this.calculateFaceOnCameraParams(
+      face,
+      layer,
+    );
     this.animateCameraToWithLookAt(position, lookAt, up, 400, onComplete);
   }
 
@@ -441,7 +465,10 @@ export class SceneManager {
    * @param layer - The layer depth (0-15)
    * @returns Camera position, lookAt point, and up vector
    */
-  private calculateFaceOnCameraParams(face: 'i' | 'j' | 'k', layer: number): {
+  private calculateFaceOnCameraParams(
+    face: "i" | "j" | "k",
+    layer: number,
+  ): {
     position: THREE.Vector3;
     lookAt: THREE.Vector3;
     up: THREE.Vector3;
@@ -454,17 +481,17 @@ export class SceneManager {
     let up: THREE.Vector3;
 
     switch (face) {
-      case 'i': // Top/bottom face (y-axis) - camera looks down/up Y axis
+      case "i": // Top/bottom face (y-axis) - camera looks down/up Y axis
         position = new THREE.Vector3(0, layerPos + distance, 0);
         lookAt = new THREE.Vector3(0, layerPos, 0);
         up = new THREE.Vector3(0, 0, -1);
         break;
-      case 'j': // Right/left face (x-axis) - camera looks along X axis
+      case "j": // Right/left face (x-axis) - camera looks along X axis
         position = new THREE.Vector3(layerPos + distance, 0, 0);
         lookAt = new THREE.Vector3(layerPos, 0, 0);
         up = new THREE.Vector3(0, 1, 0);
         break;
-      case 'k': // Front/back face (z-axis) - camera looks along Z axis
+      case "k": // Front/back face (z-axis) - camera looks along Z axis
         position = new THREE.Vector3(0, 0, layerPos + distance);
         lookAt = new THREE.Vector3(0, 0, layerPos);
         up = new THREE.Vector3(0, 1, 0);
@@ -479,12 +506,15 @@ export class SceneManager {
    * @param face - The current face being viewed
    * @param layer - The new layer depth (0-15)
    */
-  public updateFaceOnLayer(face: 'i' | 'j' | 'k', layer: number): void {
-    if (this.cameraMode !== 'face-on') {
+  public updateFaceOnLayer(face: "i" | "j" | "k", layer: number): void {
+    if (this.cameraMode !== "face-on") {
       return; // Only update in face-on mode
     }
 
-    const { position, lookAt, up } = this.calculateFaceOnCameraParams(face, layer);
+    const { position, lookAt, up } = this.calculateFaceOnCameraParams(
+      face,
+      layer,
+    );
     this.animateCameraToWithLookAt(position, lookAt, up);
   }
 
@@ -493,7 +523,10 @@ export class SceneManager {
    * @param speed - Rotation speed in radians per second (default: Math.PI / 6, which is 30 degrees/sec)
    * @param axis - Rotation axis (default: Y axis for horizontal rotation)
    */
-  public startAutoRotation(speed: number = Math.PI / 6, axis: THREE.Vector3 = new THREE.Vector3(0, 1, 0)): void {
+  public startAutoRotation(
+    speed: number = Math.PI / 6,
+    axis: THREE.Vector3 = new THREE.Vector3(0, 1, 0),
+  ): void {
     this.autoRotation.active = true;
     this.autoRotation.speed = speed;
     this.autoRotation.axis = axis.clone().normalize();
@@ -518,7 +551,7 @@ export class SceneManager {
    * Update auto-rotation (called each frame)
    */
   private updateAutoRotation(): void {
-    if (!this.autoRotation.active || this.cameraMode !== 'isometric') {
+    if (!this.autoRotation.active || this.cameraMode !== "isometric") {
       return;
     }
 
@@ -658,7 +691,7 @@ export class SceneManager {
     this.isDisposed = true;
 
     this.stopRenderLoop();
-    window.removeEventListener('resize', this.handleResize);
+    window.removeEventListener("resize", this.handleResize);
 
     // Remove canvas from container
     if (this.renderer.domElement.parentElement === this.container) {

@@ -13,19 +13,19 @@
  * ensuring all transitions are properly coordinated.
  */
 
-import * as THREE from 'three';
-import type { SceneManager } from '../renderer/SceneManager.js';
-import type { FaceRenderer, Face } from '../renderer/FaceRenderer.js';
-import type { MinimapRenderer } from '../renderer/MinimapRenderer.js';
-import type { SubsquareSeparatorRenderer } from '../renderer/SubsquareSeparatorRenderer.js';
-import type { CubeRenderer } from '../renderer/CubeRenderer.js';
-import type { CellStateManager } from './CellStateManager.js';
-import type { Position } from '../models/Cell.js';
+import * as THREE from "three";
+import type { SceneManager } from "../renderer/SceneManager.js";
+import type { FaceRenderer, Face } from "../renderer/FaceRenderer.js";
+import type { MinimapRenderer } from "../renderer/MinimapRenderer.js";
+import type { SubsquareSeparatorRenderer } from "../renderer/SubsquareSeparatorRenderer.js";
+import type { CubeRenderer } from "../renderer/CubeRenderer.js";
+import type { CellStateManager } from "./CellStateManager.js";
+import type { Position } from "../models/Cell.js";
 
 /**
  * View mode types
  */
-export type ViewMode = '3d-rotational' | 'face-on';
+export type ViewMode = "3d-rotational" | "face-on";
 
 /**
  * Configuration for ViewStateManager
@@ -42,7 +42,11 @@ export interface ViewStateManagerConfig {
 /**
  * Callback for view mode changes
  */
-export type ViewModeChangeCallback = (mode: ViewMode, face?: Face, layer?: number) => void;
+export type ViewModeChangeCallback = (
+  mode: ViewMode,
+  face?: Face,
+  layer?: number,
+) => void;
 
 /**
  * ViewStateManager coordinates all view transitions
@@ -56,7 +60,7 @@ export class ViewStateManager {
   private cellStateManager?: CellStateManager;
 
   // Current view state
-  private currentMode: ViewMode = '3d-rotational';
+  private currentMode: ViewMode = "3d-rotational";
 
   // Callbacks
   private viewModeChangeCallbacks: ViewModeChangeCallback[] = [];
@@ -84,15 +88,15 @@ export class ViewStateManager {
     const camera = this.sceneManager.getCamera();
 
     switch (face) {
-      case 'i': // Y-axis face
+      case "i": // Y-axis face
         // If camera Y position is positive, outermost is layer 15
         // If camera Y position is negative, outermost is layer 0
         return camera.position.y > 0 ? 15 : 0;
-      case 'j': // X-axis face
+      case "j": // X-axis face
         // If camera X position is positive, outermost is layer 15
         // If camera X position is negative, outermost is layer 0
         return camera.position.x > 0 ? 15 : 0;
-      case 'k': // Z-axis face
+      case "k": // Z-axis face
         // If camera Z position is positive, outermost is layer 15
         // If camera Z position is negative, outermost is layer 0
         return camera.position.z > 0 ? 15 : 0;
@@ -108,11 +112,11 @@ export class ViewStateManager {
   private getLayerForSelectedCell(face: Face, position: Position): number {
     const [i, j, k] = position;
     switch (face) {
-      case 'i': // i-face views XY planes at different i depths
+      case "i": // i-face views XY planes at different i depths
         return i;
-      case 'j': // j-face views XZ planes at different j depths
+      case "j": // j-face views XZ planes at different j depths
         return j;
-      case 'k': // k-face views YZ planes at different k depths
+      case "k": // k-face views YZ planes at different k depths
         return k;
     }
   }
@@ -146,7 +150,7 @@ export class ViewStateManager {
 
     // Check if already in face-on view for the same face and layer
     const alreadyInTargetView =
-      this.currentMode === 'face-on' &&
+      this.currentMode === "face-on" &&
       this.faceRenderer.getCurrentFace() === face &&
       this.faceRenderer.getCurrentLayer() === targetLayer;
 
@@ -157,11 +161,11 @@ export class ViewStateManager {
 
     // Determine if this is a layer change within the same face
     const isLayerChangeOnly =
-      this.currentMode === 'face-on' &&
+      this.currentMode === "face-on" &&
       this.faceRenderer.getCurrentFace() === face;
 
     // Update state
-    this.currentMode = 'face-on';
+    this.currentMode = "face-on";
 
     if (isLayerChangeOnly) {
       // Layer change within same face - use simple layer transition without full face animation
@@ -172,7 +176,7 @@ export class ViewStateManager {
       this.cubeRenderer.setExclusiveVisibleLayer(face, targetLayer);
 
       // Notify listeners of layer change
-      this.notifyViewModeChange('face-on', face, targetLayer);
+      this.notifyViewModeChange("face-on", face, targetLayer);
     } else {
       // Full face transition (from 3D view or different face)
 
@@ -180,8 +184,8 @@ export class ViewStateManager {
       this.cubeRenderer.revealEntireCube();
 
       // Set rendering mode BEFORE visibility (setMode may recreate sprites)
-      this.cubeRenderer.setMode('face-on');
-      this.subsquareSeparatorRenderer?.setMode('face-on', face, targetLayer);
+      this.cubeRenderer.setMode("face-on");
+      this.subsquareSeparatorRenderer?.setMode("face-on", face, targetLayer);
 
       // Set visibility LAST - this is the single source of truth
       // enterFaceOnView calls setExclusiveVisibleLayer which must win
@@ -190,6 +194,7 @@ export class ViewStateManager {
       // Set up camera animation with completion callback
       this.sceneManager.setFaceOnView(face, targetLayer, () => {
         // TRANSITION COMPLETE: Ensure visibility is correct after animation
+        console.log("hiding all but", face, targetLayer);
         this.cubeRenderer.hideAllButCurrentLayer(face, targetLayer);
       });
 
@@ -197,7 +202,7 @@ export class ViewStateManager {
       this.minimapRenderer.setHighlightedLayer(face, targetLayer);
 
       // Notify listeners
-      this.notifyViewModeChange('face-on', face, targetLayer);
+      this.notifyViewModeChange("face-on", face, targetLayer);
     }
   }
 
@@ -207,12 +212,12 @@ export class ViewStateManager {
    */
   public exitFaceOnView(): void {
     // Don't exit if already in 3D view
-    if (this.currentMode === '3d-rotational') {
+    if (this.currentMode === "3d-rotational") {
       return;
     }
 
     // Update state
-    this.currentMode = '3d-rotational';
+    this.currentMode = "3d-rotational";
 
     // VISUAL PIZZAZZ: Reveal entire cube during transition
     this.cubeRenderer.revealEntireCube();
@@ -223,7 +228,7 @@ export class ViewStateManager {
     // Set up camera animation with completion callback
     this.sceneManager.resetCamera(() => {
       // TRANSITION COMPLETE: Show all layers for 3D view
-      this.cubeRenderer.setMode('3d');
+      this.cubeRenderer.setMode("3d");
       this.cubeRenderer.hideAllButCurrentLayer(null, null);
     });
 
@@ -231,12 +236,12 @@ export class ViewStateManager {
     this.minimapRenderer.setHighlightedLayer(null, null);
 
     // Set rendering mode for 3D
-    this.cubeRenderer.setMode('3d');
+    this.cubeRenderer.setMode("3d");
 
-    this.subsquareSeparatorRenderer?.setMode('3d');
+    this.subsquareSeparatorRenderer?.setMode("3d");
 
     // Notify listeners
-    this.notifyViewModeChange('3d-rotational');
+    this.notifyViewModeChange("3d-rotational");
   }
 
   /**
@@ -265,7 +270,7 @@ export class ViewStateManager {
    * Get the current layer being viewed (only valid in face-on mode)
    */
   public getCurrentLayer(): number | null {
-    if (this.currentMode !== 'face-on') {
+    if (this.currentMode !== "face-on") {
       return null;
     }
     return this.faceRenderer.getCurrentLayer();
@@ -275,7 +280,7 @@ export class ViewStateManager {
    * Check if currently in face-on view
    */
   public isInFaceOnView(): boolean {
-    return this.currentMode === 'face-on';
+    return this.currentMode === "face-on";
   }
 
   /**
@@ -284,7 +289,7 @@ export class ViewStateManager {
    */
   public update(): void {
     // Update FaceRenderer animations (layer transitions)
-    if (this.currentMode === 'face-on') {
+    if (this.currentMode === "face-on") {
       this.faceRenderer.update();
     }
   }
@@ -322,7 +327,11 @@ export class ViewStateManager {
   /**
    * Notify all listeners of a view mode change
    */
-  private notifyViewModeChange(mode: ViewMode, face?: Face, layer?: number): void {
+  private notifyViewModeChange(
+    mode: ViewMode,
+    face?: Face,
+    layer?: number,
+  ): void {
     for (const callback of [...this.viewModeChangeCallbacks]) {
       callback(mode, face, layer);
     }
@@ -335,14 +344,14 @@ export class ViewStateManager {
   public syncState(): void {
     const faceRendererActive = this.faceRenderer.isActiveView();
 
-    if (this.currentMode === 'face-on' && !faceRendererActive) {
+    if (this.currentMode === "face-on" && !faceRendererActive) {
       // State mismatch: we think we're in face-on but FaceRenderer doesn't
       // Force exit to 3D view
-      this.currentMode = '3d-rotational';
+      this.currentMode = "3d-rotational";
       this.sceneManager.resetCamera();
       this.minimapRenderer.setHighlightedFace(null);
       this.minimapRenderer.setHighlightedLayer(null, null);
-    } else if (this.currentMode === '3d-rotational' && faceRendererActive) {
+    } else if (this.currentMode === "3d-rotational" && faceRendererActive) {
       // State mismatch: FaceRenderer thinks it's active but we don't
       // Force FaceRenderer to exit
       this.faceRenderer.exitFaceOnView();
