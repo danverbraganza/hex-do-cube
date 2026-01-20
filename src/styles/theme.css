@@ -252,7 +252,7 @@ body.hdc-app {
   position: fixed;
   top: 0;
   right: 0;
-  bottom: 0;
+  bottom: 28px; /* Leave room for Sculptor badge footer */
   width: 280px;
   background: rgba(232, 238, 249, 0.96);
   border-left: 1px solid rgba(184, 212, 230, 0.5);
