@@ -311,6 +311,14 @@ export class SceneManager {
     duration: number = 400,
     onComplete?: () => void
   ): void {
+    // If there's an active animation with a pending callback, fire it now
+    // This ensures callbacks are never lost when a new animation interrupts
+    if (this.cameraAnimation?.active && this.cameraAnimation.onComplete) {
+      const pendingCallback = this.cameraAnimation.onComplete;
+      this.cameraAnimation.onComplete = undefined;
+      pendingCallback();
+    }
+
     // Use the currently active camera for animation
     const camera = this.cameraMode === 'isometric' ? this.perspectiveCamera : this.orthographicCamera;
 
